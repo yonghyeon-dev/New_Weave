@@ -762,7 +762,7 @@ export default function WeaveAssistant() {
         <Card variant="outlined" className="p-4">
           <Typography variant="h4" className="mb-4 flex items-center gap-2">
             📁 파일 처리 결과
-            <Badge variant="success">완료</Badge>
+            <Badge variant="primary">완료</Badge>
           </Typography>
           
           <div className="space-y-4">
@@ -909,7 +909,7 @@ export default function WeaveAssistant() {
         <Card variant="outlined" className="p-4">
           <Typography variant="h4" className="mb-4 flex items-center gap-2">
             🏢 사업자 정보
-            <Badge variant={result.isActive ? 'success' : 'destructive'}>
+            <Badge variant={result.isActive ? 'primary' : 'destructive'}>
               {result.status}
             </Badge>
           </Typography>
@@ -1033,9 +1033,6 @@ export default function WeaveAssistant() {
                     <span className="text-xl flex-shrink-0">{tab.icon}</span>
                     <div className="flex-1 min-w-0">
                       <div className="font-medium">{tab.label}</div>
-                      <div className="text-xs text-gray-500 mt-0.5 leading-tight">
-                        {tab.description}
-                      </div>
                     </div>
                   </div>
                 </Button>

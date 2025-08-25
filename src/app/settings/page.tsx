@@ -337,7 +337,7 @@ export default function SettingsPage() {
             <Button variant="outline" className="w-full">
               로그인 기록 확인
             </Button>
-            <Button variant="destructive" className="w-full">
+            <Button variant="danger" className="w-full">
               계정 삭제
             </Button>
           </div>

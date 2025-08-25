@@ -10,7 +10,7 @@ import { cn } from '@/lib/utils';
 
 type ViewMode = 'week' | 'month' | 'year';
 
-interface CalendarEvent {
+export interface CalendarEvent {
   id: string;
   title: string;
   date: string; // YYYY-MM-DD
