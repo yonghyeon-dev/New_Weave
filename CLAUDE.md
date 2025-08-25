@@ -20,3 +20,24 @@ NEVER proactively create documentation files (*.md) or README files. Only create
 목표 달성에 절대적으로 필요한 경우가 아니라면 파일을 생성하지 마세요.
 항상 새 파일을 만드는 것보다 기존 파일을 편집하는 것을 우선하세요.
 사용자가 명시적으로 요청하지 않는 한 문서 파일(*.md)이나 README 파일을 먼저 생성하지 마세요.
+
+# version-management-rules (버전 관리 규칙)
+Follow these versioning rules consistently across all releases and documentation:
+
+## Version Structure (버전 구조)
+- **Production Version**: `V{Major}.{Minor}.{Patch}_{YYMMDD}`
+- **Development Version**: `V{Major}.{Minor}.{Patch}_{YYMMDD}_REV{Sequential Number}`
+
+## Version Update Rules (버전 업데이트 규칙)
+- **Major (Refactoring Level)**: Large structural changes, breaking compatibility, architectural redesign
+- **Minor (Feature Addition Level)**: New features, existing feature improvements  
+- **Patch (Bug Fix Level)**: Bug fixes, minor improvements
+- **REV (Development Iteration)**: Development progress within same version
+- **Post-Deployment REV Reset**: Reset REV number to 001 after deployment completion
+
+## Version Increment Examples (버전 증가 예시)
+- Bug fix: `V1.0.1` → `V1.0.2`
+- Feature addition: `V1.0.2` → `V1.1.0`
+- Refactoring: `V1.1.0` → `V2.0.0`
+- Development progress: `REV013` → `REV014`
+- **Post-deployment**: `REV016` → `REV001` (reset)
