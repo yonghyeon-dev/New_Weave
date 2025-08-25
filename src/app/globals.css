@@ -1,26 +1,684 @@
-@import "tailwindcss";
+/* Inter Variable 폰트 로딩 */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap");
 
+/* stylelint-disable-next-line at-rule-no-unknown */
+@tailwind base;
+/* stylelint-disable-next-line at-rule-no-unknown */
+@tailwind components;
+/* stylelint-disable-next-line at-rule-no-unknown */
+@tailwind utilities;
+
+/* Dark Theme (Default) - Dark Theme Colors */
+[data-theme="dark"] {
+  --color-primary-background: #08090a;
+  --color-primary-surface: #262626;
+  --color-primary-surfaceSecondary: #232326;
+  --color-primary-surfaceHover: rgba(255, 255, 255, 0.05);
+  --color-primary-surfacePressed: rgba(255, 255, 255, 0.1);
+  --color-primary-border: #e6e6e6;
+  --color-primary-borderSecondary: rgba(40, 40, 40, 0.2);
+
+  --color-text-primary: #f7f8f8;
+  --color-text-secondary: #8a8f98;
+  --color-text-tertiary: #62666d;
+  --color-text-accent: #ffffff;
+  --color-text-muted: rgba(255, 255, 255, 0.7);
+  --color-text-inverse: #08090a;
+
+  --color-status-success: #68cc58;
+  --color-status-warning: #f2994a;
+  --color-status-error: #c52828;
+  --color-status-info: #02b8cc;
+  --color-status-progress: #6771c5;
+
+  /* 브랜드 키 컬러 - Primary Blue */
+  --color-brand-primary-start: #0143b1;
+  --color-brand-primary-end: #42a8e4;
+  --color-brand-primary-gradient: linear-gradient(to right, #0143b1, #42a8e4);
+  --color-brand-primary-hover: linear-gradient(to right, #013a9e, #3a97d1);
+
+  /* 브랜드 키 컬러 - Secondary Teal */
+  --color-brand-secondary-start: #4ecdc4;
+  --color-brand-secondary-end: #45b7d1;
+  --color-brand-secondary-gradient: linear-gradient(to right, #4ecdc4, #45b7d1);
+  --color-brand-secondary-hover: linear-gradient(to right, #3db8b0, #3aa3b8);
+
+  /* 브랜드 키 컬러 - Accent Pink */
+  --color-brand-accent-start: #ff6b6b;
+  --color-brand-accent-end: #ff8e8e;
+  --color-brand-accent-gradient: linear-gradient(to right, #ff6b6b, #ff8e8e);
+  --color-brand-accent-hover: linear-gradient(to right, #ff5252, #ff7676);
+
+  /* 기존 accent 색상들 (브랜드 컬러로 교체) */
+  --color-accent-yellow: #deb949;
+  --color-accent-orange: #f2994a;
+  --color-accent-blue: #42a8e4;
+  --color-accent-purple: #4ecdc4;
+  --color-accent-green: #45b7d1;
+}
+
+/* White Theme - 기획서 인포그래픽 색상 테마 적용 */
+[data-theme="white"] {
+  --color-primary-background: #f8f9fa;
+  --color-primary-surface: #ffffff;
+  --color-primary-surfaceSecondary: #f8f9fa;
+  --color-primary-surfaceHover: rgba(0, 0, 0, 0.05);
+  --color-primary-surfacePressed: rgba(0, 0, 0, 0.1);
+  --color-primary-border: #dee2e6;
+  --color-primary-borderSecondary: rgba(0, 0, 0, 0.1);
+
+  --color-text-primary: #212529;
+  --color-text-secondary: #495057;
+  --color-text-tertiary: #6c757d;
+  --color-text-accent: #1a535c;
+  --color-text-muted: rgba(0, 0, 0, 0.7);
+  --color-text-inverse: #ffffff;
+
+  --color-status-success: #28a745;
+  --color-status-warning: #f7b801;
+  --color-status-error: #ff6b6b;
+  --color-status-info: #45b7d1;
+  --color-status-progress: #4ecdc4;
+
+  /* 브랜드 키 컬러 - Primary Blue */
+  --color-brand-primary-start: #0143b1;
+  --color-brand-primary-end: #42a8e4;
+  --color-brand-primary-gradient: linear-gradient(to right, #0143b1, #42a8e4);
+  --color-brand-primary-hover: linear-gradient(to right, #013a9e, #3a97d1);
+
+  /* 브랜드 키 컬러 - Secondary Teal */
+  --color-brand-secondary-start: #4ecdc4;
+  --color-brand-secondary-end: #45b7d1;
+  --color-brand-secondary-gradient: linear-gradient(to right, #4ecdc4, #45b7d1);
+  --color-brand-secondary-hover: linear-gradient(to right, #3db8b0, #3aa3b8);
+
+  /* 브랜드 키 컬러 - Accent Pink */
+  --color-brand-accent-start: #ff6b6b;
+  --color-brand-accent-end: #ff8e8e;
+  --color-brand-accent-gradient: linear-gradient(to right, #ff6b6b, #ff8e8e);
+  --color-brand-accent-hover: linear-gradient(to right, #ff5252, #ff7676);
+
+  /* 기존 accent 색상들 (브랜드 컬러로 교체) */
+  --color-accent-yellow: #f7b801;
+  --color-accent-orange: #ff6b6b;
+  --color-accent-blue: #42a8e4;
+  --color-accent-purple: #4ecdc4;
+  --color-accent-green: #45b7d1;
+
+  /* White 테마 전용 버튼 스타일 - 기획서 청록색 그라데이션 */
+  --color-button-primary: linear-gradient(to right, #4ecdc4, #45b7d1);
+  --color-button-primary-hover: linear-gradient(to right, #3db8b0, #3aa0a8);
+  --color-button-primary-focus: #4ecdc4;
+}
+
+/* Theme variables for Tailwind */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --color-background: var(--color-primary-background);
+  --color-foreground: var(--color-text-primary);
+  --font-sans: "Inter", "SF Pro Display", -apple-system, system-ui, "Segoe UI",
+    Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Consolas,
+    "Liberation Mono", Menlo, monospace;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+html,
+body {
+  max-width: 100vw;
+  overflow-x: hidden;
+  background: var(--color-primary-background);
+  color: var(--color-text-primary);
+  font-family: var(--font-sans);
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  font-variation-settings: normal;
+  line-height: 1.5;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Focus styles */
+*:focus {
+  outline: 2px solid var(--color-primary-border);
+  outline-offset: 2px;
+}
+
+/* Card focus styles - 기획서 청록색 그라데이션 적용 */
+.card:focus,
+.card:focus-within {
+  outline: 2px solid #4ecdc4;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(78, 205, 196, 0.1);
+}
+
+/* Interactive card hover and focus effects */
+.card-interactive {
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.card-interactive:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px -5px rgba(78, 205, 196, 0.2),
+    0 4px 6px -2px rgba(78, 205, 196, 0.1);
+}
+
+.card-interactive:focus,
+.card-interactive:focus-within {
+  outline: 2px solid #4ecdc4;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(78, 205, 196, 0.1),
+    0 10px 25px -5px rgba(78, 205, 196, 0.2);
+}
+
+/* White 테마 Primary 버튼 - 브랜드 Primary 컬러 */
+[data-theme="white"] .btn-primary-weave {
+  background: var(--color-brand-primary-gradient);
+  color: white;
+  border: 1px solid transparent;
+  transition: all 0.3s ease;
+}
+
+[data-theme="white"] .btn-primary-weave:hover {
+  background: var(--color-brand-primary-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(1, 67, 177, 0.2),
+    0 4px 12px rgba(66, 168, 228, 0.2);
+}
+
+[data-theme="white"] .btn-primary-weave:focus {
+  outline: 2px solid var(--color-brand-primary-end);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(66, 168, 228, 0.1);
+}
+
+[data-theme="white"] .btn-primary-weave:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* White 테마 Secondary 버튼 - 브랜드 Secondary 컬러 */
+[data-theme="white"] .btn-secondary-weave {
+  background: var(--color-brand-secondary-gradient);
+  color: white;
+  border: 1px solid transparent;
+  transition: all 0.3s ease;
+}
+
+/* Secondary 버튼 텍스트 색상 규칙 */
+[data-theme="white"] button.bg-transparent {
+  color: #111827;
+}
+
+[data-theme="dark"] button.bg-transparent {
+  color: #ffffff;
+}
+
+/* 히어로 섹션 Secondary 버튼 텍스트 색상 규칙 */
+[data-theme="white"] button.bg-transparent a {
+  color: #111827;
+}
+
+[data-theme="dark"] button.bg-transparent a {
+  color: #ffffff;
+}
+
+[data-theme="white"] .btn-secondary-weave:hover {
+  background: var(--color-brand-secondary-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(78, 205, 196, 0.2),
+    0 4px 12px rgba(69, 183, 209, 0.2);
+}
+
+[data-theme="white"] .btn-secondary-weave:focus {
+  outline: 2px solid var(--color-brand-secondary-start);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(78, 205, 196, 0.1);
+}
+
+[data-theme="white"] .btn-secondary-weave:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* White 테마 Secondary 버튼 2번째 스타일 - 브랜드 Accent 컬러 */
+[data-theme="white"] .btn-secondary-weave-alt {
+  background: var(--color-brand-accent-gradient);
+  color: white;
+  border: 1px solid transparent;
+  transition: all 0.3s ease;
+}
+
+[data-theme="white"] .btn-secondary-weave-alt:hover {
+  background: var(--color-brand-accent-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 107, 107, 0.2),
+    0 4px 12px rgba(255, 142, 142, 0.2);
+}
+
+[data-theme="white"] .btn-secondary-weave-alt:focus {
+  outline: 2px solid var(--color-brand-accent-start);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(255, 107, 107, 0.1);
+}
+
+[data-theme="white"] .btn-secondary-weave-alt:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* White 테마 배지 스타일 - 브랜드 컬러 테마 */
+[data-theme="white"] .badge-gray-weave {
+  background: #6c757d;
+  color: white;
+  border: 1px solid transparent;
+  transition: all 0.3s ease;
+}
+
+[data-theme="white"] .badge-primary-weave {
+  background: var(--color-brand-primary-gradient);
+  color: white;
+  border: 1px solid transparent;
+  transition: all 0.3s ease;
+}
+
+[data-theme="white"] .badge-secondary-weave {
+  background: var(--color-brand-secondary-gradient);
+  color: white;
+  border: 1px solid transparent;
+  transition: all 0.3s ease;
+}
+
+[data-theme="white"] .badge-accent-weave {
+  background: var(--color-brand-accent-gradient);
+  color: white;
+  border: 1px solid transparent;
+  transition: all 0.3s ease;
+}
+
+/* Dark 테마 Primary 버튼 - 브랜드 Primary 컬러 */
+[data-theme="dark"] .btn-primary-weave {
+  background: var(--color-brand-primary-gradient);
+  color: white;
+  border: 1px solid transparent;
+  transition: all 0.3s ease;
+}
+
+[data-theme="dark"] .btn-primary-weave:hover {
+  background: var(--color-brand-primary-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(1, 67, 177, 0.2),
+    0 4px 12px rgba(66, 168, 228, 0.2);
+}
+
+[data-theme="dark"] .btn-primary-weave:focus {
+  outline: 2px solid var(--color-brand-primary-end);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(66, 168, 228, 0.1);
+}
+
+[data-theme="dark"] .btn-primary-weave:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Dark 테마 Secondary 버튼 - 브랜드 Secondary 컬러 */
+[data-theme="dark"] .btn-secondary-weave {
+  background: var(--color-brand-secondary-gradient);
+  color: white;
+  border: 1px solid transparent;
+  transition: all 0.3s ease;
+}
+
+[data-theme="dark"] .btn-secondary-weave:hover {
+  background: var(--color-brand-secondary-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(78, 205, 196, 0.2),
+    0 4px 12px rgba(69, 183, 209, 0.2);
+}
+
+[data-theme="dark"] .btn-secondary-weave:focus {
+  outline: 2px solid var(--color-brand-secondary-start);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(78, 205, 196, 0.1);
+}
+
+[data-theme="dark"] .btn-secondary-weave:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Dark 테마 Secondary 버튼 2번째 스타일 - 브랜드 Accent 컬러 */
+[data-theme="dark"] .btn-secondary-weave-alt {
+  background: var(--color-brand-accent-gradient);
+  color: white;
+  border: 1px solid transparent;
+  transition: all 0.3s ease;
+}
+
+[data-theme="dark"] .btn-secondary-weave-alt:hover {
+  background: var(--color-brand-accent-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 107, 107, 0.2),
+    0 4px 12px rgba(255, 142, 142, 0.2);
+}
+
+[data-theme="dark"] .btn-secondary-weave-alt:focus {
+  outline: 2px solid var(--color-brand-accent-start);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(255, 107, 107, 0.1);
+}
+
+[data-theme="dark"] .btn-secondary-weave-alt:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Dark 테마 배지 스타일 - 브랜드 컬러 테마 */
+[data-theme="dark"] .badge-gray-weave {
+  background: #6c757d;
+  color: white;
+  border: 1px solid transparent;
+  transition: all 0.3s ease;
+}
+
+[data-theme="dark"] .badge-primary-weave {
+  background: var(--color-brand-primary-gradient);
+  color: white;
+  border: 1px solid transparent;
+  transition: all 0.3s ease;
+}
+
+[data-theme="dark"] .badge-secondary-weave {
+  background: var(--color-brand-secondary-gradient);
+  color: white;
+  border: 1px solid transparent;
+  transition: all 0.3s ease;
+}
+
+[data-theme="dark"] .badge-accent-weave {
+  background: var(--color-brand-accent-gradient);
+  color: white;
+  border: 1px solid transparent;
+  transition: all 0.3s ease;
+}
+
+/* Linear.app Theme - 실제 Linear.app UI 컴포넌트 스타일 */
+[data-theme="linear"] {
+  /* Linear.app 실제 색상 팔레트 */
+  --color-primary-background: #08090a;
+  --color-primary-surface: #262626;
+  --color-primary-surfaceSecondary: #232326;
+  --color-primary-surfaceHover: rgba(255, 255, 255, 0.05);
+  --color-primary-surfacePressed: rgba(255, 255, 255, 0.1);
+  --color-primary-border: #e6e6e6;
+  --color-primary-borderSecondary: rgba(40, 40, 40, 0.2);
+
+  --color-text-primary: #f7f8f8;
+  --color-text-secondary: #8a8f98;
+  --color-text-tertiary: #62666d;
+  --color-text-accent: #ffffff;
+  --color-text-muted: rgba(255, 255, 255, 0.7);
+  --color-text-inverse: #08090a;
+
+  --color-status-success: #68cc58;
+  --color-status-warning: #f2994a;
+  --color-status-error: #c52828;
+  --color-status-info: #02b8cc;
+  --color-status-progress: #6771c5;
+
+  /* Linear.app 실제 브랜드 색상 */
+  --color-brand-primary-start: #5e6ad2;
+  --color-brand-primary-end: #5e6ad2;
+  --color-brand-primary-gradient: #5e6ad2;
+  --color-brand-primary-hover: #4f5bc4;
+
+  --color-brand-secondary-start: #8a8f98;
+  --color-brand-secondary-end: #8a8f98;
+  --color-brand-secondary-gradient: #8a8f98;
+  --color-brand-secondary-hover: #62666d;
+
+  --color-brand-accent-start: #f7f8f8;
+  --color-brand-accent-end: #f7f8f8;
+  --color-brand-accent-gradient: #f7f8f8;
+  --color-brand-accent-hover: #e6e6e6;
+
+  /* Linear.app 실제 Accent 색상 */
+  --color-accent-yellow: #f2994a;
+  --color-accent-orange: #f2994a;
+  --color-accent-blue: #02b8cc;
+  --color-accent-purple: #6771c5;
+  --color-accent-green: #68cc58;
+}
+
+/* Linear.app 테마 Primary 버튼 - 실제 Linear.app 스타일 */
+[data-theme="linear"] .btn-primary-weave {
+  background: var(--color-brand-primary-gradient);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 0px 16px;
+  font-size: 14px;
+  font-weight: 510;
+  transition: all 0.2s ease;
+}
+
+[data-theme="linear"] .btn-primary-weave:hover {
+  background: var(--color-brand-primary-hover);
+  transform: none;
+  box-shadow: none;
+}
+
+[data-theme="linear"] .btn-primary-weave:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+[data-theme="linear"] .btn-primary-weave:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Linear.app 테마 Secondary 버튼 - 실제 Linear.app 스타일 */
+[data-theme="linear"] .btn-secondary-weave {
+  background: transparent;
+  color: var(--color-text-secondary);
+  border: none;
+  border-radius: 8px;
+  padding: 0px 12px;
+  font-size: 13px;
+  font-weight: 510;
+  transition: all 0.2s ease;
+}
+
+[data-theme="linear"] .btn-secondary-weave:hover {
+  background: var(--color-primary-surfaceHover);
+  color: var(--color-text-primary);
+  transform: none;
+  box-shadow: none;
+}
+
+[data-theme="linear"] .btn-secondary-weave:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+[data-theme="linear"] .btn-secondary-weave:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Linear.app 테마 Secondary 버튼 2번째 스타일 - 실제 Linear.app 스타일 */
+[data-theme="linear"] .btn-secondary-weave-alt {
+  background: transparent;
+  color: var(--color-text-primary);
+  border: none;
+  border-radius: 6px;
+  padding: 0px 8px;
+  font-size: 16px;
+  font-weight: 400;
+  transition: all 0.2s ease;
+}
+
+[data-theme="linear"] .btn-secondary-weave-alt:hover {
+  background: var(--color-primary-surfaceHover);
+  transform: none;
+  box-shadow: none;
+}
+
+[data-theme="linear"] .btn-secondary-weave-alt:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+[data-theme="linear"] .btn-secondary-weave-alt:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Linear.app 테마 배지 스타일 - 실제 Linear.app 스타일 */
+[data-theme="linear"] .badge-gray-weave {
+  background: var(--color-brand-primary-gradient);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 12px;
+  font-weight: 510;
+  display: inline-block;
+  transition: all 0.2s ease;
+}
+
+[data-theme="linear"] .badge-primary-weave {
+  background: var(--color-brand-primary-gradient);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 12px;
+  font-weight: 510;
+  display: inline-block;
+  transition: all 0.2s ease;
+}
+
+[data-theme="linear"] .badge-secondary-weave {
+  background: var(--color-brand-secondary-gradient);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 12px;
+  font-weight: 510;
+  display: inline-block;
+  transition: all 0.2s ease;
+}
+
+[data-theme="linear"] .badge-accent-weave {
+  background: var(--color-brand-accent-gradient);
+  color: var(--color-text-inverse);
+  border: none;
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 12px;
+  font-weight: 510;
+  display: inline-block;
+  transition: all 0.2s ease;
+}
+
+[data-theme="white"] .badge-pink-weave {
+  background: #ff6b6b;
+  color: white;
+  border: 1px solid transparent;
+  transition: all 0.3s ease;
+}
+
+[data-theme="white"] .badge-gray-weave:hover,
+[data-theme="white"] .badge-teal-weave:hover,
+[data-theme="white"] .badge-pink-weave:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Selection styles */
+::selection {
+  background: var(--color-primary-surfaceHover);
+  color: var(--color-text-primary);
+}
+
+/* 기본 스타일 리셋 */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+p {
+  margin-bottom: 1rem;
+}
+
+/* 컨테이너 스타일 */
+.container {
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+}
+
+@media (min-width: 640px) {
+  .container {
+    max-width: 640px;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@media (min-width: 768px) {
+  .container {
+    max-width: 768px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .container {
+    max-width: 1024px;
+  }
+}
+
+@media (min-width: 1280px) {
+  .container {
+    max-width: 1280px;
+  }
 }
