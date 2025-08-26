@@ -17,7 +17,9 @@ import {
   Upload,
   Bell,
   Cpu,
-  MessageCircle
+  MessageCircle,
+  Briefcase,
+  FolderOpen
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -35,6 +37,13 @@ const navigation = [
     href: '/dashboard',
     icon: LayoutDashboard,
     description: '실시간 비즈니스 현황 및 인사이트'
+  },
+  {
+    name: '프로젝트',
+    href: '/projects',
+    icon: Briefcase,
+    description: '프로젝트 중앙 관리 허브',
+    badge: 'New'
   },
   {
     name: 'AI 업무 비서',
