@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { HomeContentSection } from '@/components/home/HomeContentSection';
+import FloatingQuickMenu from '@/components/FloatingQuickMenu';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -510,6 +511,9 @@ export default function Home() {
           </div>
         </div>
       </footer>
+
+      {/* Floating Quick Menu */}
+      <FloatingQuickMenu />
     </div>
   );
 }

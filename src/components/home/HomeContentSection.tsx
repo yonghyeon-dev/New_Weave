@@ -3,7 +3,6 @@
 import React from 'react';
 import Typography from '@/components/ui/Typography';
 import ContentCard, { FeaturedCard } from './ContentCard';
-import QuickActions from './QuickActions';
 import type { HomeContentSection as HomeContentSectionType } from '@/lib/types/content';
 
 interface HomeContentSectionProps {
@@ -14,24 +13,15 @@ interface HomeContentSectionProps {
 export function HomeContentSection({ content, className = '' }: HomeContentSectionProps) {
   return (
     <div className={`space-y-8 ${className}`}>
-      {/* 피처드 카드 + 퀵 액션 */}
-      <section className="space-y-6">
-        {content.featured && (
-          <div>
-            <Typography variant="h2" className="mb-4">
-              추천 콘텐츠
-            </Typography>
-            <FeaturedCard content={content.featured} />
-          </div>
-        )}
-        
-        <div>
-          <Typography variant="h3" className="mb-4">
-            빠른 시작
+      {/* 피처드 카드 */}
+      {content.featured && (
+        <section>
+          <Typography variant="h2" className="mb-4">
+            추천 콘텐츠
           </Typography>
-          <QuickActions actions={content.quickActions} />
-        </div>
-      </section>
+          <FeaturedCard content={content.featured} />
+        </section>
+      )}
 
       {/* 카테고리별 콘텐츠 */}
       <section className="grid grid-cols-1 lg:grid-cols-3 gap-8">
