@@ -54,9 +54,9 @@ export default function FloatingQuickMenu() {
     {
       id: 'ai',
       icon: <Brain className="w-5 h-5" />,
-      title: 'AI 비서',
-      description: '문서 추출 및 생성을 AI로 자동화하세요',
-      action: () => router.push('/ai-assistant'),
+      title: 'AI 상담',
+      description: 'AI와 대화하며 세무 및 업무 상담을 받으세요',
+      action: () => router.push('/ai-assistant/consult'),
       color: 'bg-blue-500'
     },
     {
@@ -64,7 +64,7 @@ export default function FloatingQuickMenu() {
       icon: <FileText className="w-5 h-5" />,
       title: '인보이스 생성',
       description: '새로운 청구서를 빠르게 생성하세요',
-      action: () => router.push('/invoices'),
+      action: () => router.push('/invoices/new'),
       color: 'bg-green-500'
     },
     {
