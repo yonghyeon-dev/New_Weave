@@ -26,6 +26,16 @@ export { default as ThemeSelector } from "./ThemeSelector";
 export { default as ThemeWrapper } from "./ThemeWrapper";
 export { default as Typography } from "./Typography";
 
+// New Components from Check_List.md implementation
+export { default as StateManager } from "./StateManager";
+export { default as ValidationInput } from "./ValidationInput";
+export { default as StatusBadge } from "./StatusBadge";
+export { default as StatusCounter, StatusSummaryCard } from "./StatusCounter";
+export { default as AiSampleCard } from "./AiSampleCard";
+export { default as DemoBadge, DemoMetric } from "./DemoBadge";
+export { default as EmptyStateGuide, SimpleEmptyState } from "./EmptyStateGuide";
+export { default as SettingsFeedback, SettingSection, useSettingsState } from "./SettingsFeedback";
+
 // Re-export types
 export type { ButtonProps } from "./Button";
 export type {
@@ -57,3 +67,13 @@ export type {
 } from "./Footer";
 export type { HeroProps, HeroAction } from "./Hero";
 export type { ThemeSelectorProps } from "./ThemeSelector";
+
+// New Component Types
+export type { StateManagerProps, StateType } from "./StateManager";
+export type { ValidationInputProps, ValidationType, ValidationResult } from "./ValidationInput";
+export type { StatusBadgeProps, InvoiceStatus, PaymentStatus, GeneralStatus, StatusType as StatusBadgeStatusType } from "./StatusBadge";
+export type { StatusCounterProps, StatusCount, StatusSummaryCardProps } from "./StatusCounter";
+export type { AiSampleCardProps, ChatMessage, GeneratedDocument } from "./AiSampleCard";
+export type { DemoBadgeProps, DemoBadgeType, DataSource, DemoTooltipProps, DemoMetricProps } from "./DemoBadge";
+export type { EmptyStateGuideProps, EmptyStateType, EmptyStateAction, SimpleEmptyStateProps } from "./EmptyStateGuide";
+export type { SettingsFeedbackProps, SettingStatus, FieldError, Toast, SettingSectionProps } from "./SettingsFeedback";
