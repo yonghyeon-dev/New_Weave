@@ -25,7 +25,7 @@ import { cn } from '@/lib/utils';
 const navigation = [
   {
     name: '홈',
-    href: '/',
+    href: '/home',
     icon: LayoutDashboard,
     description: '메인 콘텐츠 및 빠른 시작',
     isMain: true
@@ -128,8 +128,8 @@ export default function MainNavigation({ className = '' }: MainNavigationProps) 
   const pathname = usePathname();
 
   const isActivePath = (href: string): boolean => {
-    if (href === '/') {
-      return pathname === '/';
+    if (href === '/home') {
+      return pathname === '/home';
     }
     if (href === '/dashboard') {
       return pathname === '/dashboard';
@@ -165,7 +165,7 @@ export default function MainNavigation({ className = '' }: MainNavigationProps) 
         <div className="flex flex-col h-full">
           {/* Logo */}
           <div className="flex items-center h-16 px-6 border-b border-border-light">
-            <Link href="/" className="flex items-center space-x-3">
+            <Link href="/home" className="flex items-center space-x-3">
               <Image
                 src="/logo.png"
                 alt="Weave Logo"
@@ -324,7 +324,7 @@ export default function MainNavigation({ className = '' }: MainNavigationProps) 
       <div className="lg:hidden">
         {/* Mobile Header */}
         <div className="flex items-center justify-between h-16 px-4 bg-white border-b border-border-light">
-          <Link href="/" className="flex items-center space-x-3">
+          <Link href="/home" className="flex items-center space-x-3">
             <Image
               src="/logo.png"
               alt="Weave Logo"
@@ -350,7 +350,7 @@ export default function MainNavigation({ className = '' }: MainNavigationProps) 
             <div className="fixed inset-y-0 left-0 w-64 bg-white">
               <div className="flex items-center justify-between h-16 px-4 border-b border-border-light">
                 <Link 
-                  href="/" 
+                  href="/home" 
                   className="flex items-center space-x-3"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >

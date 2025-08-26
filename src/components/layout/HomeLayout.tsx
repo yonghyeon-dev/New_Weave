@@ -35,7 +35,7 @@ export default function HomeLayout({ children }: HomeLayoutProps) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
-            <Link href="/" className="flex items-center space-x-3">
+            <Link href="/home" className="flex items-center space-x-3">
               <Image
                 src="/logo.png"
                 alt="Weave Logo"

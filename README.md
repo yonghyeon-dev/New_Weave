@@ -1,210 +1,152 @@
-# Weave UI Components
+# Weave - AI 프리랜서 업무 관리 플랫폼
 
-커스터마이징 가능한 테마 시스템을 가진 React UI 컴포넌트 라이브러리입니다.
+AI를 활용한 차세대 프리랜서 업무 관리 및 비즈니스 자동화 플랫폼입니다.
 
-## 🚀 특징
+## 🚀 핵심 기능
 
-- **다양한 UI 컴포넌트**: Button, Badge, Card, Input, Avatar 등
-- **동적 테마 시스템**: 다크/라이트 테마 지원
-- **커스텀 색상 팔레트**: 그라디언트 기반 색상 시스템
-- **TypeScript 지원**: 완전한 타입 정의
-- **Tailwind CSS 기반**: 유연한 스타일링
+### 📊 통합 대시보드
+- **실시간 비즈니스 현황**: 수익, 프로젝트, 클라이언트 통계
+- **스마트 캘린더**: 일정 관리 및 마감일 추적
+- **성과 분석**: 매출 트렌드 및 성과 지표
 
-## 📦 설치
+### 🤖 AI 업무 비서
+- **AI 채팅**: 프리랜서 업무 전반에 대한 전문 상담
+- **문서 생성**: 견적서, 계약서, 청구서 자동 생성
+- **정보 추출**: 영수증, 세금계산서에서 데이터 자동 추출
+- **파일 처리**: 보안 업로드 및 문서 분석
+- **세무 상담**: 부가세, 소득세 신고 및 절세 전략
+- **사업자 조회**: 국세청 연동 실시간 사업자등록번호 검증
 
-### npm 패키지로 설치 (권장)
+### 💼 업무 관리
+- **클라이언트 관리**: 연락처, 프로젝트 이력, 커뮤니케이션 기록
+- **프로젝트 추적**: 진행 상황, 마일스톤, 예산 관리
+- **인보이스 관리**: 발행, 발송, 결제 추적
+- **결제 관리**: 수입/지출 기록, 미수금 추적
+- **리마인더**: 자동 알림 및 일정 관리
 
-```bash
-npm install @weave/ui-components
-```
+### ⚙️ 시스템 설정
+- **프로필 관리**: 개인 정보 및 비즈니스 설정
+- **알림 설정**: 이메일, 푸시 알림 커스터마이징
+- **시스템 설정**: 언어, 시간대, 통화 설정
+- **보안 설정**: 2단계 인증, 세션 관리
+- **결제 설정**: 결제 수단, 자동 청구 설정
 
-### 로컬 개발용 설치
+## 🎯 대상 사용자
 
-```bash
-# 현재 프로젝트를 로컬 패키지로 링크
-npm link
+- **프리랜서**: 개인 사업자, 1인 기업
+- **소규모 에이전시**: 5명 이하 창작 스튜디오
+- **컨설턴트**: 전문 서비스 제공자
+- **크리에이터**: 디자이너, 개발자, 작가
 
-# 다른 프로젝트에서 사용
-npm link @weave/ui-components
-```
+## 🔧 기술 스택
 
-## 🎨 사용법
+### Frontend
+- **Next.js 14.2.32**: React 기반 풀스택 프레임워크
+- **TypeScript**: 정적 타입 검사
+- **Tailwind CSS**: 유틸리티 우선 CSS 프레임워크
+- **Lucide React**: 아이콘 라이브러리
 
-### 기본 설정
+### 배포 & 인프라
+- **Vercel**: 자동 배포 및 호스팅
+- **GitHub**: 소스 코드 관리
+- **ESLint**: 코드 품질 관리
 
-```tsx
-import { ThemeProvider, Button, Badge } from "@weave/ui-components";
+## 📦 설치 및 실행
 
-function App() {
-  return (
-    <ThemeProvider>
-      <div>
-        <Button variant="primary">Primary Button</Button>
-        <Badge variant="primary">Primary Badge</Badge>
-      </div>
-    </ThemeProvider>
-  );
-}
-```
-
-### 테마 시스템 사용
-
-```tsx
-import {
-  ThemeProvider,
-  useTheme,
-  ColorSelector,
-  ThemeSelector,
-} from "@weave/ui-components";
-
-function MyApp() {
-  return (
-    <ThemeProvider>
-      <div>
-        <ThemeSelector />
-        <ColorSelector />
-        <MyComponents />
-      </div>
-    </ThemeProvider>
-  );
-}
-
-function MyComponents() {
-  const { currentTheme, currentColors } = useTheme();
-
-  return (
-    <div>
-      <p>Current Theme: {currentTheme}</p>
-      <p>Primary Color: {currentColors.primary}</p>
-    </div>
-  );
-}
-```
-
-### Next.js에서 사용
-
-```tsx
-// app/layout.tsx
-import { ClientThemeProvider } from "@weave/ui-components";
-
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return (
-    <html lang="en">
-      <body>
-        <ClientThemeProvider>{children}</ClientThemeProvider>
-      </body>
-    </html>
-  );
-}
-```
-
-## 🎯 사용 가능한 컴포넌트
-
-### 기본 컴포넌트
-
-- `Button` - 다양한 variant와 크기 지원
-- `Badge` - 상태 표시용 배지
-- `Card` - 카드 레이아웃
-- `Input` - 입력 필드
-- `Avatar` - 사용자 아바타
-
-### 레이아웃 컴포넌트
-
-- `Navbar` - 네비게이션 바
-- `Footer` - 푸터
-- `Hero` - 히어로 섹션
-
-### 테마 컴포넌트
-
-- `ThemeSelector` - 테마 선택 (다크/라이트)
-- `ColorSelector` - 색상 팔레트 선택
-
-### 기타 컴포넌트
-
-- `Status` - 상태 표시
-- `Typography` - 텍스트 스타일
-- `Carousel` - 캐러셀
-
-## 🎨 테마 시스템
-
-### 기본 테마
-
-- **Dark Theme**: 어두운 배경, 밝은 텍스트
-- **Light Theme**: 밝은 배경, 어두운 텍스트
-
-### 색상 팔레트
-
-- **Custom 1**: 청록색 계열 그라디언트
-- **Custom 2**: 파랑색 계열 그라디언트
-- **Custom 3**: 분홍색 계열 그라디언트
-
-### 커스텀 색상 추가
-
-```tsx
-import { THEME_CONSTANTS } from "@weave/ui-components";
-
-// 새로운 색상 팔레트 추가
-const customPalette = {
-  id: "custom4",
-  name: "Custom 4",
-  description: "보라색 계열 그라디언트",
-  colors: {
-    primary: "#8B5CF6",
-    secondary: "#7C3AED",
-    default: "#6D28D9",
-  },
-};
-
-// THEME_CONSTANTS.colorPalettes에 추가
-```
-
-## 🔧 개발
-
-### 로컬 개발
+### 개발 환경 설정
 
 ```bash
+# 저장소 클론
+git clone https://github.com/yonghyeon-dev/New_Weave.git
+cd NEW_WEAVE
+
 # 의존성 설치
 npm install
 
 # 개발 서버 실행
 npm run dev
-
-# 로컬 패키지로 링크
-npm run link
 ```
 
-### 다른 프로젝트에서 테스트
+### 배포
 
 ```bash
-# 1단계: 현재 프로젝트를 로컬 패키지로 링크
-npm run link
+# 프로덕션 빌드
+npm run build
 
-# 2단계: 다른 프로젝트에서 사용
-cd /path/to/your-other-project
-npm link @weave/ui-components
-
-# 3단계: Tailwind CSS 설정 추가
-# tailwind.config.js의 content 배열에 다음 추가:
-# "./node_modules/@weave/ui-components/src/**/*.{js,ts,jsx,tsx}"
+# 프로덕션 서버 실행
+npm run start
 ```
 
-### 새로운 색상 팔레트 추가
+### 코드 품질 관리
 
 ```bash
-# 1. src/lib/theme/constants.ts에서 색상 팔레트 추가
-# 2. src/lib/theme/types.ts에서 ColorPaletteId 타입 업데이트
-# 3. 개발 서버 재시작
-npm run dev
+# ESLint 검사
+npm run lint
 ```
+
+## 🌐 배포 환경
+
+- **개발**: [localhost:3000](http://localhost:3000)
+- **운영**: Vercel 자동 배포 (GitHub 연동)
+
+## 📁 프로젝트 구조
+
+```
+src/
+├── app/                    # Next.js App Router
+│   ├── page.tsx           # 홈페이지
+│   ├── dashboard/         # 대시보드
+│   ├── ai-assistant/      # AI 업무 비서
+│   │   ├── page.tsx      # AI 채팅/세무상담 통합
+│   │   ├── extract/      # 정보 추출
+│   │   ├── generate/     # 문서 생성
+│   │   ├── file-process/ # 파일 처리
+│   │   └── business-lookup/ # 사업자 조회
+│   ├── clients/          # 클라이언트 관리
+│   ├── invoices/         # 인보이스 관리
+│   ├── payments/         # 결제 관리
+│   ├── reminders/        # 리마인더
+│   ├── settings/         # 설정
+│   └── api/              # API 라우트
+└── components/            # 재사용 가능한 컴포넌트
+    ├── navigation/       # 네비게이션
+    ├── dashboard/        # 대시보드 컴포넌트
+    ├── ai-assistant/     # AI 비서 컴포넌트
+    └── ui/               # 기본 UI 컴포넌트
+```
+
+## 🚨 알려진 제한사항
+
+- 목업 데이터 기반 프로토타입 (실제 API 연동 예정)
+- 일부 AI 기능은 시뮬레이션으로 구현
+
+## 📈 개발 로드맵
+
+### V0.1.0 (예정)
+- [ ] 실제 AI API 연동
+- [ ] 데이터베이스 통합
+- [ ] 사용자 인증 시스템
+- [ ] 결제 시스템 연동
+
+### V0.2.0 (예정)  
+- [ ] 모바일 앱 (React Native)
+- [ ] 고급 분석 대시보드
+- [ ] 팀 협업 기능
+- [ ] 써드파티 통합 (Gmail, Slack 등)
+
+## 📋 최신 릴리즈
+
+**V0.0.2_250825** - Vercel 배포 안정화
+- TypeScript 타입 오류 해결
+- useSearchParams Suspense 경계 추가
+- 23/23 페이지 정적 생성 성공
+
+자세한 내용은 [Release_Note.md](./Release_Note.md)를 참고하세요.
+
+## 📞 지원
+
+버그 리포트나 기능 요청은 GitHub Issues를 통해 제출해주세요.
 
 ## 📝 라이센스
 
 MIT License
-
-## 🤝 기여
-
-커스텀 색상 팔레트나 새로운 컴포넌트를 추가하고 싶으시면 언제든지 기여해주세요!

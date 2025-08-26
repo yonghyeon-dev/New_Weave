@@ -37,7 +37,7 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
-            <Link href="/home" className="flex items-center space-x-3">
+            <Link href="/" className="flex items-center space-x-3">
               <Image
                 src="/logo.png"
                 alt="Weave Logo"
@@ -108,10 +108,10 @@ export default function LandingPage() {
                 <Button
                   variant="primary"
                   size="lg"
-                  onClick={() => router.push('/home')}
+                  onClick={() => router.push('/dashboard')}
                   className="bg-white text-blue-600 hover:bg-gray-100 border-0 px-8 py-4 text-lg font-semibold"
                 >
-                  홈 화면 바로가기 <ArrowRight className="w-5 h-5 ml-2" />
+                  무료로 시작하기 <ArrowRight className="w-5 h-5 ml-2" />
                 </Button>
                 <Button
                   variant="outline"
@@ -426,10 +426,10 @@ export default function LandingPage() {
             <Button
               variant="primary"
               size="lg"
-              onClick={() => router.push('/home')}
+              onClick={() => router.push('/dashboard')}
               className="bg-white text-blue-600 hover:bg-gray-100 border-0 px-8 py-4 text-lg font-semibold"
             >
-              홈 화면 바로가기 <ArrowRight className="w-5 h-5 ml-2" />
+              무료로 시작하기 <ArrowRight className="w-5 h-5 ml-2" />
             </Button>
             <Button
               variant="outline"
