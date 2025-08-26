@@ -354,7 +354,7 @@ export default function LandingPage() {
               </div>
               <Quote className="w-8 h-8 text-gray-300 mb-4" />
               <p className="text-gray-600 mb-6">
-                "AI 비서 덕분에 견적서 작성 시간이 80% 줄었어요. 이제 창작에만 집중할 수 있습니다."
+                &ldquo;AI 비서 덕분에 견적서 작성 시간이 80% 줄었어요. 이제 창작에만 집중할 수 있습니다.&rdquo;
               </p>
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center">
@@ -375,7 +375,7 @@ export default function LandingPage() {
               </div>
               <Quote className="w-8 h-8 text-gray-300 mb-4" />
               <p className="text-gray-600 mb-6">
-                "세무 관리가 이렇게 쉬울 줄 몰랐어요. AI 상담으로 절세 효과도 톡톡히 봤습니다."
+                &ldquo;세무 관리가 이렇게 쉬울 줄 몰랐어요. AI 상담으로 절세 효과도 톡톡히 봤습니다.&rdquo;
               </p>
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center">
@@ -396,7 +396,7 @@ export default function LandingPage() {
               </div>
               <Quote className="w-8 h-8 text-gray-300 mb-4" />
               <p className="text-gray-600 mb-6">
-                "클라이언트 관리부터 결제 추적까지 모든 게 자동화되어 업무가 너무 편해졌어요."
+                &ldquo;클라이언트 관리부터 결제 추적까지 모든 게 자동화되어 업무가 너무 편해졌어요.&rdquo;
               </p>
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center">

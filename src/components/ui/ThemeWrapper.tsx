@@ -3,7 +3,7 @@
 import React, { useEffect } from "react";
 import { useTheme } from "@/lib/theme/ThemeContext";
 
-interface ThemeWrapperProps {
+export interface ThemeWrapperProps {
   children: React.ReactNode;
 }
 

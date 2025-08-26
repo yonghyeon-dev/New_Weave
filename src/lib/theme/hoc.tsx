@@ -7,7 +7,7 @@ export const withBaseComponent = <P extends object>(
   Component: React.ComponentType<P>,
   defaultClassName?: string
 ) => {
-  return React.forwardRef<HTMLElement, P & { className?: string }>(
+  const WrappedComponent = React.forwardRef<HTMLElement, P & { className?: string }>(
     ({ className, ...props }, ref) => {
       return (
         <Component
@@ -18,13 +18,15 @@ export const withBaseComponent = <P extends object>(
       );
     }
   );
+  WrappedComponent.displayName = `withBaseComponent(${Component.displayName || Component.name || 'Component'})`;
+  return WrappedComponent;
 };
 
 // 컨테이너 HOC
 export const withContainer = <P extends object>(
   Component: React.ComponentType<P>
 ) => {
-  return React.forwardRef<HTMLElement, P & { className?: string }>(
+  const WrappedComponent = React.forwardRef<HTMLElement, P & { className?: string }>(
     ({ className, ...props }, ref) => {
       return (
         <Component
@@ -35,13 +37,15 @@ export const withContainer = <P extends object>(
       );
     }
   );
+  WrappedComponent.displayName = `withContainer(${Component.displayName || Component.name || 'Component'})`;
+  return WrappedComponent;
 };
 
 // 섹션 HOC
 export const withSection = <P extends object>(
   Component: React.ComponentType<P>
 ) => {
-  return React.forwardRef<HTMLElement, P & { className?: string }>(
+  const WrappedComponent = React.forwardRef<HTMLElement, P & { className?: string }>(
     ({ className, ...props }, ref) => {
       return (
         <Component
@@ -52,13 +56,15 @@ export const withSection = <P extends object>(
       );
     }
   );
+  WrappedComponent.displayName = `withSection(${Component.displayName || Component.name || 'Component'})`;
+  return WrappedComponent;
 };
 
 // 상태 관리 HOC
 export const withState = <P extends object>(
   Component: React.ComponentType<P>
 ) => {
-  return React.forwardRef<
+  const WrappedComponent = React.forwardRef<
     HTMLElement,
     P & {
       className?: string;
@@ -90,13 +96,15 @@ export const withState = <P extends object>(
       );
     }
   );
+  WrappedComponent.displayName = `withState(${Component.displayName || Component.name || 'Component'})`;
+  return WrappedComponent;
 };
 
 // 반응형 HOC
 export const withResponsive = <P extends object>(
   Component: React.ComponentType<P>
 ) => {
-  return React.forwardRef<
+  const WrappedComponent = React.forwardRef<
     HTMLElement,
     P & {
       className?: string;
@@ -133,13 +141,15 @@ export const withResponsive = <P extends object>(
       />
     );
   });
+  WrappedComponent.displayName = `withResponsive(${Component.displayName || Component.name || 'Component'})`;
+  return WrappedComponent;
 };
 
 // 테마 인식 HOC
 export const withTheme = <P extends object>(
   Component: React.ComponentType<P>
 ) => {
-  return React.forwardRef<
+  const WrappedComponent = React.forwardRef<
     HTMLElement,
     P & {
       className?: string;
@@ -160,13 +170,15 @@ export const withTheme = <P extends object>(
       />
     );
   });
+  WrappedComponent.displayName = `withTheme(${Component.displayName || Component.name || 'Component'})`;
+  return WrappedComponent;
 };
 
 // 접근성 HOC
 export const withAccessibility = <P extends object>(
   Component: React.ComponentType<P>
 ) => {
-  return React.forwardRef<
+  const WrappedComponent = React.forwardRef<
     HTMLElement,
     P & {
       className?: string;
@@ -179,13 +191,15 @@ export const withAccessibility = <P extends object>(
   >(({ className, ...props }, ref) => {
     return <Component ref={ref} className={cn(className)} {...(props as P)} />;
   });
+  WrappedComponent.displayName = `withAccessibility(${Component.displayName || Component.name || 'Component'})`;
+  return WrappedComponent;
 };
 
 // 애니메이션 HOC
 export const withAnimation = <P extends object>(
   Component: React.ComponentType<P>
 ) => {
-  return React.forwardRef<
+  const WrappedComponent = React.forwardRef<
     HTMLElement,
     P & {
       className?: string;
@@ -229,6 +243,8 @@ export const withAnimation = <P extends object>(
       />
     );
   });
+  WrappedComponent.displayName = `withAnimation(${Component.displayName || Component.name || 'Component'})`;
+  return WrappedComponent;
 };
 
 // 조합 HOC (여러 HOC를 조합)

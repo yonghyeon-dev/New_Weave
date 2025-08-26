@@ -226,16 +226,25 @@ const StatusBadge = React.forwardRef<HTMLSpanElement, StatusBadgeProps>(
         aria-label={ariaLabel}
         {...props}
       >
-        {showIcon && (
-          <Icon 
-            className={cn(
+        {showIcon && Icon && React.isValidElement(Icon) ? (
+          React.cloneElement(Icon, {
+            className: cn(
               sizeConfig.icon,
               color,
               status === 'processing' && 'animate-spin'
-            )} 
-            aria-hidden="true"
-          />
-        )}
+            ),
+            'aria-hidden': true
+          })
+        ) : showIcon && Icon && typeof Icon === 'function' ? (
+          React.createElement(Icon as React.ComponentType<any>, {
+            className: cn(
+              sizeConfig.icon,
+              color,
+              status === 'processing' && 'animate-spin'
+            ),
+            'aria-hidden': true
+          })
+        ) : null}
         <span className={cn(sizeConfig.text, color)}>
           {label}
         </span>
@@ -250,17 +259,20 @@ export default StatusBadge;
 
 // 유틸리티 함수들
 export const getStatusColor = (status: StatusType, type: 'invoice' | 'payment' | 'general'): string => {
-  const config = statusConfigMap[type][status as keyof typeof statusConfigMap[typeof type]];
+  const typeConfig = statusConfigMap[type];
+  const config = (typeConfig as any)[status];
   return config?.color || 'text-txt-secondary';
 };
 
 export const getStatusLabel = (status: StatusType, type: 'invoice' | 'payment' | 'general'): string => {
-  const config = statusConfigMap[type][status as keyof typeof statusConfigMap[typeof type]];
+  const typeConfig = statusConfigMap[type];
+  const config = (typeConfig as any)[status];
   return config?.label || status.toString();
 };
 
 export const getStatusIcon = (status: StatusType, type: 'invoice' | 'payment' | 'general') => {
-  const config = statusConfigMap[type][status as keyof typeof statusConfigMap[typeof type]];
+  const typeConfig = statusConfigMap[type];
+  const config = (typeConfig as any)[status];
   return config?.icon;
 };
 

@@ -41,10 +41,10 @@ const validators: Record<ValidationType, (value: string) => ValidationResult> = 
   businessNumber: (value: string) => {
     const cleaned = value.replace(/[^0-9]/g, '');
     if (!cleaned) {
-      return { isValid: false, message: '사업자등록번호를 입력해주세요.' };
+      return { isValid: false, message: '하이픈 포함 10자리로 입력해주세요. (예: 123-45-67890)' };
     }
     if (cleaned.length !== 10) {
-      return { isValid: false, message: '사업자등록번호는 10자리입니다.' };
+      return { isValid: false, message: `${cleaned.length}/10자리 입력됨. 전체 10자리를 입력해주세요.` };
     }
     
     // 사업자등록번호 체크섬 검증
@@ -60,7 +60,7 @@ const validators: Record<ValidationType, (value: string) => ValidationResult> = 
     const checksum = remainder === 0 ? 0 : 10 - remainder;
     
     if (digits[9] !== checksum) {
-      return { isValid: false, message: '올바르지 않은 사업자등록번호입니다.' };
+      return { isValid: false, message: '검증 오류. 올바른 사업자등록번호를 다시 입력해주세요.' };
     }
     
     return { isValid: true, message: '유효한 사업자등록번호입니다.' };
@@ -68,11 +68,11 @@ const validators: Record<ValidationType, (value: string) => ValidationResult> = 
   
   email: (value: string) => {
     if (!value) {
-      return { isValid: false, message: '이메일을 입력해주세요.' };
+      return { isValid: false, message: '@를 포함한 이메일을 입력해주세요. (예: name@company.com)' };
     }
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(value)) {
-      return { isValid: false, message: '올바른 이메일 형식을 입력해주세요.' };
+      return { isValid: false, message: '올바른 형식: 이름@도메인.확장자로 입력해주세요.' };
     }
     return { isValid: true, message: '유효한 이메일입니다.' };
   },
@@ -80,10 +80,10 @@ const validators: Record<ValidationType, (value: string) => ValidationResult> = 
   phone: (value: string) => {
     const cleaned = value.replace(/[^0-9]/g, '');
     if (!cleaned) {
-      return { isValid: false, message: '전화번호를 입력해주세요.' };
+      return { isValid: false, message: '전화번호 10-11자리를 입력해주세요. (예: 010-1234-5678)' };
     }
     if (cleaned.length < 10 || cleaned.length > 11) {
-      return { isValid: false, message: '올바른 전화번호를 입력해주세요.' };
+      return { isValid: false, message: `${cleaned.length}자리 입력됨. 10-11자리로 다시 입력해주세요.` };
     }
     return { isValid: true, message: '유효한 전화번호입니다.' };
   },

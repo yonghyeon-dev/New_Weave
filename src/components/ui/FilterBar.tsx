@@ -305,15 +305,19 @@ const FilterBar: React.FC<FilterBarProps> = ({
         <div className="flex items-center gap-2 flex-wrap">
           <span className="text-sm text-txt-secondary">활성 필터:</span>
           {activeFilters.map((filter) => (
-            <Badge
+            <div
               key={filter.id}
-              variant="secondary"
-              className="flex items-center gap-2 bg-weave-primary-light text-weave-primary-dark border border-weave-primary hover:bg-weave-primary hover:text-white transition-colors cursor-pointer"
               onClick={() => removeFilter(filter.id)}
+              className="cursor-pointer"
             >
-              <span>{filter.label}</span>
-              <X className="w-3 h-3" />
-            </Badge>
+              <Badge
+                variant="secondary"
+                className="flex items-center gap-2 bg-weave-primary-light text-weave-primary-dark border border-weave-primary hover:bg-weave-primary hover:text-white transition-colors"
+              >
+                <span>{filter.label}</span>
+                <X className="w-3 h-3" />
+              </Badge>
+            </div>
           ))}
         </div>
       )}

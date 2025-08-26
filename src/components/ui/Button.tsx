@@ -4,30 +4,18 @@ import React from "react";
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/lib/theme/ThemeContext";
 import type { ButtonVariant, ButtonSize } from "@/lib/theme/types";
+import type { ButtonElementProps } from "@/lib/types/components";
 import Tooltip from "./Tooltip";
 import { Check } from "lucide-react";
 
 export interface ButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+          Omit<ButtonElementProps, 'className' | 'id' | 'role' | 'aria-label' | 'aria-describedby'> {
   variant?: ButtonVariant;
   size?: ButtonSize;
   children: React.ReactNode;
-  loading?: boolean;
-  disabled?: boolean;
-  fullWidth?: boolean;
+  /** 자식 요소로 렌더링 */
   asChild?: boolean;
-  /** 버튼이 비활성화된 이유를 표시하는 툴팁 */
-  disabledReason?: string;
-  /** 로딩 상태에서 표시할 텍스트 */
-  loadingText?: string;
-  /** 아이콘 (왼쪽) */
-  leftIcon?: React.ReactNode;
-  /** 아이콘 (오른쪽) */
-  rightIcon?: React.ReactNode;
-  /** 성공 상태 표시 */
-  success?: boolean;
-  /** 성공 상태에서 표시할 텍스트 */
-  successText?: string;
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
@@ -52,6 +40,14 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     ref
   ) => {
     const { currentColors } = useTheme();
+    
+    // 접근성 속성 설정
+    const ariaProps = {
+      'aria-disabled': disabled || loading,
+      'aria-busy': loading,
+      'aria-describedby': disabledReason ? `${props.id || 'button'}-description` : undefined,
+      'aria-pressed': variant === 'secondary' && !disabled ? false : undefined,
+    };
 
     const baseStyles = cn(
       "inline-flex items-center justify-center font-medium transition-all duration-fast focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed",
@@ -117,6 +113,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       style: getDynamicStyles(),
       ref,
       disabled: disabled || loading,
+      ...ariaProps,
       ...props,
     };
 
@@ -178,12 +175,20 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       </button>
     );
 
-    // 비활성 상태일 때 이유가 제공되면 툴팁으로 감싸기
+    // 비활성 상태일 때 이유가 제공되면 툴팁과 스크린 리더용 설명 추가
     if (disabled && disabledReason) {
       return (
-        <Tooltip content={disabledReason} position="top">
-          {buttonElement}
-        </Tooltip>
+        <>
+          <Tooltip content={disabledReason} position="top">
+            {buttonElement}
+          </Tooltip>
+          <span 
+            id={`${props.id || 'button'}-description`} 
+            className="sr-only"
+          >
+            {disabledReason}
+          </span>
+        </>
       );
     }
 

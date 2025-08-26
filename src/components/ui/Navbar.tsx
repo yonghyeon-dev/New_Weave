@@ -39,6 +39,9 @@ const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
           variants[variant],
           className
         )}
+        role="navigation"
+        aria-label="주요 네비게이션"
+        id="navigation"
       >
         <div className="container mx-auto px-6">
           <div className="flex h-16 items-center justify-between">
@@ -61,17 +64,19 @@ const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
             </div>
 
             {/* Desktop Menu */}
-            <div className="hidden md:flex items-center space-x-8">
+            <div className="hidden md:flex items-center space-x-8" role="menubar">
               {menuItems.map((item, index) => (
                 <a
                   key={index}
                   href={item.href}
+                  role="menuitem"
                   className={cn(
                     "text-sm font-medium transition-colors duration-fast",
                     item.active
                       ? "text-text-primary"
                       : "text-text-secondary hover:text-text-primary"
                   )}
+                  aria-current={item.active ? 'page' : undefined}
                 >
                   {item.label}
                 </a>
@@ -95,7 +100,10 @@ const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
               <button
                 className="md:hidden p-2 rounded-lg hover:bg-primary-surfaceHover transition-colors duration-fast"
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                aria-label="Toggle mobile menu"
+                aria-label={isMobileMenuOpen ? "메뉴 닫기" : "메뉴 열기"}
+                aria-expanded={isMobileMenuOpen}
+                aria-controls="mobile-menu"
+                aria-haspopup="true"
               >
                 <svg
                   className="w-5 h-5 text-text-primary"
@@ -125,19 +133,31 @@ const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 
           {/* Mobile Menu */}
           {isMobileMenuOpen && (
-            <div className="md:hidden border-t border-primary-borderSecondary py-4">
+            <div 
+              id="mobile-menu" 
+              className="md:hidden border-t border-primary-borderSecondary py-4"
+              role="menu"
+              aria-labelledby="mobile-menu-button"
+            >
               <div className="flex flex-col space-y-4">
                 {menuItems.map((item, index) => (
                   <a
                     key={index}
                     href={item.href}
+                    role="menuitem"
                     className={cn(
                       "text-sm font-medium transition-colors duration-fast",
                       item.active
                         ? "text-text-primary"
                         : "text-text-secondary hover:text-text-primary"
                     )}
+                    aria-current={item.active ? 'page' : undefined}
                     onClick={() => setIsMobileMenuOpen(false)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Escape') {
+                        setIsMobileMenuOpen(false);
+                      }
+                    }}
                   >
                     {item.label}
                   </a>

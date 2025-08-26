@@ -32,6 +32,13 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen">
+      {/* Skip Links for Accessibility */}
+      <a 
+        href="#main-content" 
+        className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 z-50 bg-blue-600 text-white px-4 py-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
+      >
+        메인 컨텐츠로 건너뛰기
+      </a>
       {/* Header */}
       <header className="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -90,7 +97,8 @@ export default function LandingPage() {
         </div>
       </header>
 
-      {/* Hero Section */}
+      {/* Hero Section - Main Content */}
+      <main id="main-content">
       <section className="relative bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 text-white overflow-hidden">
         <div className="absolute inset-0 bg-black opacity-20"></div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
@@ -354,7 +362,7 @@ export default function LandingPage() {
               </div>
               <Quote className="w-8 h-8 text-gray-300 mb-4" />
               <p className="text-gray-600 mb-6">
-                "AI 비서 덕분에 견적서 작성 시간이 80% 줄었어요. 이제 창작에만 집중할 수 있습니다."
+                &ldquo;AI 비서 덕분에 견적서 작성 시간이 80% 줄었어요. 이제 창작에만 집중할 수 있습니다.&rdquo;
               </p>
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center">
@@ -375,7 +383,7 @@ export default function LandingPage() {
               </div>
               <Quote className="w-8 h-8 text-gray-300 mb-4" />
               <p className="text-gray-600 mb-6">
-                "세무 관리가 이렇게 쉬울 줄 몰랐어요. AI 상담으로 절세 효과도 톡톡히 봤습니다."
+                &ldquo;세무 관리가 이렇게 쉬울 줄 몰랐어요. AI 상담으로 절세 효과도 톡톡히 봤습니다.&rdquo;
               </p>
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center">
@@ -396,7 +404,7 @@ export default function LandingPage() {
               </div>
               <Quote className="w-8 h-8 text-gray-300 mb-4" />
               <p className="text-gray-600 mb-6">
-                "클라이언트 관리부터 결제 추적까지 모든 게 자동화되어 업무가 너무 편해졌어요."
+                &ldquo;클라이언트 관리부터 결제 추적까지 모든 게 자동화되어 업무가 너무 편해졌어요.&rdquo;
               </p>
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center">
@@ -446,6 +454,7 @@ export default function LandingPage() {
           </p>
         </div>
       </section>
+      </main>
 
       {/* Footer */}
       <footer id="contact" className="bg-gray-900 text-white">

@@ -3,7 +3,7 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
 
-interface ProgressProps {
+export interface ProgressProps {
   value: number;
   max?: number;
   className?: string;

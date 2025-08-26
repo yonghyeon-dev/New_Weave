@@ -59,7 +59,7 @@ const toastClasses: Record<ToastType, string> = {
 };
 
 // 개별 Toast 컴포넌트
-interface ToastItemProps {
+export interface ToastItemProps {
   toast: ToastData;
   onClose: (id: string) => void;
 }
@@ -67,6 +67,13 @@ interface ToastItemProps {
 const ToastItem: React.FC<ToastItemProps> = ({ toast, onClose }) => {
   const [isVisible, setIsVisible] = useState(false);
   const [isLeaving, setIsLeaving] = useState(false);
+
+  const handleClose = useCallback(() => {
+    setIsLeaving(true);
+    setTimeout(() => {
+      onClose(toast.id);
+    }, 300); // 애니메이션 시간
+  }, [toast.id, onClose]);
 
   useEffect(() => {
     // 입장 애니메이션
@@ -82,14 +89,7 @@ const ToastItem: React.FC<ToastItemProps> = ({ toast, onClose }) => {
       }, toast.duration);
       return () => clearTimeout(timer);
     }
-  }, [toast.duration, toast.persistent]);
-
-  const handleClose = useCallback(() => {
-    setIsLeaving(true);
-    setTimeout(() => {
-      onClose(toast.id);
-    }, 300); // 애니메이션 시간
-  }, [toast.id, onClose]);
+  }, [toast.duration, toast.persistent, handleClose]);
 
   return (
     <div
@@ -100,9 +100,8 @@ const ToastItem: React.FC<ToastItemProps> = ({ toast, onClose }) => {
         "relative flex items-start gap-3 p-4 rounded-lg border shadow-lg transition-all duration-300 max-w-md",
         toastClasses[toast.type],
         {
-          "translate-x-full opacity-0": !isVisible,
+          "translate-x-full opacity-0": !isVisible || isLeaving,
           "translate-x-0 opacity-100": isVisible && !isLeaving,
-          "translate-x-full opacity-0": isLeaving,
         }
       )}
     >
@@ -166,7 +165,7 @@ const ToastItem: React.FC<ToastItemProps> = ({ toast, onClose }) => {
 };
 
 // Toast 컨테이너 컴포넌트
-interface ToastContainerProps {
+export interface ToastContainerProps {
   toasts: ToastData[];
   onClose: (id: string) => void;
   position?: 'top-right' | 'top-left' | 'bottom-right' | 'bottom-left' | 'top-center' | 'bottom-center';
@@ -210,7 +209,7 @@ const ToastContainer: React.FC<ToastContainerProps> = ({
 };
 
 // Toast Provider 컴포넌트
-interface ToastProviderProps {
+export interface ToastProviderProps {
   children: React.ReactNode;
   position?: 'top-right' | 'top-left' | 'bottom-right' | 'bottom-left' | 'top-center' | 'bottom-center';
   defaultDuration?: number;

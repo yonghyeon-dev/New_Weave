@@ -24,8 +24,8 @@ export interface FieldError {
   message: string;
 }
 
-// 토스트 타입
-export interface Toast {
+// 설정 토스트 타입
+export interface SettingsToast {
   id: string;
   type: 'success' | 'error' | 'warning' | 'info';
   title: string;
@@ -51,7 +51,7 @@ export interface SettingsFeedbackProps {
 }
 
 // 토스트 컴포넌트
-export interface ToastProps extends Toast {
+export interface ToastProps extends SettingsToast {
   onClose: (id: string) => void;
 }
 
@@ -187,12 +187,12 @@ const SettingsFeedback = React.forwardRef<HTMLDivElement, SettingsFeedbackProps>
     children,
     ...props 
   }, ref) => {
-    const [toasts, setToasts] = useState<Toast[]>([]);
+    const [toasts, setToasts] = useState<SettingsToast[]>([]);
 
     // 토스트 추가 함수
-    const addToast = useCallback((toast: Omit<Toast, 'id'>) => {
+    const addToast = useCallback((toast: Omit<SettingsToast, 'id'>) => {
       const id = Date.now().toString();
-      const newToast: Toast = {
+      const newToast: SettingsToast = {
         id,
         duration: 5000,
         ...toast
@@ -269,7 +269,7 @@ const SettingsFeedback = React.forwardRef<HTMLDivElement, SettingsFeedbackProps>
           return {
             ...baseProps,
             disabled: !hasUnsavedChanges,
-            variant: 'success' as const,
+            variant: 'primary' as const,
             children: (
               <>
                 <CheckCircle className="w-4 h-4" />
@@ -281,7 +281,7 @@ const SettingsFeedback = React.forwardRef<HTMLDivElement, SettingsFeedbackProps>
         case 'error':
           return {
             ...baseProps,
-            variant: 'destructive' as const,
+            variant: 'danger' as const,
             children: (
               <>
                 <RefreshCw className="w-4 h-4" />

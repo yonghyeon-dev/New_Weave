@@ -200,9 +200,9 @@ const StateManager: React.FC<StateManagerProps> = ({
 };
 
 // 특화된 스켈레톤 컴포넌트들 내보내기
-StateManager.Skeleton = Skeleton;
-StateManager.SkeletonCard = SkeletonCard;
-StateManager.SkeletonList = SkeletonList;
-StateManager.SkeletonTable = SkeletonTable;
+(StateManager as any).Skeleton = Skeleton;
+(StateManager as any).SkeletonCard = SkeletonCard;
+(StateManager as any).SkeletonList = SkeletonList;
+(StateManager as any).SkeletonTable = SkeletonTable;
 
 export default StateManager;

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
   Bell, 
   Calendar, 
@@ -42,22 +42,22 @@ export default function ReminderDashboard({
 
   const reminderEngine = ReminderEngine.getInstance();
 
-  useEffect(() => {
-    loadStats();
-    
-    // Auto-refresh stats every 30 seconds
-    const interval = setInterval(loadStats, 30000);
-    return () => clearInterval(interval);
-  }, []);
-
-  const loadStats = async () => {
+  const loadStats = useCallback(async () => {
     try {
       const reminderStats = await reminderEngine.getStats();
       setStats(reminderStats);
     } catch (error) {
       console.error('Failed to load reminder stats:', error);
     }
-  };
+  }, [reminderEngine]);
+
+  useEffect(() => {
+    loadStats();
+    
+    // Auto-refresh stats every 30 seconds
+    const interval = setInterval(loadStats, 30000);
+    return () => clearInterval(interval);
+  }, [loadStats]);
 
   const handleProcessReminders = async () => {
     if (isProcessing) return;

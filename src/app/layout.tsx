@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { ThemeProvider } from "@/lib/theme/ThemeContext";
 import { ClientThemeProvider } from "@/lib/theme/ClientThemeProvider";
+import { AccessibilityProvider } from "@/components/ui";
 
 export const metadata: Metadata = {
   title: "Weave Component Library",
@@ -21,7 +22,11 @@ export default function RootLayout({
   return (
     <html lang="ko" className="dark">
       <body className="antialiased font-primary">
-        <ClientThemeProvider>{children}</ClientThemeProvider>
+        <AccessibilityProvider>
+          <ClientThemeProvider>
+            {children}
+          </ClientThemeProvider>
+        </AccessibilityProvider>
       </body>
     </html>
   );

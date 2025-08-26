@@ -54,8 +54,16 @@ export {
 } from "./FormattingHelper";
 export { default as FilterBar } from "./FilterBar";
 export { default as DetailPanel } from "./DetailPanel";
+export { default as DemoScenario } from "./DemoScenario";
+export { default as Pagination } from "./Pagination";
+export { default as PrintLayout, PrintButton, PageBreak, NoPrint } from "./PrintLayout";
+export { default as AccessibilityProvider, AccessibilityPanel, useAccessibility, useKeyboardNavigation, useFocusManagement } from "./AccessibilityProvider";
+export { default as AcceptanceCriteria } from "./AcceptanceCriteria";
 
-// Re-export types
+// Re-export common types
+export type * from "@/lib/types/components";
+
+// Re-export component types
 export type { ButtonProps } from "./Button";
 export type {
   CardProps,
@@ -95,7 +103,12 @@ export type { StatusCounterProps, StatusCount, StatusSummaryCardProps } from "./
 export type { AiSampleCardProps, ChatMessage, GeneratedDocument } from "./AiSampleCard";
 export type { DemoBadgeProps, DemoBadgeType, DataSource, DemoTooltipProps, DemoMetricProps } from "./DemoBadge";
 export type { EmptyStateGuideProps, EmptyStateType, EmptyStateAction, SimpleEmptyStateProps } from "./EmptyStateGuide";
-export type { SettingsFeedbackProps, SettingStatus, FieldError, Toast, SettingSectionProps } from "./SettingsFeedback";
+export type { SettingsFeedbackProps, SettingStatus, FieldError, SettingsToast, SettingSectionProps, ToastProps, FieldErrorDisplayProps } from "./SettingsFeedback";
+export type { ProgressProps } from "./Progress";
+export type { SwitchProps } from "./Switch";
+export type { AcceptanceCriteriaProps } from "./AcceptanceCriteria";
+export type { ThemeWrapperProps } from "./ThemeWrapper";
+export type { ToastItemProps, ToastContainerProps, ToastProviderProps } from "./Toast";
 export type { CalendarProps, DateValue, DateRange } from "./Calendar";
 export type { ToastData, ToastType } from "./Toast";
 export type { TooltipProps, TooltipPosition, HelpTooltipProps, FieldTooltipProps } from "./Tooltip";
@@ -108,4 +121,8 @@ export type {
   DateFormatOptions
 } from "./FormattingHelper";
 export type { FilterBarProps, FilterOption, SortOption, ActiveFilter } from "./FilterBar";
-export type { DetailPanelProps, Client, Invoice, Payment, Memo, TimelineItem } from "./DetailPanel";
+export type { DetailPanelProps, ClientInfo, InvoiceInfo, PaymentInfo, ClientMemo, TimelineActivity } from "./DetailPanel";
+export type { DemoScenarioProps, ScenarioStep } from "./DemoScenario";
+export type { PaginationProps } from "./Pagination";
+export type { PrintLayoutProps, PrintButtonProps } from "./PrintLayout";
+export type { AccessibilityProviderProps, AccessibilitySettings } from "./AccessibilityProvider";

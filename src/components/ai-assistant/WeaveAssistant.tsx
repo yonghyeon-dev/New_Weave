@@ -601,7 +601,7 @@ export default function WeaveAssistant() {
           💡 <span className="font-semibold">사업자 조회</span>는 별도 탭에서 이용하세요
         </Typography>
         <Typography variant="body2" className="text-blue-700">
-          상단 탭에서 <span className="font-medium">"사업자 조회"</span>를 선택하시면 국세청 연동 조회 서비스를 이용할 수 있습니다.
+          상단 탭에서 <span className="font-medium">&ldquo;사업자 조회&rdquo;</span>를 선택하시면 국세청 연동 조회 서비스를 이용할 수 있습니다.
         </Typography>
       </Card>
 

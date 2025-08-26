@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Plus,
   Edit,
@@ -51,11 +51,7 @@ export default function ReminderRulesManager({
 
   const reminderEngine = ReminderEngine.getInstance();
 
-  useEffect(() => {
-    loadRules();
-  }, []);
-
-  const loadRules = async () => {
+  const loadRules = useCallback(async () => {
     setLoading(true);
     try {
       const rulesData = await reminderEngine.getRules();
@@ -65,7 +61,11 @@ export default function ReminderRulesManager({
     } finally {
       setLoading(false);
     }
-  };
+  }, [reminderEngine]);
+
+  useEffect(() => {
+    loadRules();
+  }, [loadRules]);
 
   const handleToggleRule = async (ruleId: string, enabled: boolean) => {
     try {

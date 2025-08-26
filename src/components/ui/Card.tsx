@@ -63,6 +63,15 @@ const Card = React.forwardRef<HTMLDivElement, CardProps>(
           className
         )}
         tabIndex={interactive ? 0 : undefined}
+        role={interactive ? "button" : "article"}
+        {...(interactive && {
+          onKeyDown: (e: React.KeyboardEvent) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              (e.currentTarget as HTMLElement).click();
+            }
+          }
+        })}
         {...props}
       >
         {children}

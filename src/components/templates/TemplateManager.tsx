@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { FileText, Plus, Edit, Eye, Download, Copy, Search, Filter } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
@@ -33,7 +33,7 @@ export default function TemplateManager({ onTemplateSelect, className = '' }: Te
 
   const templateEngine = TemplateEngine.getInstance();
 
-  useEffect(() => {
+  const initializeTemplates = useCallback(() => {
     // 기본 템플릿 등록
     DEFAULT_TEMPLATES.forEach(template => {
       templateEngine.registerTemplate(template);
@@ -43,7 +43,11 @@ export default function TemplateManager({ onTemplateSelect, className = '' }: Te
     const allTemplates = templateEngine.getAllTemplates();
     setTemplates(allTemplates);
     setFilteredTemplates(allTemplates);
-  }, []);
+  }, [templateEngine]);
+
+  useEffect(() => {
+    initializeTemplates();
+  }, [initializeTemplates]);
 
   useEffect(() => {
     // 필터링

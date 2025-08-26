@@ -37,7 +37,7 @@ export type EmptyStateType =
 // 액션 타입
 export interface EmptyStateAction {
   label: string;
-  onClick: () => void;
+  onClick?: () => void;
   variant?: 'primary' | 'secondary' | 'ghost';
   icon?: React.ComponentType<any>;
 }
@@ -245,7 +245,7 @@ const EmptyStateGuide = React.forwardRef<HTMLDivElement, EmptyStateGuideProps>(
               return (
                 <Button
                   key={index}
-                  onClick={action.onClick}
+                  onClick={() => ('onClick' in action) ? action.onClick?.() : undefined}
                   variant={action.variant || 'primary'}
                   className="flex items-center gap-2 min-w-[140px]"
                 >
