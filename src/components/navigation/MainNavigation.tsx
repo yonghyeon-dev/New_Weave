@@ -170,7 +170,7 @@ export default function MainNavigation({ className = '' }: MainNavigationProps) 
   return (
     <>
       {/* Desktop Navigation */}
-      <nav className={cn("hidden lg:block bg-white border-r border-border-light", className)}>
+      <nav className={cn("hidden lg:block bg-white", className)}>
         <div className="flex flex-col h-full">
           {/* Logo */}
           <div className="flex items-center h-16 px-6 border-b border-border-light">

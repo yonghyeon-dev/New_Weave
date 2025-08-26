@@ -157,7 +157,7 @@ export default function AIConsultPage() {
 
   return (
     <AppLayout>
-      <div className="min-h-screen bg-bg-primary p-6">
+      <div className="bg-bg-primary p-6">
         <div className="max-w-6xl mx-auto">
           {/* 헤더 */}
           <div className="mb-8">

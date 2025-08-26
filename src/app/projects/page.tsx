@@ -180,7 +180,7 @@ export default function ProjectsPage() {
 
   return (
     <AppLayout>
-      <div className="min-h-screen bg-bg-primary">
+      <div className="bg-bg-primary">
         {/* 헤더 */}
         <div className="bg-white border-b border-border-light px-6 py-4">
           <div className="max-w-7xl mx-auto">

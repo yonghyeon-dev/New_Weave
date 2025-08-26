@@ -277,7 +277,7 @@ export default function ProjectDetailPage() {
 
   return (
     <AppLayout>
-      <div className="min-h-screen bg-bg-primary">
+      <div className="bg-bg-primary">
         {/* 헤더 */}
         <div className="bg-white border-b border-border-light">
           <div className="max-w-7xl mx-auto px-6 py-4">

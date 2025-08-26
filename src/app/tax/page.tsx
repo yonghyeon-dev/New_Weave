@@ -26,7 +26,7 @@ export default function TaxPage() {
 
   return (
     <AppLayout>
-      <div className="min-h-screen bg-bg-primary p-6 flex items-center justify-center">
+      <div className="bg-bg-primary p-6 flex items-center justify-center">
         <Card className="max-w-md mx-auto p-6 text-center">
           <div className="mb-4">
             <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">

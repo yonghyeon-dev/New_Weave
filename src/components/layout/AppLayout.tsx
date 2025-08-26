@@ -9,15 +9,15 @@ interface AppLayoutProps {
 
 export default function AppLayout({ children }: AppLayoutProps) {
   return (
-    <div className="flex h-screen bg-bg-primary">
+    <div className="flex h-screen bg-bg-primary overflow-hidden">
       {/* Sidebar Navigation */}
-      <div className="w-64 flex-shrink-0">
+      <div className="w-64 flex-shrink-0 h-full overflow-y-auto border-r border-border-light">
         <MainNavigation className="h-full" />
       </div>
 
-      {/* Main Content */}
-      <div className="flex-1 overflow-hidden">
-        <main className="h-full overflow-y-auto">
+      {/* Main Content - 전체 영역이 스크롤 가능 */}
+      <div className="flex-1 h-full overflow-y-auto">
+        <main>
           {children}
         </main>
       </div>

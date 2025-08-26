@@ -204,7 +204,7 @@ export default function RemindersPage() {
 
   return (
     <AppLayout>
-      <div className="min-h-screen bg-bg-primary p-6">
+      <div className="bg-bg-primary p-6">
         <div className="max-w-7xl mx-auto">
           {renderHeader()}
           {renderContent()}
