@@ -4,6 +4,8 @@ import React from "react";
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/lib/theme/ThemeContext";
 import type { ButtonVariant, ButtonSize } from "@/lib/theme/types";
+import Tooltip from "./Tooltip";
+import { Check } from "lucide-react";
 
 export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement> {
@@ -14,6 +16,18 @@ export interface ButtonProps
   disabled?: boolean;
   fullWidth?: boolean;
   asChild?: boolean;
+  /** 버튼이 비활성화된 이유를 표시하는 툴팁 */
+  disabledReason?: string;
+  /** 로딩 상태에서 표시할 텍스트 */
+  loadingText?: string;
+  /** 아이콘 (왼쪽) */
+  leftIcon?: React.ReactNode;
+  /** 아이콘 (오른쪽) */
+  rightIcon?: React.ReactNode;
+  /** 성공 상태 표시 */
+  success?: boolean;
+  /** 성공 상태에서 표시할 텍스트 */
+  successText?: string;
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
@@ -27,6 +41,12 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       disabled = false,
       fullWidth = false,
       asChild = false,
+      disabledReason,
+      loadingText,
+      leftIcon,
+      rightIcon,
+      success = false,
+      successText,
       ...props
     },
     ref
@@ -42,17 +62,20 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       primary: cn(
         "bg-weave-primary text-white border border-transparent",
         "hover:bg-weave-primary-hover hover:-translate-y-0.5 hover:shadow-md",
-        "focus:ring-weave-primary focus:ring-offset-2"
+        "focus:ring-weave-primary focus:ring-offset-2",
+        success && "bg-status-success hover:bg-status-success"
       ),
       secondary: cn(
         "bg-transparent text-weave-primary border border-weave-primary",
         "hover:bg-weave-primary-light",
-        "focus:ring-weave-primary focus:ring-offset-2"
+        "focus:ring-weave-primary focus:ring-offset-2",
+        success && "border-status-success text-status-success hover:bg-green-50"
       ),
       ghost: cn(
         "bg-transparent text-txt-primary border border-transparent",
         "hover:bg-bg-secondary hover:text-txt-primary",
-        "focus:ring-weave-primary focus:ring-offset-2"
+        "focus:ring-weave-primary focus:ring-offset-2",
+        success && "text-status-success hover:bg-green-50"
       ),
       danger: cn(
         "bg-status-error text-white border border-status-error",
@@ -63,12 +86,14 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       outline: cn(
         "bg-transparent text-txt-secondary border border-border-medium",
         "hover:border-weave-primary hover:text-weave-primary",
-        "focus:ring-weave-primary focus:ring-offset-2"
+        "focus:ring-weave-primary focus:ring-offset-2",
+        success && "border-status-success text-status-success hover:border-status-success"
       ),
       gradient: cn(
         "bg-gradient-to-r from-weave-primary to-weave-primary-hover text-white border border-transparent",
         "hover:from-weave-primary-hover hover:to-weave-primary hover:-translate-y-0.5 hover:shadow-md",
-        "focus:ring-weave-primary focus:ring-offset-2"
+        "focus:ring-weave-primary focus:ring-offset-2",
+        success && "from-status-success to-green-500 hover:from-green-500 hover:to-status-success"
       ),
     };
 
@@ -99,33 +124,70 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       return React.cloneElement(children as React.ReactElement, buttonProps);
     }
 
-    return (
+    // 버튼 상태에 따른 컨텐츠 결정
+    const getButtonContent = () => {
+      if (success) {
+        return (
+          <>
+            <Check className="w-4 h-4 mr-2" />
+            {successText || children}
+          </>
+        );
+      }
+
+      if (loading) {
+        return (
+          <>
+            <svg
+              className="animate-spin -ml-1 mr-2 h-4 w-4"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              />
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+              />
+            </svg>
+            {loadingText || children}
+          </>
+        );
+      }
+
+      return (
+        <>
+          {leftIcon && <span className="mr-2">{leftIcon}</span>}
+          {children}
+          {rightIcon && <span className="ml-2">{rightIcon}</span>}
+        </>
+      );
+    };
+
+    const buttonElement = (
       <button {...buttonProps}>
-        {loading && (
-          <svg
-            className="animate-spin -ml-1 mr-2 h-4 w-4"
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-          >
-            <circle
-              className="opacity-25"
-              cx="12"
-              cy="12"
-              r="10"
-              stroke="currentColor"
-              strokeWidth="4"
-            />
-            <path
-              className="opacity-75"
-              fill="currentColor"
-              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-            />
-          </svg>
-        )}
-        {children}
+        {getButtonContent()}
       </button>
     );
+
+    // 비활성 상태일 때 이유가 제공되면 툴팁으로 감싸기
+    if (disabled && disabledReason) {
+      return (
+        <Tooltip content={disabledReason} position="top">
+          {buttonElement}
+        </Tooltip>
+      );
+    }
+
+    return buttonElement;
   }
 );
 

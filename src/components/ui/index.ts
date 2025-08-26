@@ -52,6 +52,8 @@ export {
   formatPhoneNumber,
   formatBusinessNumber
 } from "./FormattingHelper";
+export { default as FilterBar } from "./FilterBar";
+export { default as DetailPanel } from "./DetailPanel";
 
 // Re-export types
 export type { ButtonProps } from "./Button";
@@ -105,3 +107,5 @@ export type {
   NumberFormatOptions,
   DateFormatOptions
 } from "./FormattingHelper";
+export type { FilterBarProps, FilterOption, SortOption, ActiveFilter } from "./FilterBar";
+export type { DetailPanelProps, Client, Invoice, Payment, Memo, TimelineItem } from "./DetailPanel";

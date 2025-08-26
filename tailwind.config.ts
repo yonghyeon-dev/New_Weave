@@ -12,6 +12,18 @@ const config: Config = {
   ],
   darkMode: "class",
   theme: {
+    // 반응형 브레이크포인트 재정의
+    screens: {
+      'xs': '320px',    // 모바일 최소 크기
+      'sm': '640px',    // 모바일 가로/작은 태블릿
+      'md': '768px',    // 태블릿
+      'lg': '1024px',   // 작은 데스크톱
+      'xl': '1280px',   // 데스크톱
+      '2xl': '1440px',  // 큰 데스크톱
+      // 컨테이너별 브레이크포인트
+      'container': '1024px',  // 최대 컨테이너 너비
+      'prose': '768px',       // 텍스트 콘텐츠 최적 너비
+    },
     extend: {
       colors: {
         // Weave Design System Colors
