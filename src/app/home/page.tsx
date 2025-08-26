@@ -57,14 +57,14 @@ export default function Home() {
             <nav className="hidden lg:flex items-center space-x-8">
               <Link 
                 href="/home" 
-                className="text-gray-700 hover:text-blue-600 font-medium transition-colors"
+                className="flex items-center h-6 text-gray-700 hover:text-blue-600 font-medium transition-colors"
               >
                 홈
               </Link>
               
               <Link 
                 href="/dashboard" 
-                className="text-gray-700 hover:text-blue-600 font-medium transition-colors"
+                className="flex items-center h-6 text-gray-700 hover:text-blue-600 font-medium transition-colors"
               >
                 대시보드
               </Link>
@@ -76,7 +76,7 @@ export default function Home() {
                     setAiMenuOpen(!aiMenuOpen);
                     setWorkMenuOpen(false);
                   }}
-                  className="flex items-center gap-1 text-gray-700 hover:text-blue-600 font-medium transition-colors"
+                  className="flex items-center gap-1 h-6 text-gray-700 hover:text-blue-600 font-medium transition-colors"
                 >
                   AI 업무 비서
                   <ChevronDown className={`w-4 h-4 transition-transform ${aiMenuOpen ? 'rotate-180' : ''}`} />
@@ -135,7 +135,7 @@ export default function Home() {
                     setWorkMenuOpen(!workMenuOpen);
                     setAiMenuOpen(false);
                   }}
-                  className="flex items-center gap-1 text-gray-700 hover:text-blue-600 font-medium transition-colors"
+                  className="flex items-center gap-1 h-6 text-gray-700 hover:text-blue-600 font-medium transition-colors"
                 >
                   업무 관리
                   <ChevronDown className={`w-4 h-4 transition-transform ${workMenuOpen ? 'rotate-180' : ''}`} />

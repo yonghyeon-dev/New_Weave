@@ -36,6 +36,17 @@ export default function LandingPage() {
       <a 
         href="#main-content" 
         className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 z-50 bg-blue-600 text-white px-4 py-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
+        onClick={(e) => {
+          e.preventDefault();
+          const mainContent = document.getElementById('main-content');
+          if (mainContent) {
+            mainContent.scrollIntoView({ 
+              behavior: 'smooth',
+              block: 'start'
+            });
+            mainContent.focus();
+          }
+        }}
       >
         메인 컨텐츠로 건너뛰기
       </a>
