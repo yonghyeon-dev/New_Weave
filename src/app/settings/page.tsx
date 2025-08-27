@@ -439,7 +439,7 @@ export default function SettingsPage() {
         <div className="max-w-7xl mx-auto">
           {/* 헤더 */}
           <div className="mb-8">
-            <Typography variant="h1" className="mb-2">설정</Typography>
+            <Typography variant="h2" className="text-2xl mb-2">설정</Typography>
             <Typography variant="body1" className="text-txt-secondary">
               계정 정보와 시스템 설정을 관리하세요
             </Typography>

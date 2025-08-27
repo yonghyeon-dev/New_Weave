@@ -3,6 +3,7 @@
 import React from 'react';
 import InsightCard from './InsightCard';
 import Button from '@/components/ui/Button';
+import Typography from '@/components/ui/Typography';
 import { cn } from '@/lib/utils';
 
 // 대시보드 룰 R1-R4에 해당하는 인사이트 데이터 타입
@@ -49,10 +50,10 @@ export default function DashboardLayout({
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-txt-primary">대시보드</h1>
-          <p className="text-txt-secondary mt-1">
+          <Typography variant="h2" className="text-2xl mb-1">대시보드</Typography>
+          <Typography variant="body1" className="text-txt-secondary">
             비즈니스 현황을 한눈에 확인하세요
-          </p>
+          </Typography>
         </div>
         
         {/* Quick Actions */}

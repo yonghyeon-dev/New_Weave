@@ -396,7 +396,7 @@ export default function ReminderRulesManager({
                     variant="ghost"
                     size="sm"
                     onClick={() => handleDeleteRule(rule.id)}
-                    className="flex items-center gap-1 justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
+                    className="flex items-center gap-1 justify-start text-red-600 hover:text-red-700 hover:bg-bg-secondary"
                   >
                     <Trash2 className="w-3 h-3" />
                     삭제
@@ -441,16 +441,16 @@ export default function ReminderRulesManager({
       )}
 
       {/* Summary Stats */}
-      <Card className="p-6 bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
-        <Typography variant="h4" className="mb-4 text-blue-800">
+      <Card className="p-6 bg-gradient-to-r from-bg-secondary/30 to-weave-primary-light/30 border-border-light">
+        <Typography variant="h4" className="mb-4 text-txt-primary">
           규칙 요약
         </Typography>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="text-center">
-            <Typography variant="h3" className="text-blue-600">
+            <Typography variant="h3" className="text-weave-primary">
               {rules.length}
             </Typography>
-            <Typography variant="body2" className="text-blue-700">
+            <Typography variant="body2" className="text-txt-secondary">
               총 규칙 수
             </Typography>
           </div>
@@ -458,15 +458,15 @@ export default function ReminderRulesManager({
             <Typography variant="h3" className="text-green-600">
               {rules.filter(r => r.isEnabled).length}
             </Typography>
-            <Typography variant="body2" className="text-green-700">
+            <Typography variant="body2" className="text-txt-secondary">
               활성 규칙
             </Typography>
           </div>
           <div className="text-center">
-            <Typography variant="h3" className="text-orange-600">
+            <Typography variant="h3" className="text-txt-tertiary">
               {rules.filter(r => r.triggerType === 'before').length}
             </Typography>
-            <Typography variant="body2" className="text-orange-700">
+            <Typography variant="body2" className="text-txt-secondary">
               사전 알림
             </Typography>
           </div>
@@ -474,7 +474,7 @@ export default function ReminderRulesManager({
             <Typography variant="h3" className="text-red-600">
               {rules.filter(r => r.triggerType === 'after').length}
             </Typography>
-            <Typography variant="body2" className="text-red-700">
+            <Typography variant="body2" className="text-txt-secondary">
               연체 통지
             </Typography>
           </div>

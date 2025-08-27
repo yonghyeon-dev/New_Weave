@@ -92,7 +92,7 @@ export default function ClientsPage() {
           <div className="mb-8">
             <div className="flex items-center justify-between">
               <div>
-                <Typography variant="h1" className="mb-2">클라이언트 관리</Typography>
+                <Typography variant="h2" className="text-2xl mb-2">클라이언트 관리</Typography>
                 <Typography variant="body1" className="text-txt-secondary">
                   고객 정보를 관리하고 프로젝트 현황을 확인하세요
                 </Typography>

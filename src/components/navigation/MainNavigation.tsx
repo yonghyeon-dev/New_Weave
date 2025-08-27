@@ -19,7 +19,9 @@ import {
   Cpu,
   MessageCircle,
   Briefcase,
-  FolderOpen
+  FolderOpen,
+  Search,
+  BrainCircuit
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -46,44 +48,11 @@ const navigation = [
     badge: 'New'
   },
   {
-    name: 'AI 업무 비서',
-    href: '#',
-    icon: Cpu,
-    description: '통합 업무 허브 - AI 기반 업무 자동화',
-    badge: 'Hub',
-    isSection: true,
-    children: [
-      {
-        name: 'AI 상담',
-        href: '/ai-assistant/consult',
-        icon: MessageCircle,
-        description: 'AI 채팅 및 세무 상담 통합 서비스'
-      },
-      {
-        name: '문서 생성',
-        href: '/ai-assistant/generate',
-        icon: FileText,
-        description: '계약서, 제안서 등 문서 자동 생성'
-      },
-      {
-        name: '정보 추출',
-        href: '/ai-assistant/extract',
-        icon: Upload,
-        description: '파일에서 핵심 정보 자동 추출'
-      },
-      {
-        name: '파일 처리',
-        href: '/ai-assistant/file-process',
-        icon: Upload,
-        description: '보안 업로드 및 파일 분석 처리'
-      },
-      {
-        name: '사업자 조회',
-        href: '/ai-assistant/business-lookup',
-        icon: Building,
-        description: '사업자등록번호 조회 및 검증'
-      }
-    ]
+    name: 'AI 업무비서',
+    href: '/ai-assistant',
+    icon: BrainCircuit,
+    description: '통합 AI 기반 업무 자동화 허브',
+    badge: 'AI'
   },
   {
     name: '업무 관리',
@@ -123,6 +92,12 @@ const navigation = [
     href: '/settings',
     icon: Settings,
     description: '시스템 및 개인 설정'
+  },
+  {
+    name: '사업자 조회',
+    href: '/business-lookup',
+    icon: Search,
+    description: '사업자등록번호 조회 및 검증 (공공 API)'
   }
 ];
 
@@ -133,7 +108,7 @@ interface MainNavigationProps {
 
 export default function MainNavigation({ className = '' }: MainNavigationProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [expandedSections, setExpandedSections] = useState<string[]>(['AI 업무 비서', '업무 관리']);
+  const [expandedSections, setExpandedSections] = useState<string[]>(['업무 관리']);
   const pathname = usePathname();
 
   const isActivePath = (href: string): boolean => {

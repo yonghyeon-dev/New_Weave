@@ -6,6 +6,7 @@ import { Plus } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import Table from '@/components/ui/Table';
 import Select from '@/components/ui/Select';
+import Typography from '@/components/ui/Typography';
 import { Invoice, InvoiceStatus } from '@/lib/types/invoice';
 import { cn } from '@/lib/utils';
 
@@ -146,17 +147,17 @@ const statusOptions = [
 const getStatusColor = (status: InvoiceStatus): string => {
   switch (status) {
     case 'draft':
-      return 'text-gray-600 bg-gray-100';
+      return 'text-txt-tertiary border border-border-light/50';
     case 'issued':
-      return 'text-blue-700 bg-blue-100';
+      return 'text-weave-primary border border-blue-200/50';
     case 'overdue':
-      return 'text-red-700 bg-red-100';
+      return 'text-red-600 border border-red-200/50';
     case 'paid':
-      return 'text-green-700 bg-green-100';
+      return 'text-green-600 border border-green-200/50';
     case 'cancelled':
-      return 'text-gray-500 bg-gray-50';
+      return 'text-txt-tertiary border border-border-light/30';
     default:
-      return 'text-gray-600 bg-gray-100';
+      return 'text-txt-tertiary border border-border-light/50';
   }
 };
 
@@ -204,10 +205,10 @@ export default function InvoicesPage() {
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-2xl font-bold text-txt-primary">인보이스 관리</h1>
-            <p className="text-txt-secondary mt-1">
+            <Typography variant="h2" className="text-2xl mb-1">인보이스 관리</Typography>
+            <Typography variant="body1" className="text-txt-secondary">
               발행된 인보이스를 관리하고 결제 상태를 추적하세요
-            </p>
+            </Typography>
           </div>
           <Button 
             variant="primary" 
@@ -293,7 +294,7 @@ export default function InvoicesPage() {
                     </Table.Cell>
                     <Table.Cell>
                       <span className={cn(
-                        "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium",
+                        "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-white/50 backdrop-blur-sm",
                         getStatusColor(invoice.status)
                       )}>
                         {getStatusLabel(invoice.status)}
@@ -349,39 +350,39 @@ export default function InvoicesPage() {
         {/* Summary Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mt-6">
           <div className="bg-white rounded-lg border border-border-light p-6">
-            <div className="text-sm font-medium text-txt-secondary mb-1">
+            <Typography variant="body2" className="font-medium text-txt-secondary mb-1">
               총 발행 금액
-            </div>
-            <div className="text-2xl font-bold text-txt-primary">
+            </Typography>
+            <Typography variant="h3" className="text-2xl">
               {formatCurrency(invoices.reduce((sum, inv) => sum + inv.total, 0))}
-            </div>
+            </Typography>
           </div>
           
           <div className="bg-white rounded-lg border border-border-light p-6">
-            <div className="text-sm font-medium text-txt-secondary mb-1">
+            <Typography variant="body2" className="font-medium text-txt-secondary mb-1">
               결제 완료
-            </div>
-            <div className="text-2xl font-bold text-green-600">
+            </Typography>
+            <Typography variant="h3" className="text-2xl text-green-600">
               {formatCurrency(invoices.filter(inv => inv.status === 'paid').reduce((sum, inv) => sum + inv.total, 0))}
-            </div>
+            </Typography>
           </div>
           
           <div className="bg-white rounded-lg border border-border-light p-6">
-            <div className="text-sm font-medium text-txt-secondary mb-1">
+            <Typography variant="body2" className="font-medium text-txt-secondary mb-1">
               미수금
-            </div>
-            <div className="text-2xl font-bold text-orange-600">
+            </Typography>
+            <Typography variant="h3" className="text-2xl text-orange-600">
               {formatCurrency(invoices.filter(inv => inv.status === 'issued' || inv.status === 'overdue').reduce((sum, inv) => sum + inv.total, 0))}
-            </div>
+            </Typography>
           </div>
           
           <div className="bg-white rounded-lg border border-border-light p-6">
-            <div className="text-sm font-medium text-txt-secondary mb-1">
+            <Typography variant="body2" className="font-medium text-txt-secondary mb-1">
               연체 금액
-            </div>
-            <div className="text-2xl font-bold text-red-600">
+            </Typography>
+            <Typography variant="h3" className="text-2xl text-red-600">
               {formatCurrency(invoices.filter(inv => inv.status === 'overdue').reduce((sum, inv) => sum + inv.total, 0))}
-            </div>
+            </Typography>
           </div>
         </div>
       </div>

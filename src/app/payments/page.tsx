@@ -6,6 +6,7 @@ import { CreditCard, TrendingUp, DollarSign, Calendar, Filter } from 'lucide-rea
 import Button from '@/components/ui/Button';
 import Select from '@/components/ui/Select';
 import Table from '@/components/ui/Table';
+import Typography from '@/components/ui/Typography';
 import PaymentTracker from '@/components/payments/PaymentTracker';
 import { Payment, PaymentStatus, PaymentMethod } from '@/lib/types/invoice';
 import { cn } from '@/lib/utils';
@@ -81,15 +82,15 @@ const paymentMethodOptions = [
 const getStatusColor = (status: PaymentStatus): string => {
   switch (status) {
     case 'completed':
-      return 'text-green-700 bg-green-100';
+      return 'text-green-600 border border-green-200/50';
     case 'pending':
-      return 'text-yellow-700 bg-yellow-100';
+      return 'text-yellow-600 border border-yellow-200/50';
     case 'failed':
-      return 'text-red-700 bg-red-100';
+      return 'text-red-600 border border-red-200/50';
     case 'refunded':
-      return 'text-gray-700 bg-gray-100';
+      return 'text-txt-tertiary border border-border-light/50';
     default:
-      return 'text-gray-600 bg-gray-100';
+      return 'text-txt-tertiary border border-border-light/50';
   }
 };
 
@@ -180,10 +181,10 @@ export default function PaymentsPage() {
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-2xl font-bold text-txt-primary">결제 관리</h1>
-            <p className="text-txt-secondary mt-1">
+            <Typography variant="h2" className="text-2xl mb-1">결제 관리</Typography>
+            <Typography variant="body1" className="text-txt-secondary">
               모든 결제 내역을 관리하고 상태를 추적하세요
-            </p>
+            </Typography>
           </div>
         </div>
 
@@ -191,14 +192,14 @@ export default function PaymentsPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <div className="bg-white rounded-lg border border-border-light p-6">
             <div className="flex items-center">
-              <div className="p-2 bg-green-100 rounded-lg">
-                <DollarSign className="w-6 h-6 text-green-600" />
+              <div className="p-2 bg-weave-primary-light rounded-lg">
+                <DollarSign className="w-6 h-6 text-weave-primary" />
               </div>
               <div className="ml-4 flex-1">
-                <div className="text-sm text-txt-secondary">받은 금액</div>
-                <div className="text-2xl font-bold text-txt-primary">
+                <Typography variant="body2" className="text-txt-secondary">받은 금액</Typography>
+                <Typography variant="h3" className="text-2xl">
                   {formatCurrency(summary.totalReceived)}
-                </div>
+                </Typography>
                 <div className="flex items-center text-xs text-green-600 mt-1">
                   <TrendingUp className="w-3 h-3 mr-1" />
                   {summary.monthlyGrowth}% 증가
@@ -209,14 +210,14 @@ export default function PaymentsPage() {
 
           <div className="bg-white rounded-lg border border-border-light p-6">
             <div className="flex items-center">
-              <div className="p-2 bg-yellow-100 rounded-lg">
-                <Calendar className="w-6 h-6 text-yellow-600" />
+              <div className="p-2 bg-bg-secondary rounded-lg">
+                <Calendar className="w-6 h-6 text-txt-tertiary" />
               </div>
               <div className="ml-4 flex-1">
-                <div className="text-sm text-txt-secondary">대기 중</div>
-                <div className="text-2xl font-bold text-txt-primary">
+                <Typography variant="body2" className="text-txt-secondary">대기 중</Typography>
+                <Typography variant="h3" className="text-2xl">
                   {formatCurrency(summary.totalPending)}
-                </div>
+                </Typography>
                 <div className="text-xs text-txt-tertiary mt-1">
                   {payments.filter(p => p.status === 'pending').length}건 대기
                 </div>
@@ -226,14 +227,14 @@ export default function PaymentsPage() {
 
           <div className="bg-white rounded-lg border border-border-light p-6">
             <div className="flex items-center">
-              <div className="p-2 bg-red-100 rounded-lg">
+              <div className="p-2 bg-bg-secondary rounded-lg">
                 <CreditCard className="w-6 h-6 text-red-600" />
               </div>
               <div className="ml-4 flex-1">
-                <div className="text-sm text-txt-secondary">실패 금액</div>
-                <div className="text-2xl font-bold text-txt-primary">
+                <Typography variant="body2" className="text-txt-secondary">실패 금액</Typography>
+                <Typography variant="h3" className="text-2xl">
                   {formatCurrency(summary.totalFailed)}
-                </div>
+                </Typography>
                 <div className="text-xs text-txt-tertiary mt-1">
                   {payments.filter(p => p.status === 'failed').length}건 실패
                 </div>
@@ -247,10 +248,10 @@ export default function PaymentsPage() {
                 <TrendingUp className="w-6 h-6 text-weave-primary" />
               </div>
               <div className="ml-4 flex-1">
-                <div className="text-sm text-txt-secondary">평균 결제액</div>
-                <div className="text-2xl font-bold text-txt-primary">
+                <Typography variant="body2" className="text-txt-secondary">평균 결제액</Typography>
+                <Typography variant="h3" className="text-2xl">
                   {formatCurrency(Math.round(summary.averagePaymentAmount))}
-                </div>
+                </Typography>
                 <div className="text-xs text-txt-tertiary mt-1">
                   건당 평균
                 </div>
@@ -262,10 +263,10 @@ export default function PaymentsPage() {
         {/* Filters */}
         <div className="bg-white rounded-lg border border-border-light p-6 mb-6">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-medium text-txt-primary flex items-center">
+            <Typography variant="h4" className="flex items-center">
               <Filter className="w-5 h-5 mr-2" />
               필터 조건
-            </h3>
+            </Typography>
             <div className="text-sm text-txt-tertiary">
               총 {filteredPayments.length}건의 결제
             </div>
@@ -311,7 +312,7 @@ export default function PaymentsPage() {
         {/* Detailed Payment Table */}
         <div className="bg-white rounded-lg border border-border-light overflow-hidden">
           <div className="px-6 py-4 border-b border-border-light">
-            <h3 className="text-lg font-semibold text-txt-primary">결제 내역</h3>
+            <Typography variant="h4">결제 내역</Typography>
           </div>
 
           <Table>
@@ -344,7 +345,7 @@ export default function PaymentsPage() {
                   </Table.Cell>
                   <Table.Cell>
                     <span className={cn(
-                      "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium",
+                      "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-white/50 backdrop-blur-sm",
                       getStatusColor(payment.status)
                     )}>
                       {getStatusLabel(payment.status)}
@@ -361,9 +362,9 @@ export default function PaymentsPage() {
           {filteredPayments.length === 0 && (
             <div className="text-center py-12">
               <CreditCard className="w-12 h-12 text-txt-disabled mx-auto mb-4" />
-              <div className="text-txt-tertiary text-lg mb-2">
+              <Typography variant="h4" className="text-txt-tertiary mb-2">
                 조건에 맞는 결제 내역이 없습니다
-              </div>
+              </Typography>
               <div className="text-txt-tertiary text-sm">
                 필터 조건을 변경하거나 새로운 결제를 추가해보세요
               </div>

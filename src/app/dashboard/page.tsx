@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import AppLayout from '@/components/layout/AppLayout';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import DashboardCalendar from '@/components/dashboard/DashboardCalendar';
+import Typography from '@/components/ui/Typography';
 import type { DashboardInsight, QuickAction } from '@/components/dashboard/DashboardLayout';
 import type { CalendarEvent } from '@/components/dashboard/DashboardCalendar';
 
@@ -290,9 +291,9 @@ export default function Dashboard() {
               
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div className="bg-white rounded-lg border border-border-light p-6">
-                  <h3 className="text-lg font-semibold text-txt-primary mb-4">
+                  <Typography variant="h4" className="mb-4">
                     최근 활동
-                  </h3>
+                  </Typography>
                   <div className="space-y-4">
                     <div className="text-sm text-txt-tertiary">
                       실제 데이터 연동 시 최근 인보이스 발행, 결제 완료, 프로젝트 업데이트 등의 활동이 표시됩니다.
@@ -301,9 +302,9 @@ export default function Dashboard() {
                 </div>
                 
                 <div className="bg-white rounded-lg border border-border-light p-6">
-                  <h3 className="text-lg font-semibold text-txt-primary mb-4">
+                  <Typography variant="h4" className="mb-4">
                     월별 매출 추이
-                  </h3>
+                  </Typography>
                   <div className="space-y-4">
                     <div className="text-sm text-txt-tertiary">
                       차트 라이브러리 연동 시 월별 매출 그래프가 표시됩니다.

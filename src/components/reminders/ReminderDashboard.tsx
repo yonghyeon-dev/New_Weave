@@ -132,17 +132,8 @@ export default function ReminderDashboard({
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <Typography variant="h1" className="mb-2">
-            인보이스 리마인더 시스템
-          </Typography>
-          <Typography variant="body1" className="text-txt-secondary">
-            자동화된 결제 리마인더로 수금 관리를 효율적으로 하세요
-          </Typography>
-        </div>
-        
+      {/* Control Panel */}
+      <div className="flex items-center justify-end">
         <div className="flex items-center gap-3">
           <Badge 
             variant={systemEnabled ? "accent" : "secondary"} 
@@ -155,7 +146,7 @@ export default function ReminderDashboard({
             variant="outline"
             onClick={toggleSystem}
             className={`flex items-center gap-2 ${
-              systemEnabled ? 'text-orange-600 hover:bg-orange-50' : 'text-green-600 hover:bg-green-50'
+              systemEnabled ? 'text-red-600 hover:bg-bg-secondary' : 'text-green-600 hover:bg-bg-secondary'
             }`}
           >
             {systemEnabled ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
@@ -184,22 +175,22 @@ export default function ReminderDashboard({
 
       {/* System Status */}
       <Card className={`p-6 border-l-4 ${
-        systemEnabled ? 'border-l-green-500 bg-green-50' : 'border-l-gray-400 bg-gray-50'
+        systemEnabled ? 'border-l-green-500 bg-bg-secondary/30' : 'border-l-gray-400 bg-bg-secondary/20'
       }`}>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <div className={`p-3 rounded-lg ${
-              systemEnabled ? 'bg-green-100' : 'bg-gray-100'
+              systemEnabled ? 'bg-weave-primary-light' : 'bg-bg-secondary'
             }`}>
               {systemEnabled ? (
                 <CheckCircle className="w-6 h-6 text-green-600" />
               ) : (
-                <AlertCircle className="w-6 h-6 text-gray-600" />
+                <AlertCircle className="w-6 h-6 text-txt-tertiary" />
               )}
             </div>
             <div>
               <Typography variant="h4" className={
-                systemEnabled ? 'text-green-800' : 'text-gray-700'
+                systemEnabled ? 'text-txt-primary' : 'text-txt-tertiary'
               }>
                 리마인더 시스템 {systemEnabled ? '정상 작동' : '정지됨'}
               </Typography>
@@ -245,8 +236,8 @@ export default function ReminderDashboard({
                 {stats.sentToday}
               </Typography>
             </div>
-            <div className="p-3 bg-blue-100 rounded-lg">
-              <Mail className="w-6 h-6 text-blue-600" />
+            <div className="p-3 bg-weave-primary-light rounded-lg">
+              <Mail className="w-6 h-6 text-weave-primary" />
             </div>
           </div>
         </Card>
@@ -261,8 +252,8 @@ export default function ReminderDashboard({
                 {stats.upcomingReminders}
               </Typography>
             </div>
-            <div className="p-3 bg-orange-100 rounded-lg">
-              <Calendar className="w-6 h-6 text-orange-600" />
+            <div className="p-3 bg-bg-secondary rounded-lg">
+              <Calendar className="w-6 h-6 text-txt-tertiary" />
             </div>
           </div>
         </Card>
@@ -277,7 +268,7 @@ export default function ReminderDashboard({
                 {Math.round(stats.successRate)}%
               </Typography>
             </div>
-            <div className="p-3 bg-green-100 rounded-lg">
+            <div className="p-3 bg-weave-primary-light rounded-lg">
               <TrendingUp className="w-6 h-6 text-green-600" />
             </div>
           </div>
@@ -293,7 +284,7 @@ export default function ReminderDashboard({
                 {stats.overdueInvoices}
               </Typography>
             </div>
-            <div className="p-3 bg-red-100 rounded-lg">
+            <div className="p-3 bg-bg-secondary rounded-lg">
               <AlertCircle className="w-6 h-6 text-red-600" />
             </div>
           </div>
@@ -442,8 +433,8 @@ export default function ReminderDashboard({
           {[1, 2, 3].map((i) => (
             <div key={i} className="flex items-center justify-between py-3 border-b border-border-light last:border-0">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                  <Mail className="w-4 h-4 text-blue-600" />
+                <div className="w-8 h-8 bg-weave-primary-light rounded-full flex items-center justify-center">
+                  <Mail className="w-4 h-4 text-weave-primary" />
                 </div>
                 <div>
                   <Typography variant="body2" className="font-medium">

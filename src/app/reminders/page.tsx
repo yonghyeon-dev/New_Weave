@@ -78,7 +78,7 @@ export default function RemindersPage() {
             {icons[currentView]}
           </div>
           <div>
-            <Typography variant="h1" className="text-txt-primary">
+            <Typography variant="h2" className="text-2xl text-txt-primary">
               {titles[currentView]}
             </Typography>
             <Typography variant="body1" className="text-txt-secondary">
@@ -181,7 +181,7 @@ export default function RemindersPage() {
                 리마인더 규칙 편집 폼을 개발 중입니다.
               </Typography>
               {selectedRule && (
-                <div className="bg-gray-50 rounded-lg p-4 mb-6">
+                <div className="bg-bg-secondary rounded-lg p-4 mb-6">
                   <Typography variant="body2" className="text-txt-secondary mb-1">
                     편집할 규칙:
                   </Typography>

@@ -19,6 +19,7 @@ import {
   XCircle,
   PauseCircle
 } from 'lucide-react';
+import Typography from '@/components/ui/Typography';
 import type { ProjectSummary, ProjectStatistics } from '@/lib/types/project';
 
 // Mock 데이터
@@ -186,7 +187,7 @@ export default function ProjectsPage() {
           <div className="max-w-7xl mx-auto">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h1 className="text-2xl font-bold text-txt-primary">프로젝트 관리</h1>
+                <Typography variant="h2" className="text-2xl text-txt-primary">프로젝트 관리</Typography>
                 <p className="text-sm text-txt-secondary mt-1">
                   모든 프로젝트를 한눈에 관리하고 추적하세요
                 </p>

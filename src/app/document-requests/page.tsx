@@ -29,8 +29,8 @@ export default function DocumentRequestsPage() {
       <div className="bg-bg-primary p-6 flex items-center justify-center">
         <Card className="max-w-md mx-auto p-6 text-center">
           <div className="mb-4">
-            <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Shield className="w-8 h-8 text-purple-600" />
+            <div className="w-16 h-16 bg-weave-primary-light rounded-full flex items-center justify-center mx-auto mb-4">
+              <Shield className="w-8 h-8 text-weave-primary" />
             </div>
             <Typography variant="h2" className="mb-2">기능이 통합되었습니다!</Typography>
             <Typography variant="body1" className="text-txt-secondary mb-4">
@@ -39,15 +39,15 @@ export default function DocumentRequestsPage() {
           </div>
 
           <div className="space-y-3 mb-6">
-            <div className="flex items-center gap-3 p-3 bg-purple-50 rounded-lg text-sm">
-              <span className="text-purple-600">🔒</span>
+            <div className="flex items-center gap-3 p-3 bg-bg-secondary/30 rounded-lg text-sm border border-border-light/50">
+              <span className="text-weave-primary">🔒</span>
               <span>TTL 기반 보안 업로드 링크</span>
             </div>
-            <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg text-sm">
-              <span className="text-blue-600">📋</span>
+            <div className="flex items-center gap-3 p-3 bg-bg-secondary/30 rounded-lg text-sm border border-blue-200/50">
+              <span className="text-weave-primary">📋</span>
               <span>문서 요청 및 수신자 관리</span>
             </div>
-            <div className="flex items-center gap-3 p-3 bg-green-50 rounded-lg text-sm">
+            <div className="flex items-center gap-3 p-3 bg-bg-secondary/30 rounded-lg text-sm border border-green-200/50">
               <span className="text-green-600">🔍</span>
               <span>즉시 파일 분석 및 처리</span>
             </div>
