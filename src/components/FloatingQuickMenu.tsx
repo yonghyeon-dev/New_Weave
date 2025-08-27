@@ -185,12 +185,12 @@ export default function FloatingQuickMenu() {
               <div className="p-4 border-t border-gray-100">
                 <button
                   onClick={() => {
-                    router.push('/business-lookup');
+                    router.push('/dashboard');
                     setIsOpen(false);
                   }}
                   className="w-full text-center text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors"
                 >
-                  사업자 조회 →
+                  대시보드로 이동 →
                 </button>
               </div>
             )}
