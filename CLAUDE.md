@@ -31,12 +31,84 @@
 
 **자동 커밋 트리거**: 기능 구현, 버그 수정, 리팩토링, 문서화, 설정 변경 완료 시
 
+### 📋 릴리즈노트 우선 작성 워크플로우
+
+**푸쉬 전 필수 절차**:
+
+1. **릴리즈노트 작성**: RELEASE_NOTES.md에 변경사항 문서화
+2. **버전명 결정**: 빌드 유무에 따른 배포/개발 버전 결정
+3. **커밋 메시지 생성**: 버전명 + 커밋타입 조합
+4. **품질 검증**: 테스트, 린트, 타입체크 완료
+5. **커밋 실행**: 검증된 변경사항 커밋
+6. **푸쉬 실행**: 원격 저장소에 변경사항 반영
+
+### 🏷️ 버전명 결정 로직
+
+**배포 버전 조건** (다음 중 하나라도 해당):
+- `npm run build` 또는 `yarn build` 실행됨
+- production 환경 배포 준비
+- 주요 기능 완성 및 품질 검증 완료
+- 사용자 대면 기능 릴리즈
+
+**개발 버전 조건**:
+- 빌드 없이 개발 진행
+- 개발 환경에서만 테스트
+- 진행 중인 기능 구현
+- 내부 개발 반복 작업
+
+### 🔄 자동 버전명 생성
+
+**배포 버전 형식**:
+```
+V{Major}.{Minor}.{Patch}_{YYMMDD}
+예: V1.3.0_250827
+```
+
+**개발 버전 형식**:
+```
+V{Major}.{Minor}.{Patch}_{YYMMDD}_REV{순차번호}
+예: V1.3.0_250827_REV003
+```
+
+**REV 번호 관리**:
+- 동일 날짜 내 순차적으로 증가 (001, 002, 003...)
+- 배포 버전 릴리즈 후 REV001로 초기화
+- 개발 진행 상황을 명확하게 추적
+
 **커밋 메시지 형식**:
 
 ```
-[type]: [간단한 설명]
+[type](scope): [V{버전명}] [간단한 설명]
 
 [상세 변경 내용]
+
+🤖 Generated with [Claude Code](https://claude.ai/code)
+Co-Authored-By: Claude <noreply@anthropic.com>
+```
+
+**커밋 메시지 예시**:
+
+**배포 버전**:
+```
+feat(ui): [V1.3.0_250827] implement user dashboard enhancement
+
+- Add responsive navigation system
+- Implement advanced filtering options
+- Optimize mobile user experience
+- Complete accessibility compliance (WCAG 2.1 AA)
+
+🤖 Generated with [Claude Code](https://claude.ai/code)
+Co-Authored-By: Claude <noreply@anthropic.com>
+```
+
+**개발 버전**:
+```
+fix(api): [V1.3.0_250827_REV002] resolve authentication timeout issue
+
+- Fix JWT token refresh mechanism
+- Add retry logic for network failures
+- Improve error handling in auth middleware
+- Update API documentation
 
 🤖 Generated with [Claude Code](https://claude.ai/code)
 Co-Authored-By: Claude <noreply@anthropic.com>
@@ -94,8 +166,19 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 2. **4단계 분석**: 원인→배경→시스템영향→사용자영향
 3. **시스템적 해결**: 구조적 개선 우선, 임시방편 병행
 4. **회귀 테스트**: 동일 이슈 재발 방지
-5. **적절한 버전**: Semantic versioning 준수
-6. **의미있는 커밋**: Conventional Commits 형식
+5. **적절한 버전**: 배포/개발 버전 결정 후 REV 번호 관리
+6. **의미있는 커밋**: 버전명 포함한 Conventional Commits 형식
+
+### 🔄 개선된 워크플로우 순서
+
+**모든 변경사항 푸쉬 시**:
+
+1. **릴리즈노트 작성** → RELEASE_NOTES.md 업데이트
+2. **빌드 확인** → production build 여부 판단
+3. **버전 결정** → 배포(V1.3.0_YYMMDD) vs 개발(V1.3.0_YYMMDD_REV###)
+4. **품질 검증** → 테스트, 린트, 타입체크
+5. **커밋 생성** → [V버전명] 포함한 메시지
+6. **푸쉬 실행** → git push origin main
 
 ### 품질 게이트 체크리스트
 
@@ -114,7 +197,7 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 ### 기본 구조
 
 ```
-type(scope): description
+type(scope): [V{버전명}] description
 
 [optional body]
 
@@ -122,6 +205,12 @@ type(scope): description
 
 Co-Authored-By: Claude <noreply@anthropic.com>
 ```
+
+**버전명 포함 규칙**:
+- **배포 버전**: `[V1.3.0_250827]` 형식
+- **개발 버전**: `[V1.3.0_250827_REV002]` 형식
+- 모든 커밋 메시지에 버전명 필수 포함
+- 버전명은 대괄호로 감싸서 명확하게 구분
 
 ### 커밋 타입 (Types)
 
@@ -150,7 +239,7 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 **ISSUE 해결 시 필수 포함**:
 
 ```
-fix(ui): resolve component page runtime error
+fix(ui): [V1.2.3_250827_REV001] resolve component page runtime error
 
 - Add 'use client' directive to fix Server Component serialization
 - Resolves ISSUE-UI-001: Event handlers cannot be passed to Client Component props
@@ -174,7 +263,7 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 ### 좋은 커밋 메시지 예시
 
 ```
-feat(auth): implement Google OAuth single sign-on
+feat(auth): [V1.4.0_250827] implement Google OAuth single sign-on
 
 - Replace email/password authentication with Google OAuth
 - Add GoogleSignInButton component with Supabase integration
