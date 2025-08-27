@@ -63,14 +63,6 @@ export default function FloatingQuickMenu() {
       color: 'bg-blue-600'
     },
     {
-      id: 'dashboard',
-      icon: <LayoutDashboard className="w-5 h-5" />,
-      title: '대시보드',
-      description: '실시간 비즈니스 현황을 확인하세요',
-      action: () => router.push('/dashboard'),
-      color: 'bg-green-500'
-    },
-    {
       id: 'document',
       icon: <FileText className="w-5 h-5" />,
       title: '문서 생성',
@@ -193,12 +185,12 @@ export default function FloatingQuickMenu() {
               <div className="p-4 border-t border-gray-100">
                 <button
                   onClick={() => {
-                    router.push('/dashboard');
+                    router.push('/business-lookup');
                     setIsOpen(false);
                   }}
                   className="w-full text-center text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors"
                 >
-                  대시보드로 이동 →
+                  사업자 조회 →
                 </button>
               </div>
             )}
