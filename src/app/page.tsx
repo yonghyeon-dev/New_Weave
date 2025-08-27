@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -28,8 +28,18 @@ import {
 } from 'lucide-react';
 
 export default function LandingPage() {
-  const router = useRouter();
   const currentYear = 2025;
+  const router = useRouter();
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  const navigateToPage = (path: string) => {
+    if (!isMounted) return;
+    router.push(path);
+  };
 
   return (
     <div className="min-h-screen">
@@ -71,7 +81,7 @@ export default function LandingPage() {
               <Button
                 variant="secondary"
                 size="sm"
-                onClick={() => router.push('/dashboard')}
+                onClick={() => navigateToPage('/dashboard')}
                 className="flex items-center gap-2"
               >
                 <LogIn className="w-4 h-4" />
@@ -80,7 +90,7 @@ export default function LandingPage() {
               <Button
                 variant="primary"
                 size="sm"
-                onClick={() => router.push('/dashboard')}
+                onClick={() => navigateToPage('/dashboard')}
                 className="flex items-center gap-2"
               >
                 <UserPlus className="w-4 h-4" />
@@ -119,7 +129,7 @@ export default function LandingPage() {
                 <Button
                   variant="primary"
                   size="lg"
-                  onClick={() => router.push('/home')}
+                  onClick={() => navigateToPage('/home')}
                   className="px-8 py-4 text-lg font-semibold"
                 >
                   홈 화면 바로가기 <ArrowRight className="w-5 h-5 ml-2" />
@@ -127,7 +137,7 @@ export default function LandingPage() {
                 <Button
                   variant="secondary-dark"
                   size="lg"
-                  onClick={() => router.push('/dashboard')}
+                  onClick={() => navigateToPage('/dashboard')}
                   className="px-8 py-4 text-lg font-semibold"
                 >
                   데모 보기
@@ -437,7 +447,7 @@ export default function LandingPage() {
             <Button
               variant="primary"
               size="lg"
-              onClick={() => router.push('/home')}
+              onClick={() => navigateToPage('/home')}
               className="px-8 py-4 text-lg font-semibold"
             >
               홈 화면 바로가기 <ArrowRight className="w-5 h-5 ml-2" />
@@ -445,7 +455,7 @@ export default function LandingPage() {
             <Button
               variant="secondary-dark"
               size="lg"
-              onClick={() => router.push('/dashboard')}
+              onClick={() => navigateToPage('/dashboard')}
               className="px-8 py-4 text-lg font-semibold"
             >
               더 알아보기
