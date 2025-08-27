@@ -88,16 +88,16 @@ const navigation = [
     ]
   },
   {
-    name: '설정',
-    href: '/settings',
-    icon: Settings,
-    description: '시스템 및 개인 설정'
-  },
-  {
     name: '사업자 조회',
     href: '/business-lookup',
     icon: Search,
     description: '사업자등록번호 조회 및 검증 (공공 API)'
+  },
+  {
+    name: '설정',
+    href: '/settings',
+    icon: Settings,
+    description: '시스템 및 개인 설정'
   }
 ];
 
