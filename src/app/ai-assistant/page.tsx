@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import AppLayout from '@/components/layout/AppLayout';
 import { Card } from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
@@ -113,7 +114,8 @@ const documentTemplates: DocumentTemplate[] = [
   }
 ];
 
-export default function AIAssistant() {
+function AIAssistantContent() {
+  const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState<'document' | 'chat' | 'tax' | 'extract' | 'file'>('document');
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -133,6 +135,14 @@ export default function AIAssistant() {
   const [generatedDocument, setGeneratedDocument] = useState<string>('');
 
   const categories = ['전체', '부가세', '소득세', '법인세', '전자신고', '기타'];
+
+  // URL 파라미터로 탭 상태 초기화
+  useEffect(() => {
+    const tabParam = searchParams.get('tab');
+    if (tabParam && ['document', 'chat', 'tax', 'extract', 'file'].includes(tabParam)) {
+      setActiveTab(tabParam as 'document' | 'chat' | 'tax' | 'extract' | 'file');
+    }
+  }, [searchParams]);
 
   const handleSendMessage = async () => {
     if (!inputMessage.trim()) return;
@@ -756,5 +766,28 @@ export default function AIAssistant() {
         </div>
       </div>
     </AppLayout>
+  );
+}
+
+export default function AIAssistant() {
+  return (
+    <Suspense fallback={
+      <AppLayout>
+        <div className="bg-bg-primary p-6">
+          <div className="max-w-6xl mx-auto">
+            <div className="animate-pulse">
+              <div className="h-8 bg-gray-200 rounded w-1/4 mb-4"></div>
+              <div className="h-4 bg-gray-200 rounded w-1/2 mb-8"></div>
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="h-96 bg-gray-200 rounded-lg"></div>
+                <div className="lg:col-span-2 h-96 bg-gray-200 rounded-lg"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </AppLayout>
+    }>
+      <AIAssistantContent />
+    </Suspense>
   );
 }
