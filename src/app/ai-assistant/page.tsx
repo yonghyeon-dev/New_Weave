@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import AppLayout from '@/components/layout/AppLayout';
 import { Card } from '@/components/ui/Card';
@@ -45,6 +45,7 @@ interface StatCard {
 
 export default function AIAssistant() {
   const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
 
   // 주요 기능 카드들
   const featureCards: FeatureCard[] = [
@@ -156,232 +157,203 @@ export default function AIAssistant() {
 
   return (
     <AppLayout>
-      <div className="bg-bg-primary min-h-screen">
-        <div className="max-w-7xl mx-auto p-6">
-          {/* 헤더 섹션 */}
-          <div className="mb-8">
+      <div className="bg-bg-primary p-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="space-y-8">
+            {/* 헤더 섹션 */}
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="p-3 bg-gradient-to-br from-weave-primary to-weave-primary-light rounded-xl shadow-lg">
-                  <Cpu className="w-8 h-8 text-white" />
-                </div>
-                <div>
-                  <Typography variant="h1" className="text-3xl font-bold mb-2">
-                    AI Assistant Hub
-                  </Typography>
-                  <Typography variant="body1" className="text-txt-secondary">
-                    AI 기반 업무 자동화 통합 플랫폼
-                  </Typography>
-                </div>
+              <div>
+                <Typography variant="h2" className="text-2xl mb-1">AI Assistant</Typography>
+                <Typography variant="body1" className="text-txt-secondary">
+                  AI 기반 업무 자동화 도구를 활용하세요
+                </Typography>
               </div>
-              <Button 
-                variant="primary"
-                onClick={() => router.push('/ai-assistant/generate')}
-                className="hidden md:flex items-center gap-2"
-              >
-                <Sparkles className="w-4 h-4" />
-                빠른 시작
-              </Button>
+              <div className="flex space-x-3">
+                <Button 
+                  variant="primary"
+                  onClick={() => router.push('/ai-assistant/generate')}
+                  className="flex items-center space-x-2"
+                >
+                  <FileText className="w-4 h-4" />
+                  <span>새 문서 생성</span>
+                </Button>
+                <Button 
+                  variant="secondary"
+                  onClick={() => router.push('/ai-assistant/extract')}
+                  className="flex items-center space-x-2"
+                >
+                  <Upload className="w-4 h-4" />
+                  <span>데이터 추출</span>
+                </Button>
+              </div>
             </div>
-          </div>
 
-          {/* 통계 카드 섹션 */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            {/* 통계 카드 섹션 */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {statCards.map((stat, index) => (
-              <Card key={index} className="p-4 hover:shadow-md transition-shadow">
+              <Card className="bg-white rounded-lg border border-border-light p-6">
                 <div className="flex items-start justify-between">
-                  <div>
-                    <Typography variant="body2" className="text-txt-secondary mb-1">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-3">
+                      <div className="p-2 bg-bg-secondary rounded-lg">
+                        {stat.icon}
+                      </div>
+                    </div>
+                    <Typography variant="body2" className="text-txt-tertiary mb-1">
                       {stat.label}
                     </Typography>
-                    <Typography variant="h3" className="text-2xl font-bold">
+                    <Typography variant="h3" className="text-2xl font-bold text-txt-primary">
                       {stat.value}
                     </Typography>
                     {stat.trend && (
                       <div className="flex items-center gap-1 mt-2">
                         <TrendingUp className="w-4 h-4 text-green-500" />
-                        <Typography variant="body2" className="text-green-500">
+                        <Typography variant="body2" className="text-green-500 font-medium">
                           {stat.trend}
                         </Typography>
                       </div>
                     )}
                   </div>
-                  {stat.icon}
                 </div>
               </Card>
             ))}
           </div>
 
-          {/* 주요 기능 카드 그리드 */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-            {featureCards.map((feature) => (
-              <Card 
-                key={feature.id}
-                className="overflow-hidden hover:shadow-xl transition-all cursor-pointer group"
-                onClick={() => router.push(feature.href)}
-              >
-                <div className={`h-2 ${feature.color}`} />
-                <div className="p-6">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className={`p-3 ${feature.color} bg-opacity-10 rounded-lg`}>
-                      <div className={`${feature.color} bg-opacity-100 text-white rounded-lg p-2`}>
-                        {feature.icon}
+            {/* 주요 기능 카드 그리드 */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {featureCards.map((feature) => (
+                <Card 
+                  key={feature.id}
+                  className="bg-white rounded-lg border border-border-light hover:shadow-lg transition-all cursor-pointer group overflow-hidden"
+                  onClick={() => router.push(feature.href)}
+                >
+                  <div className="p-6">
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="p-3 bg-bg-secondary rounded-lg">
+                        <div className={`${feature.color} bg-opacity-20 rounded-lg p-2`}>
+                          {React.cloneElement(feature.icon as React.ReactElement, { 
+                            className: `w-6 h-6 ${feature.color.replace('bg-', 'text-')}`
+                          })}
+                        </div>
+                      </div>
+                      {feature.badge && (
+                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                          feature.badge === 'AI 지원' ? 'bg-blue-50 text-blue-600' :
+                          feature.badge === '신규 기능' ? 'bg-green-50 text-green-600' :
+                          'bg-gray-100 text-gray-600'
+                        }`}>
+                          {feature.badge}
+                        </span>
+                      )}
+                    </div>
+                  
+                    <Typography variant="h3" className="text-lg font-semibold mb-2 text-txt-primary">
+                      {feature.title}
+                    </Typography>
+                    <Typography variant="body2" className="text-txt-secondary mb-4">
+                      {feature.description}
+                    </Typography>
+
+                    {/* 기능 목록 */}
+                    <div className="space-y-2 mb-4">
+                      {feature.features.slice(0, 3).map((item, index) => (
+                        <div key={index} className="flex items-start gap-2">
+                          <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />
+                          <Typography variant="body2" className="text-txt-tertiary text-sm">
+                            {item}
+                          </Typography>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="flex items-center justify-end pt-4 border-t border-border-light">
+                      <div className="flex items-center gap-1 text-weave-primary group-hover:gap-2 transition-all">
+                        <Typography variant="body2" className="font-medium">
+                          시작하기
+                        </Typography>
+                        <ArrowRight className="w-4 h-4" />
                       </div>
                     </div>
-                    {feature.badge && (
-                      <span className={`px-3 py-1 text-xs font-medium rounded-full ${
-                        feature.badge === 'AI 지원' ? 'bg-blue-100 text-blue-700' :
-                        feature.badge === '신규 기능' ? 'bg-green-100 text-green-700' :
-                        'bg-gray-100 text-gray-700'
-                      }`}>
-                        {feature.badge}
-                      </span>
-                    )}
                   </div>
-                  
-                  <Typography variant="h3" className="text-xl font-bold mb-2">
-                    {feature.title}
-                  </Typography>
-                  <Typography variant="body1" className="text-txt-secondary mb-4">
-                    {feature.description}
-                  </Typography>
-
-                  {/* 기능 목록 */}
-                  <div className="space-y-2 mb-4">
-                    {feature.features.map((item, index) => (
-                      <div key={index} className="flex items-center gap-2">
-                        <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
-                        <Typography variant="body2" className="text-txt-secondary">
-                          {item}
-                        </Typography>
-                      </div>
-                    ))}
-                  </div>
-
-                  <div className="flex items-center justify-between pt-4 border-t border-border-light">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="group-hover:bg-weave-primary group-hover:text-white transition-colors"
-                    >
-                      자세히 보기
-                      <ArrowRight className="w-4 h-4 ml-2" />
-                    </Button>
-                  </div>
-                </div>
-              </Card>
+                </Card>
             ))}
           </div>
 
-          {/* 하단 정보 섹션 */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* 최근 업데이트 */}
-            <Card className="p-6">
-              <div className="flex items-center gap-2 mb-4">
-                <Sparkles className="w-5 h-5 text-weave-primary" />
-                <Typography variant="h3" className="text-lg font-bold">최근 업데이트</Typography>
-              </div>
+            {/* 하단 정보 섹션 */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* 최근 업데이트 */}
+              <div className="bg-white rounded-lg border border-border-light p-6">
+                <Typography variant="h4" className="mb-4 font-semibold">
+                  최근 업데이트
+                </Typography>
               <div className="space-y-3">
                 {recentUpdates.map((update, index) => (
-                  <div key={index} className="flex items-start gap-3 p-3 bg-bg-secondary rounded-lg">
-                    <div className={`w-2 h-2 rounded-full mt-2 ${
+                  <div key={index} className="flex items-start gap-3 pb-3 border-b border-border-light last:border-0 last:pb-0">
+                    <div className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${
                       update.type === 'feature' ? 'bg-green-500' : 'bg-blue-500'
                     }`} />
                     <div className="flex-1">
-                      <Typography variant="body1" className="font-medium">
+                      <Typography variant="body2" className="font-medium text-txt-primary">
                         {update.title}
                       </Typography>
-                      <Typography variant="body2" className="text-txt-secondary">
+                      <Typography variant="body2" className="text-txt-tertiary text-sm">
                         {update.date}
                       </Typography>
                     </div>
                   </div>
                 ))}
               </div>
-            </Card>
-
-            {/* 빠른 시작 가이드 */}
-            <Card className="p-6">
-              <div className="flex items-center gap-2 mb-4">
-                <Zap className="w-5 h-5 text-yellow-500" />
-                <Typography variant="h3" className="text-lg font-bold">빠른 시작 가이드</Typography>
               </div>
+
+              {/* 빠른 시작 가이드 */}
+              <div className="bg-white rounded-lg border border-border-light p-6">
+                <Typography variant="h4" className="mb-4 font-semibold">
+                  빠른 시작 가이드
+                </Typography>
               <div className="space-y-3">
-                <div className="p-3 bg-yellow-50 rounded-lg">
-                  <div className="flex items-start gap-3">
-                    <span className="flex-shrink-0 w-6 h-6 bg-yellow-500 text-white rounded-full flex items-center justify-center text-sm font-bold">
+                  <div className="flex items-start gap-3 pb-3 border-b border-border-light">
+                    <div className="flex-shrink-0 w-8 h-8 bg-yellow-100 text-yellow-600 rounded-full flex items-center justify-center text-sm font-semibold">
                       1
-                    </span>
-                    <div>
-                      <Typography variant="body1" className="font-medium text-yellow-900">
+                    </div>
+                    <div className="flex-1">
+                      <Typography variant="body2" className="font-medium text-txt-primary mb-1">
                         파일 업로드
                       </Typography>
-                      <Typography variant="body2" className="text-yellow-700">
+                      <Typography variant="body2" className="text-txt-tertiary text-sm">
                         PDF나 이미지를 드래그앤드롭으로 업로드
                       </Typography>
                     </div>
                   </div>
-                </div>
-                <div className="p-3 bg-blue-50 rounded-lg">
-                  <div className="flex items-start gap-3">
-                    <span className="flex-shrink-0 w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-bold">
+                  <div className="flex items-start gap-3 pb-3 border-b border-border-light">
+                    <div className="flex-shrink-0 w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-semibold">
                       2
-                    </span>
-                    <div>
-                      <Typography variant="body1" className="font-medium text-blue-900">
+                    </div>
+                    <div className="flex-1">
+                      <Typography variant="body2" className="font-medium text-txt-primary mb-1">
                         AI 처리
                       </Typography>
-                      <Typography variant="body2" className="text-blue-700">
+                      <Typography variant="body2" className="text-txt-tertiary text-sm">
                         Gemini AI가 자동으로 데이터 추출 및 분석
                       </Typography>
                     </div>
                   </div>
-                </div>
-                <div className="p-3 bg-green-50 rounded-lg">
                   <div className="flex items-start gap-3">
-                    <span className="flex-shrink-0 w-6 h-6 bg-green-500 text-white rounded-full flex items-center justify-center text-sm font-bold">
+                    <div className="flex-shrink-0 w-8 h-8 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-sm font-semibold">
                       3
-                    </span>
-                    <div>
-                      <Typography variant="body1" className="font-medium text-green-900">
+                    </div>
+                    <div className="flex-1">
+                      <Typography variant="body2" className="font-medium text-txt-primary mb-1">
                         문서 생성
                       </Typography>
-                      <Typography variant="body2" className="text-green-700">
+                      <Typography variant="body2" className="text-txt-tertiary text-sm">
                         원하는 형식으로 문서 생성 및 내보내기
                       </Typography>
                     </div>
                   </div>
-                </div>
               </div>
-            </Card>
-          </div>
-
-          {/* CTA 섹션 */}
-          <div className="mt-8 p-8 bg-gradient-to-r from-weave-primary to-weave-primary-light rounded-xl text-white text-center">
-            <Typography variant="h2" className="text-2xl font-bold mb-3">
-              업무 자동화의 새로운 시작
-            </Typography>
-            <Typography variant="body1" className="mb-6 opacity-90">
-              AI Assistant로 반복적인 업무를 자동화하고 생산성을 높이세요
-            </Typography>
-            <div className="flex gap-4 justify-center">
-              <Button 
-                variant="outline"
-                className="bg-white text-weave-primary hover:bg-gray-100"
-                onClick={() => router.push('/ai-assistant/extract')}
-              >
-                <Upload className="w-4 h-4 mr-2" />
-                정보 추출 시작
-              </Button>
-              <Button 
-                variant="outline"
-                className="bg-white text-weave-primary hover:bg-gray-100"
-                onClick={() => router.push('/ai-assistant/generate')}
-              >
-                <FileText className="w-4 h-4 mr-2" />
-                문서 생성 시작
-              </Button>
+              </div>
             </div>
+
           </div>
         </div>
       </div>

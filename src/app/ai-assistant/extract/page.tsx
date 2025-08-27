@@ -1,13 +1,17 @@
 'use client';
 
 import React from 'react';
+import { useRouter } from 'next/navigation';
 import AppLayout from '@/components/layout/AppLayout';
 import Typography from '@/components/ui/Typography';
-import { Upload } from 'lucide-react';
+import Button from '@/components/ui/Button';
+import { Upload, ArrowLeft, FileText } from 'lucide-react';
 import DataExtractor from '@/components/ai-assistant/DataExtractor';
 import { ExtractedData } from '@/types/ai-assistant';
 
 export default function InfoExtractPage() {
+  const router = useRouter();
+  
   // 데이터 추출 완료 핸들러
   const handleDataExtracted = (data: ExtractedData) => {
     console.log('추출된 데이터:', data);
@@ -26,15 +30,30 @@ export default function InfoExtractPage() {
         <div className="max-w-6xl mx-auto">
           {/* 헤더 */}
           <div className="mb-8">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-3 bg-weave-primary-light rounded-lg">
-                <Upload className="w-6 h-6 text-weave-primary" />
-              </div>
+            <div className="flex items-center justify-between">
               <div>
                 <Typography variant="h2" className="text-2xl mb-1">정보 추출</Typography>
                 <Typography variant="body1" className="text-txt-secondary">
                   이미지나 PDF 문서에서 핵심 정보를 자동으로 추출하세요
                 </Typography>
+              </div>
+              <div className="flex space-x-3">
+                <Button 
+                  variant="ghost"
+                  onClick={() => router.push('/ai-assistant')}
+                  className="flex items-center space-x-2"
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                  <span>돌아가기</span>
+                </Button>
+                <Button 
+                  variant="secondary"
+                  onClick={() => router.push('/ai-assistant/generate')}
+                  className="flex items-center space-x-2"
+                >
+                  <FileText className="w-4 h-4" />
+                  <span>문서 생성</span>
+                </Button>
               </div>
             </div>
           </div>
