@@ -79,36 +79,36 @@ export default function InsightCard({
       variantStyles[variant],
       className
     )}>
-      {/* Header */}
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-sm font-medium text-txt-secondary">{title}</h3>
+      {/* Header - 모바일 가로 배치 최적화 */}
+      <div className="flex items-center gap-2 mb-3">
         {icon && (
-          <div className={cn("text-lg", valueStyles[variant])}>
+          <div className={cn("text-base flex-shrink-0", valueStyles[variant])}>
             {icon}
           </div>
         )}
+        <h3 className="text-sm font-medium text-txt-secondary flex-1 truncate">{title}</h3>
       </div>
       
-      {/* Value */}
-      <div className="mb-2">
+      {/* Value - 모바일 가독성 개선 */}
+      <div className="mb-3">
         <div className={cn(
-          "text-2xl font-bold",
+          "text-xl sm:text-2xl font-bold leading-tight",
           valueStyles[variant]
         )}>
           {typeof value === 'number' ? value.toLocaleString() : value}
         </div>
         {subtitle && (
-          <div className="text-sm text-txt-tertiary mt-1">
+          <div className="text-xs sm:text-sm text-txt-tertiary mt-1 leading-tight">
             {subtitle}
           </div>
         )}
       </div>
       
-      {/* Trend */}
+      {/* Trend - 가로 배치 유지 */}
       {trend && (
-        <div className="flex items-center mb-4">
+        <div className="flex items-center mb-3 gap-2">
           <div className={cn(
-            "flex items-center text-xs font-medium px-2 py-1 rounded-full",
+            "flex items-center text-xs font-medium px-2 py-1 rounded-full flex-shrink-0",
             trend.isPositive 
               ? "text-green-700 bg-green-100" 
               : "text-red-700 bg-red-100"
@@ -118,7 +118,7 @@ export default function InsightCard({
             </span>
             {Math.abs(trend.value)}%
           </div>
-          <span className="ml-2 text-xs text-txt-tertiary">
+          <span className="text-xs text-txt-tertiary truncate">
             {trend.label}
           </span>
         </div>

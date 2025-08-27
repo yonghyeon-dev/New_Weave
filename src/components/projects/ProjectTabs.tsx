@@ -221,7 +221,7 @@ export function ProjectTabContent({ projectId }: { projectId?: string }) {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-txt-secondary">예산</p>
-              <p className="text-xl font-bold text-txt-primary">₩{(projectData.budget / 1000000).toFixed(0)}M</p>
+              <p className="text-xl font-bold text-txt-primary">{(projectData.budget / 10000).toLocaleString()}만원</p>
             </div>
             <DollarSign className="w-8 h-8 text-green-500" />
           </div>
@@ -502,7 +502,7 @@ export function ClientTabContent({ projectId }: { projectId?: string }) {
             <div>
               <p className="text-sm text-txt-secondary">총 매출</p>
               <p className="text-2xl font-bold text-txt-primary">
-                {(clients.reduce((sum, c) => sum + c.totalRevenue, 0) / 1000000).toFixed(0)}M
+                {(clients.reduce((sum, c) => sum + c.totalRevenue, 0) / 10000).toLocaleString()}만원
               </p>
             </div>
             <DollarSign className="w-8 h-8 text-purple-500" />
@@ -583,7 +583,7 @@ export function ClientTabContent({ projectId }: { projectId?: string }) {
                   </td>
                   <td className="px-6 py-4">
                     <div className="text-sm font-medium text-txt-primary">
-                      ₩{(client.totalRevenue / 1000000).toFixed(1)}M
+                      {(client.totalRevenue / 10000).toLocaleString()}만원
                     </div>
                   </td>
                   <td className="px-6 py-4">
@@ -742,9 +742,6 @@ export function InvoiceTabContent({ projectId }: { projectId?: string }) {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <button className="px-4 py-2 border border-border-light rounded-lg hover:bg-bg-secondary transition-colors">
-            📊 리포트
-          </button>
           <button className="px-4 py-2 bg-weave-primary text-white rounded-lg hover:bg-weave-primary-dark transition-colors">
             + 인보이스 생성
           </button>
@@ -783,7 +780,7 @@ export function InvoiceTabContent({ projectId }: { projectId?: string }) {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-txt-secondary">총 발행액</p>
-              <p className="text-2xl font-bold text-txt-primary">₩{(totalAmount / 1000000).toFixed(1)}M</p>
+              <p className="text-2xl font-bold text-txt-primary">{(totalAmount / 10000).toLocaleString()}만원</p>
             </div>
             <FileText className="w-8 h-8 text-weave-primary" />
           </div>
@@ -793,7 +790,7 @@ export function InvoiceTabContent({ projectId }: { projectId?: string }) {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-txt-secondary">수금 완료</p>
-              <p className="text-2xl font-bold text-green-600">₩{(paidAmount / 1000000).toFixed(1)}M</p>
+              <p className="text-2xl font-bold text-green-600">{(paidAmount / 10000).toLocaleString()}만원</p>
             </div>
             <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
               <FileText className="w-5 h-5 text-green-600" />
@@ -805,7 +802,7 @@ export function InvoiceTabContent({ projectId }: { projectId?: string }) {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-txt-secondary">결제대기</p>
-              <p className="text-2xl font-bold text-yellow-600">₩{(pendingAmount / 1000000).toFixed(1)}M</p>
+              <p className="text-2xl font-bold text-yellow-600">{(pendingAmount / 10000).toLocaleString()}만원</p>
             </div>
             <div className="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center">
               <FileText className="w-5 h-5 text-yellow-600" />
@@ -817,7 +814,7 @@ export function InvoiceTabContent({ projectId }: { projectId?: string }) {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-txt-secondary">연체</p>
-              <p className="text-2xl font-bold text-red-600">₩{(overdueAmount / 1000000).toFixed(1)}M</p>
+              <p className="text-2xl font-bold text-red-600">{(overdueAmount / 10000).toLocaleString()}만원</p>
             </div>
             <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
               <FileText className="w-5 h-5 text-red-600" />
@@ -1098,9 +1095,6 @@ export function PaymentTabContent({ projectId }: { projectId?: string }) {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <button className="px-4 py-2 border border-border-light rounded-lg hover:bg-bg-secondary transition-colors">
-            📈 캐시플로우 분석
-          </button>
           <button className="px-4 py-2 bg-weave-primary text-white rounded-lg hover:bg-weave-primary-dark transition-colors">
             + 결제 내역 추가
           </button>
@@ -1139,7 +1133,7 @@ export function PaymentTabContent({ projectId }: { projectId?: string }) {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-txt-secondary">총 계약금</p>
-              <p className="text-2xl font-bold text-txt-primary">₩{(totalContract / 1000000).toFixed(1)}M</p>
+              <p className="text-2xl font-bold text-txt-primary">{(totalContract / 10000).toLocaleString()}만원</p>
             </div>
             <CreditCard className="w-8 h-8 text-weave-primary" />
           </div>
@@ -1149,7 +1143,7 @@ export function PaymentTabContent({ projectId }: { projectId?: string }) {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-txt-secondary">입금완료</p>
-              <p className="text-2xl font-bold text-green-600">₩{(completedAmount / 1000000).toFixed(1)}M</p>
+              <p className="text-2xl font-bold text-green-600">{(completedAmount / 10000).toLocaleString()}만원</p>
             </div>
             <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
               <CreditCard className="w-5 h-5 text-green-600" />
@@ -1161,7 +1155,7 @@ export function PaymentTabContent({ projectId }: { projectId?: string }) {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-txt-secondary">결제대기</p>
-              <p className="text-2xl font-bold text-yellow-600">₩{(pendingAmount / 1000000).toFixed(1)}M</p>
+              <p className="text-2xl font-bold text-yellow-600">{(pendingAmount / 10000).toLocaleString()}만원</p>
             </div>
             <div className="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center">
               <CreditCard className="w-5 h-5 text-yellow-600" />
@@ -1173,7 +1167,7 @@ export function PaymentTabContent({ projectId }: { projectId?: string }) {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-txt-secondary">이번 달 예상</p>
-              <p className="text-2xl font-bold text-blue-600">₩{(monthlyProjection / 1000000).toFixed(1)}M</p>
+              <p className="text-2xl font-bold text-blue-600">{(monthlyProjection / 10000).toLocaleString()}만원</p>
             </div>
             <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
               <span className="text-xs font-bold text-blue-600">30d</span>

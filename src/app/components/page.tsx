@@ -361,7 +361,7 @@ export default function ComponentsPage() {
               <CardHeader>
                 <CardTitle>Secondary Buttons</CardTitle>
                 <CardDescription>
-                  보조 액션을 위한 버튼들 (기본 색상, 투명 배경, 그림자 효과)
+                  WEAVE 디자인 시스템 표준 - 중성적 회색에서 브랜드 컬러로 우아한 포인트 전환 (전체 시스템 적용)
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -383,6 +383,40 @@ export default function ComponentsPage() {
                   <Button variant="secondary" disabled>
                     Disabled
                   </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card variant="elevated">
+              <CardHeader>
+                <CardTitle>Secondary Dark Buttons</CardTitle>
+                <CardDescription>
+                  어두운 배경용 Secondary 버튼 - 반투명 흰색 테두리에서 브랜드 컬러 전환 (랜딩페이지 그라데이션 배경 적용)
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 p-6 rounded-lg">
+                  <div className="space-y-4">
+                    <div className="flex flex-wrap gap-3">
+                      <Button variant="secondary-dark" size="sm">
+                        Small
+                      </Button>
+                      <Button variant="secondary-dark" size="md">
+                        Medium
+                      </Button>
+                      <Button variant="secondary-dark" size="lg">
+                        Large
+                      </Button>
+                    </div>
+                    <div className="flex flex-wrap gap-3">
+                      <Button variant="secondary-dark" loading>
+                        Loading
+                      </Button>
+                      <Button variant="secondary-dark" disabled>
+                        Disabled
+                      </Button>
+                    </div>
+                  </div>
                 </div>
               </CardContent>
             </Card>

@@ -5,7 +5,7 @@ import AppLayout from '@/components/layout/AppLayout';
 import { Card } from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Typography from '@/components/ui/Typography';
-import { Upload, FileText, Download, AlertCircle, CheckCircle } from 'lucide-react';
+import { Upload, FileText, Download, AlertCircle, CheckCircle, BrainCircuit } from 'lucide-react';
 
 interface ExtractedInfo {
   key: string;
@@ -100,10 +100,10 @@ export default function InfoExtractPage() {
           <div className="mb-8">
             <div className="flex items-center gap-3 mb-4">
               <div className="p-3 bg-weave-primary-light rounded-lg">
-                <Upload className="w-6 h-6 text-weave-primary" />
+                <BrainCircuit className="w-6 h-6 text-weave-primary" />
               </div>
               <div>
-                <Typography variant="h1" className="mb-1">정보 추출</Typography>
+                <Typography variant="h2" className="text-2xl mb-1 text-txt-primary">정보 추출</Typography>
                 <Typography variant="body1" className="text-txt-secondary">
                   문서에서 핵심 정보를 자동으로 추출하세요
                 </Typography>

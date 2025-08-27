@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import AppLayout from '@/components/layout/AppLayout';
+import { WorkspacePageContainer } from '@/components/layout/PageContainer';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import DashboardCalendar from '@/components/dashboard/DashboardCalendar';
 import Typography from '@/components/ui/Typography';
@@ -262,50 +263,48 @@ export default function Dashboard() {
 
   return (
     <AppLayout>
-      <div className="bg-bg-primary p-6">
-        <div className="max-w-7xl mx-auto">
-          <DashboardLayout
-            insights={insights}
-            quickActions={quickActions}
-          >
-            {/* 캘린더 및 추가 차트 */}
-            <div className="grid grid-cols-1 gap-6">
-              {/* 비즈니스 캘린더 */}
-              <div className="mb-6">
-                <DashboardCalendar 
-                  events={dashboardData?.calendarEvents || []}
-                  onDateSelect={(date) => console.log('Selected date:', date)}
-                  onEventClick={(event) => console.log('Clicked event:', event)}
-                />
-              </div>
-              
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="bg-white rounded-lg border border-border-light p-6">
-                  <Typography variant="h4" className="mb-4">
-                    최근 활동
-                  </Typography>
-                  <div className="space-y-4">
-                    <div className="text-sm text-txt-tertiary">
-                      실제 데이터 연동 시 최근 인보이스 발행, 결제 완료, 프로젝트 업데이트 등의 활동이 표시됩니다.
-                    </div>
+      <WorkspacePageContainer>
+        <DashboardLayout
+          insights={insights}
+          quickActions={quickActions}
+        >
+          {/* 캘린더 및 추가 차트 */}
+          <div className="grid grid-cols-1 gap-6">
+            {/* 비즈니스 캘린더 */}
+            <div className="mb-6">
+              <DashboardCalendar 
+                events={dashboardData?.calendarEvents || []}
+                onDateSelect={(date) => console.log('Selected date:', date)}
+                onEventClick={(event) => console.log('Clicked event:', event)}
+              />
+            </div>
+            
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="bg-white rounded-lg border border-border-light p-6">
+                <Typography variant="h4" className="mb-4">
+                  최근 활동
+                </Typography>
+                <div className="space-y-4">
+                  <div className="text-sm text-txt-tertiary">
+                    실제 데이터 연동 시 최근 인보이스 발행, 결제 완료, 프로젝트 업데이트 등의 활동이 표시됩니다.
                   </div>
                 </div>
-                
-                <div className="bg-white rounded-lg border border-border-light p-6">
-                  <Typography variant="h4" className="mb-4">
-                    월별 매출 추이
-                  </Typography>
-                  <div className="space-y-4">
-                    <div className="text-sm text-txt-tertiary">
-                      차트 라이브러리 연동 시 월별 매출 그래프가 표시됩니다.
-                    </div>
+              </div>
+              
+              <div className="bg-white rounded-lg border border-border-light p-6">
+                <Typography variant="h4" className="mb-4">
+                  월별 매출 추이
+                </Typography>
+                <div className="space-y-4">
+                  <div className="text-sm text-txt-tertiary">
+                    차트 라이브러리 연동 시 월별 매출 그래프가 표시됩니다.
                   </div>
                 </div>
               </div>
             </div>
-          </DashboardLayout>
-        </div>
-      </div>
+          </div>
+        </DashboardLayout>
+      </WorkspacePageContainer>
     </AppLayout>
   );
 }

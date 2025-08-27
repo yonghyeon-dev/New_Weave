@@ -157,12 +157,15 @@ export default function PaymentsPage() {
     return statusMatch && methodMatch;
   });
 
+  const [paymentIdCounter, setPaymentIdCounter] = useState(5);
+
   const handleAddPayment = (newPayment: Omit<Payment, 'id' | 'createdAt'>) => {
     const payment: Payment = {
       ...newPayment,
-      id: Date.now().toString(),
+      id: `payment-${paymentIdCounter}`,
       createdAt: new Date()
     };
+    setPaymentIdCounter(prev => prev + 1);
     setPayments(prev => [payment, ...prev]);
   };
 
@@ -178,31 +181,34 @@ export default function PaymentsPage() {
     <AppLayout>
       <div className="bg-bg-primary p-6">
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
+        {/* Header - 모바일 가로 배치 최적화 */}
         <div className="flex items-center justify-between mb-8">
-          <div>
-            <Typography variant="h2" className="text-2xl mb-1">결제 관리</Typography>
-            <Typography variant="body1" className="text-txt-secondary">
-              모든 결제 내역을 관리하고 상태를 추적하세요
-            </Typography>
+          <div className="flex items-center gap-3 flex-1 min-w-0">
+            <div className="p-2 sm:p-3 bg-weave-primary-light rounded-lg flex-shrink-0">
+              <CreditCard className="w-5 h-5 sm:w-6 sm:h-6 text-weave-primary" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <Typography variant="h2" className="text-xl sm:text-2xl mb-0 sm:mb-1 text-txt-primary leading-tight">결제 관리</Typography>
+              <Typography variant="body1" className="text-sm sm:text-base text-txt-secondary leading-tight hidden sm:block">
+                모든 결제 내역을 관리하고 상태를 추적하세요
+              </Typography>
+            </div>
           </div>
         </div>
 
         {/* Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-lg border border-border-light p-6">
-            <div className="flex items-center">
-              <div className="p-2 bg-weave-primary-light rounded-lg">
-                <DollarSign className="w-6 h-6 text-weave-primary" />
-              </div>
-              <div className="ml-4 flex-1">
-                <Typography variant="body2" className="text-txt-secondary">받은 금액</Typography>
-                <Typography variant="h3" className="text-2xl">
+          <div className="bg-white rounded-lg border border-border-light p-4 sm:p-6">
+            <div className="flex items-center gap-3">
+              <DollarSign className="w-5 h-5 sm:w-6 sm:h-6 text-weave-primary flex-shrink-0" />
+              <div className="flex-1 min-w-0">
+                <Typography variant="body2" className="text-xs sm:text-sm text-txt-secondary">받은 금액</Typography>
+                <Typography variant="h3" className="text-lg sm:text-2xl leading-tight">
                   {formatCurrency(summary.totalReceived)}
                 </Typography>
                 <div className="flex items-center text-xs text-green-600 mt-1">
-                  <TrendingUp className="w-3 h-3 mr-1" />
-                  {summary.monthlyGrowth}% 증가
+                  <TrendingUp className="w-3 h-3 mr-1 flex-shrink-0" />
+                  <span className="truncate">{summary.monthlyGrowth}% 증가</span>
                 </div>
               </div>
             </div>

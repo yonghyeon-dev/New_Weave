@@ -30,7 +30,7 @@ import {
 
 export default function Home() {
   const router = useRouter();
-  const currentYear = new Date().getFullYear();
+  const currentYear = 2025;
   const [aiMenuOpen, setAiMenuOpen] = useState(false);
   const [workMenuOpen, setWorkMenuOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);

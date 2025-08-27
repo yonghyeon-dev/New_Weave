@@ -6,7 +6,7 @@ import { Card } from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import Typography from '@/components/ui/Typography';
-import { FileText, Download, Copy, Wand2 } from 'lucide-react';
+import { FileText, Download, Copy, Wand2, BrainCircuit } from 'lucide-react';
 
 interface DocumentTemplate {
   id: string;
@@ -97,10 +97,10 @@ ${formData.description || '[상세 내용]'}
           <div className="mb-8">
             <div className="flex items-center gap-3 mb-4">
               <div className="p-3 bg-weave-primary-light rounded-lg">
-                <FileText className="w-6 h-6 text-weave-primary" />
+                <BrainCircuit className="w-6 h-6 text-weave-primary" />
               </div>
               <div>
-                <Typography variant="h1" className="mb-1">문서 생성</Typography>
+                <Typography variant="h2" className="text-2xl mb-1 text-txt-primary">문서 생성</Typography>
                 <Typography variant="body1" className="text-txt-secondary">
                   AI로 계약서, 제안서 등 업무 문서를 자동 생성하세요
                 </Typography>

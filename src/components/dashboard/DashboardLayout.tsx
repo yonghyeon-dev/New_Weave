@@ -4,6 +4,7 @@ import React from 'react';
 import InsightCard from './InsightCard';
 import Button from '@/components/ui/Button';
 import Typography from '@/components/ui/Typography';
+import { LayoutDashboard } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 // 대시보드 룰 R1-R4에 해당하는 인사이트 데이터 타입
@@ -47,27 +48,32 @@ export default function DashboardLayout({
 }: DashboardLayoutProps) {
   return (
     <div className={cn("space-y-8", className)}>
-      {/* Header */}
+      {/* Header - 모바일 가로 배치 최적화 */}
       <div className="flex items-center justify-between">
-        <div>
-          <Typography variant="h2" className="text-2xl mb-1">대시보드</Typography>
-          <Typography variant="body1" className="text-txt-secondary">
-            비즈니스 현황을 한눈에 확인하세요
-          </Typography>
+        <div className="flex items-center gap-3 flex-1 min-w-0">
+          <div className="p-2 sm:p-3 bg-weave-primary-light rounded-lg flex-shrink-0">
+            <LayoutDashboard className="w-5 h-5 sm:w-6 sm:h-6 text-weave-primary" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <Typography variant="h2" className="text-xl sm:text-2xl mb-0 sm:mb-1 text-txt-primary leading-tight">대시보드</Typography>
+            <Typography variant="body1" className="text-sm sm:text-base text-txt-secondary leading-tight hidden sm:block">
+              비즈니스 현황을 한눈에 확인하세요
+            </Typography>
+          </div>
         </div>
         
-        {/* Quick Actions */}
+        {/* Quick Actions - 모바일 최적화 */}
         {quickActions.length > 0 && (
-          <div className="flex space-x-3">
+          <div className="flex space-x-2 sm:space-x-3 flex-shrink-0">
             {quickActions.map((action, index) => (
               <Button
                 key={index}
                 variant={action.variant || 'primary'}
                 onClick={action.onClick}
-                className="flex items-center space-x-2"
+                className="flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2"
               >
                 {action.icon}
-                <span>{action.label}</span>
+                <span className="hidden sm:inline">{action.label}</span>
               </Button>
             ))}
           </div>

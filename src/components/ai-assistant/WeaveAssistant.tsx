@@ -662,7 +662,7 @@ export default function WeaveAssistant() {
 
       {/* 서브 탭 */}
       <div className="flex border-b border-gray-200 overflow-x-auto">
-        <Button variant="ghost" className="border-b-2 border-blue-500 text-blue-600 whitespace-nowrap">보안 업로드</Button>
+        <Button variant="secondary" className="whitespace-nowrap">보안 업로드</Button>
         <Button variant="ghost" className="whitespace-nowrap">문서 요청</Button>
         <Button variant="ghost" className="whitespace-nowrap">파일 분석</Button>
         <Button variant="ghost" className="whitespace-nowrap">업로드 기록</Button>

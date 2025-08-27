@@ -3,6 +3,7 @@
 import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import AppLayout from '@/components/layout/AppLayout';
+import { WorkspacePageContainer } from '@/components/layout/PageContainer';
 import { Card } from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
@@ -23,7 +24,8 @@ import {
   Upload,
   Download,
   FileUp,
-  Copy
+  Copy,
+  BrainCircuit
 } from 'lucide-react';
 
 interface Message {
@@ -130,6 +132,7 @@ function AIAssistantContent() {
   const [isLoading, setIsLoading] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('전체');
   const [selectedTemplate, setSelectedTemplate] = useState<string>('');
+  const [messageIdCounter, setMessageIdCounter] = useState(1);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [documentFields, setDocumentFields] = useState<Record<string, string>>({});
   const [generatedDocument, setGeneratedDocument] = useState<string>('');
@@ -148,12 +151,13 @@ function AIAssistantContent() {
     if (!inputMessage.trim()) return;
 
     const userMessage: Message = {
-      id: Date.now().toString(),
+      id: `user-${messageIdCounter}`,
       content: inputMessage,
       sender: 'user',
       timestamp: new Date(),
       type: activeTab === 'tax' ? 'tax' : activeTab === 'chat' ? 'general' : activeTab
     };
+    setMessageIdCounter(prev => prev + 1);
 
     setMessages(prev => [...prev, userMessage]);
     setInputMessage('');
@@ -190,12 +194,13 @@ function AIAssistantContent() {
       }
 
       const aiMessage: Message = {
-        id: (Date.now() + 1).toString(),
+        id: `ai-${messageIdCounter + 1}`,
         content: aiResponse,
         sender: 'ai',
         timestamp: new Date(),
         type: activeTab === 'tax' ? 'tax' : activeTab === 'chat' ? 'general' : activeTab
       };
+      setMessageIdCounter(prev => prev + 2);
       
       setMessages(prev => [...prev, aiMessage]);
       setIsLoading(false);
@@ -219,13 +224,14 @@ function AIAssistantContent() {
       setUploadedFile(file);
       const message = `"${file.name}" 파일이 업로드되었습니다. 처리를 시작합니다...`;
       const uploadMessage: Message = {
-        id: Date.now().toString(),
+        id: `upload-${messageIdCounter}`,
         content: message,
         sender: 'ai',
         timestamp: new Date(),
         type: activeTab === 'extract' ? 'extract' : 'file'
       };
       setMessages(prev => [...prev, uploadMessage]);
+      setMessageIdCounter(prev => prev + 1);
     }
   };
 
@@ -262,16 +268,15 @@ function AIAssistantContent() {
 
   return (
     <AppLayout>
-      <div className="bg-bg-primary p-6">
-        <div className="max-w-6xl mx-auto">
+      <WorkspacePageContainer>
           {/* 헤더 */}
           <div className="mb-8">
             <div className="flex items-center gap-3 mb-4">
               <div className="p-3 bg-weave-primary-light rounded-lg">
-                <Cpu className="w-6 h-6 text-weave-primary" />
+                <BrainCircuit className="w-6 h-6 text-weave-primary" />
               </div>
               <div>
-                <Typography variant="h2" className="text-2xl mb-1">AI 업무비서</Typography>
+                <Typography variant="h2" className="text-2xl mb-1 text-txt-primary">AI 업무비서</Typography>
                 <Typography variant="body1" className="text-txt-secondary">
                   통합 AI 기반 업무 자동화 허브
                 </Typography>
@@ -341,7 +346,7 @@ function AIAssistantContent() {
             </nav>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
             {/* 메인 영역 */}
             <div className="lg:col-span-2">
               {/* 문서 생성 탭 */}
@@ -763,8 +768,7 @@ function AIAssistantContent() {
               </Card>
             </div>
           </div>
-        </div>
-      </div>
+        </WorkspacePageContainer>
     </AppLayout>
   );
 }
@@ -773,18 +777,16 @@ export default function AIAssistant() {
   return (
     <Suspense fallback={
       <AppLayout>
-        <div className="bg-bg-primary p-6">
-          <div className="max-w-6xl mx-auto">
-            <div className="animate-pulse">
-              <div className="h-8 bg-gray-200 rounded w-1/4 mb-4"></div>
-              <div className="h-4 bg-gray-200 rounded w-1/2 mb-8"></div>
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="h-96 bg-gray-200 rounded-lg"></div>
-                <div className="lg:col-span-2 h-96 bg-gray-200 rounded-lg"></div>
-              </div>
+        <WorkspacePageContainer>
+          <div className="animate-pulse">
+            <div className="h-8 bg-gray-200 rounded w-1/4 mb-4"></div>
+            <div className="h-4 bg-gray-200 rounded w-1/2 mb-8"></div>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="h-96 bg-gray-200 rounded-lg"></div>
+              <div className="lg:col-span-2 h-96 bg-gray-200 rounded-lg"></div>
             </div>
           </div>
-        </div>
+        </WorkspacePageContainer>
       </AppLayout>
     }>
       <AIAssistantContent />
