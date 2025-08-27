@@ -69,7 +69,7 @@ export default function LandingPage() {
             {/* CTA Buttons */}
             <div className="hidden lg:flex items-center space-x-4">
               <Button
-                variant="ghost"
+                variant="secondary"
                 size="sm"
                 onClick={() => router.push('/dashboard')}
                 className="flex items-center gap-2"

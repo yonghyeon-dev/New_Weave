@@ -292,7 +292,7 @@ export default function IntegratedInfoPanel({ stats, onViewLogs }: IntegratedInf
                           {item.reminderType}
                         </Badge>
                         <Badge 
-                          variant={item.openRate === '읽음' ? 'success' : 'secondary'} 
+                          variant={item.openRate === '읽음' ? 'positive' : 'secondary'} 
                           size="sm"
                           className="flex-shrink-0"
                         >

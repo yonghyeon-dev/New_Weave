@@ -162,7 +162,6 @@ const Pagination: React.FC<PaginationProps> = ({
             size={size}
             onClick={goToPreviousPage}
             disabled={currentPage <= 1}
-            disabledReason={currentPage <= 1 ? "첫 번째 페이지입니다" : undefined}
             leftIcon={<ChevronLeft className="w-4 h-4" />}
             aria-label="이전 페이지"
           >
@@ -174,7 +173,6 @@ const Pagination: React.FC<PaginationProps> = ({
             size={size}
             onClick={goToNextPage}
             disabled={currentPage >= totalPages}
-            disabledReason={currentPage >= totalPages ? "마지막 페이지입니다" : undefined}
             rightIcon={<ChevronRight className="w-4 h-4" />}
             aria-label="다음 페이지"
           >
@@ -206,8 +204,7 @@ const Pagination: React.FC<PaginationProps> = ({
           size={size}
           onClick={goToFirstPage}
           disabled={currentPage <= 1}
-          disabledReason={currentPage <= 1 ? "첫 번째 페이지입니다" : undefined}
-          className={sizeClasses[size]}
+                    className={sizeClasses[size]}
           aria-label="첫 페이지"
         >
           <ChevronsLeft className="w-4 h-4" />
@@ -219,8 +216,7 @@ const Pagination: React.FC<PaginationProps> = ({
           size={size}
           onClick={goToPreviousPage}
           disabled={currentPage <= 1}
-          disabledReason={currentPage <= 1 ? "첫 번째 페이지입니다" : undefined}
-          className={sizeClasses[size]}
+                    className={sizeClasses[size]}
           aria-label="이전 페이지"
         >
           <ChevronLeft className="w-4 h-4" />
@@ -259,8 +255,7 @@ const Pagination: React.FC<PaginationProps> = ({
           size={size}
           onClick={goToNextPage}
           disabled={currentPage >= totalPages}
-          disabledReason={currentPage >= totalPages ? "마지막 페이지입니다" : undefined}
-          className={sizeClasses[size]}
+                    className={sizeClasses[size]}
           aria-label="다음 페이지"
         >
           <ChevronRight className="w-4 h-4" />
@@ -272,8 +267,7 @@ const Pagination: React.FC<PaginationProps> = ({
           size={size}
           onClick={goToLastPage}
           disabled={currentPage >= totalPages}
-          disabledReason={currentPage >= totalPages ? "마지막 페이지입니다" : undefined}
-          className={sizeClasses[size]}
+                    className={sizeClasses[size]}
           aria-label="마지막 페이지"
         >
           <ChevronsRight className="w-4 h-4" />

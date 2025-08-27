@@ -79,7 +79,7 @@ export default function TabbedCharts({ stats }: TabbedChartsProps) {
         {activeTab === 'status' && (
           <div className="animate-in fade-in duration-200">
             <ReminderStatusChart
-              data={undefined} // Uses mock data
+              data={[]} // Uses mock data
               totalCount={stats.totalReminders}
               successRate={stats.successRate}
             />
@@ -89,7 +89,7 @@ export default function TabbedCharts({ stats }: TabbedChartsProps) {
         {activeTab === 'type' && (
           <div className="animate-in fade-in duration-200">
             <ReminderTypeChart
-              data={undefined} // Uses mock data
+              data={[]} // Uses mock data
               totalCount={stats.totalReminders}
             />
           </div>

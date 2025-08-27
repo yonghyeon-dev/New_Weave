@@ -431,18 +431,18 @@ export default function ComponentsPage() {
                   <Button variant="ghost" size="md">
                     Ghost
                   </Button>
-                  <Button variant="danger" size="md">
-                    Danger
+                  <Button variant="destructive" size="md">
+                    Destructive
                   </Button>
-                  <Button variant="gradient" size="md">
-                    Gradient
+                  <Button variant="positive" size="md">
+                    Positive
                   </Button>
                 </div>
                 <div className="flex flex-wrap gap-3">
                   <Button variant="ghost" loading>
                     Loading
                   </Button>
-                  <Button variant="danger" disabled>
+                  <Button variant="destructive" disabled>
                     Disabled
                   </Button>
                 </div>

@@ -281,7 +281,7 @@ const SettingsFeedback = React.forwardRef<HTMLDivElement, SettingsFeedbackProps>
         case 'error':
           return {
             ...baseProps,
-            variant: 'danger' as const,
+            variant: 'destructive' as const,
             children: (
               <>
                 <RefreshCw className="w-4 h-4" />

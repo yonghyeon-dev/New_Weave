@@ -196,8 +196,7 @@ export default function MainNavigation({
                           "flex items-center px-4 py-3 text-base font-medium rounded-xl transition-colors",
                           isActive
                             ? "bg-weave-primary-light text-weave-primary border border-weave-primary/20"
-                            : "text-txt-secondary hover:text-txt-primary hover:bg-bg-secondary",
-                          item.isMain && "border-2 border-weave-primary/30 bg-gradient-to-r from-weave-primary/5 to-weave-secondary/5"
+                            : "text-txt-secondary hover:text-txt-primary hover:bg-bg-secondary"
                         )}
                       >
                         <item.icon 
@@ -364,8 +363,7 @@ export default function MainNavigation({
                     "flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors group relative",
                     isActive
                       ? "bg-weave-primary-light text-weave-primary border border-weave-primary/20"
-                      : "text-txt-secondary hover:text-txt-primary hover:bg-bg-secondary",
-                    item.isMain && "border-2 border-weave-primary/30 bg-gradient-to-r from-weave-primary/5 to-weave-secondary/5"
+                      : "text-txt-secondary hover:text-txt-primary hover:bg-bg-secondary"
                   )}
                 >
                   <item.icon 
