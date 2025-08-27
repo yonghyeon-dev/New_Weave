@@ -458,7 +458,9 @@ export default function AIAssistant() {
                         accept={activeTab === 'extract' ? '.pdf,.png,.jpg,.jpeg,.txt' : '*'}
                       />
                       <label htmlFor="file-upload" className="cursor-pointer">
-                        <Button as="span">파일 선택</Button>
+                        <span className="inline-flex items-center justify-center px-4 py-2 bg-weave-primary text-white rounded-md hover:bg-weave-primary/90 transition-colors">
+                          파일 선택
+                        </span>
                         <Typography variant="body2" className="text-txt-tertiary mt-3">
                           또는 파일을 여기로 드래그하세요
                         </Typography>
