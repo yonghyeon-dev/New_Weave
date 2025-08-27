@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useState, useEffect, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import AppLayout from '@/components/layout/AppLayout';
 import { DataPageContainer } from '@/components/layout/PageContainer';
 import { ProjectTabContent, ClientTabContent, InvoiceTabContent, PaymentTabContent } from '@/components/projects/ProjectTabs';
@@ -132,13 +132,30 @@ const mockStatistics: ProjectStatistics = {
   teamUtilization: 78
 };
 
-export default function ProjectsPage() {
+function ProjectsContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [projects] = useState<ProjectSummary[]>(mockProjects);
   const [statistics] = useState<ProjectStatistics>(mockStatistics);
   const [activeTab, setActiveTab] = useState<'project' | 'clients' | 'invoices' | 'payments'>('project');
+
+  // URL 파라미터로 탭 상태 초기화
+  useEffect(() => {
+    const tabParam = searchParams.get('tab');
+    if (tabParam) {
+      if (tabParam === 'projects') {
+        setActiveTab('project');
+      } else if (tabParam === 'clients') {
+        setActiveTab('clients');
+      } else if (tabParam === 'invoices') {
+        setActiveTab('invoices');
+      } else if (tabParam === 'payments') {
+        setActiveTab('payments');
+      }
+    }
+  }, [searchParams]);
 
   // 상태별 색상 매핑
   const getStatusColor = (status: string) => {
@@ -532,5 +549,29 @@ export default function ProjectsPage() {
         </div>
       </DataPageContainer>
     </AppLayout>
+  );
+}
+
+export default function ProjectsPage() {
+  return (
+    <Suspense fallback={
+      <AppLayout>
+        <DataPageContainer>
+          <div className="animate-pulse">
+            <div className="h-8 bg-gray-200 rounded w-1/4 mb-4"></div>
+            <div className="h-4 bg-gray-200 rounded w-1/2 mb-8"></div>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+              <div className="h-20 bg-gray-200 rounded-lg"></div>
+              <div className="h-20 bg-gray-200 rounded-lg"></div>
+              <div className="h-20 bg-gray-200 rounded-lg"></div>
+              <div className="h-20 bg-gray-200 rounded-lg"></div>
+            </div>
+            <div className="h-96 bg-gray-200 rounded-lg"></div>
+          </div>
+        </DataPageContainer>
+      </AppLayout>
+    }>
+      <ProjectsContent />
+    </Suspense>
   );
 }
