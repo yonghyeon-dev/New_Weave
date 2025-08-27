@@ -1,5 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+// 지원 파일 타입
+const SUPPORTED_MIME_TYPES = [
+  'application/pdf',
+  'image/jpeg',
+  'image/png',
+  'image/gif',
+  'image/bmp',
+  'image/webp'
+];
+
+// 최대 파일 크기 (10MB)
+const MAX_FILE_SIZE = 10 * 1024 * 1024;
+
 // AI 비서 API 엔드포인트
 export async function POST(request: NextRequest) {
   try {
@@ -22,33 +35,57 @@ export async function POST(request: NextRequest) {
           );
         }
 
-        // 실제 구현에서는 Gemini API를 호출
-        // 현재는 모의 응답 반환
-        const mockExtractedData = {
-          documentType: '영수증',
-          date: '2024-01-15',
-          vendor: '스타벅스 강남점',
-          totalAmount: 15000,
-          items: [
-            { name: '아메리카노', quantity: 2, price: 4500 },
-            { name: '카페라떼', quantity: 1, price: 6000 }
-          ],
-          taxAmount: 1364,
-          vatIncluded: true
-        };
+        // 파일 크기 검증
+        if (file.size > MAX_FILE_SIZE) {
+          return NextResponse.json(
+            { success: false, error: `파일 크기가 ${MAX_FILE_SIZE / (1024 * 1024)}MB를 초과합니다.` },
+            { status: 400 }
+          );
+        }
 
-        // 토큰 사용량 모의 데이터
-        const tokenUsage = {
-          inputTokens: 1250,
-          outputTokens: 320,
-          model: 'gemini-2.5-flash-lite',
-          cost: 0.0025
+        // 파일 타입 검증
+        if (!SUPPORTED_MIME_TYPES.includes(file.type)) {
+          return NextResponse.json(
+            { success: false, error: '지원하지 않는 파일 형식입니다.' },
+            { status: 400 }
+          );
+        }
+
+        // 실제 구현에서는 Gemini API를 호출
+        // 현재는 파일 타입에 따른 모의 응답 반환
+        const documentType = file.type.startsWith('image/') ? '이미지 문서' : 'PDF 문서';
+        
+        const mockExtractedData = {
+          documentType: documentType,
+          confidence: 0.92,
+          language: 'ko',
+          extractedData: {
+            documentType: '영수증',
+            date: '2024-01-15',
+            vendor: '스타벅스 강남점',
+            totalAmount: 15000,
+            items: [
+              { name: '아메리카노', quantity: 2, price: 4500 },
+              { name: '카페라떼', quantity: 1, price: 6000 }
+            ],
+            taxAmount: 1364,
+            vatIncluded: true
+          },
+          metadata: {
+            processingTime: 1250,
+            tokenUsage: {
+              prompt: 1250,
+              completion: 320,
+              total: 1570,
+              cost: 0.00157
+            }
+          }
         };
 
         return NextResponse.json({
           success: true,
           data: mockExtractedData,
-          tokenUsage
+          tokenUsage: mockExtractedData.metadata.tokenUsage
         });
       }
     } else if (contentType.includes('application/json')) {
@@ -121,4 +158,16 @@ ${prompt || '특별한 요구사항 없음'}
       { status: 500 }
     );
   }
+}
+
+// OPTIONS 요청 처리 (CORS)
+export async function OPTIONS(request: NextRequest) {
+  return new NextResponse(null, {
+    status: 200,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type',
+    },
+  });
 }

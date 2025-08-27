@@ -11,7 +11,6 @@ import {
   Upload,
   ArrowRight,
   Sparkles,
-  FileImage,
   FileCode,
   Zap,
   Cpu,
@@ -77,20 +76,6 @@ export default function AIAssistant() {
         '마크다운 에디터 통합',
         'PDF/Word 내보내기',
         '실시간 편집 가능'
-      ]
-    },
-    {
-      id: 'lookup',
-      title: '사업자 조회',
-      description: '사업자 정보를 빠르게 조회하고 검증합니다',
-      icon: <FileImage className="w-6 h-6" />,
-      href: '/ai-assistant/lookup',
-      color: 'bg-green-500',
-      features: [
-        '사업자번호 검증',
-        '상호명 조회',
-        '업태/종목 확인',
-        '사업자 상태 확인'
       ]
     },
     {
