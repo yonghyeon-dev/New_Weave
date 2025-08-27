@@ -445,47 +445,40 @@ export default function SettingsPage() {
             </Typography>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-            {/* 사이드바 */}
-            <div className="lg:col-span-1">
-              <Card className="p-4">
-                <div className="space-y-1">
-                  {tabs.map((tab) => (
-                    <button
-                      key={tab.id}
-                      onClick={() => setActiveTab(tab.id)}
-                      className={`w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors ${
-                        activeTab === tab.id
-                          ? 'bg-weave-primary-light text-weave-primary'
-                          : 'hover:bg-bg-secondary text-txt-secondary'
-                      }`}
-                    >
-                      <tab.icon className="w-5 h-5" />
-                      <div>
-                        <div className="font-medium">{tab.label}</div>
-                        <div className="text-xs text-txt-tertiary">{tab.description}</div>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              </Card>
-            </div>
-
-            {/* 메인 콘텐츠 */}
-            <div className="lg:col-span-3">
-              {renderTabContent()}
-              
-              {/* 저장 버튼 */}
-              <div className="mt-6 flex justify-end">
-                <Button 
-                  onClick={handleSave}
-                  variant="primary"
-                  className="flex items-center gap-2"
+          {/* 헤더 탭 네비게이션 - 프로젝트 스타일 동일 적용 */}
+          <div className="border-t border-border-light">
+            <nav className="flex space-x-8 px-0" aria-label="Tabs">
+              {tabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`flex items-center gap-2 py-4 px-6 border-b-2 font-medium text-sm transition-colors ${
+                    activeTab === tab.id
+                      ? 'border-weave-primary text-weave-primary'
+                      : 'border-transparent text-txt-secondary hover:text-txt-primary hover:border-border-light'
+                  }`}
                 >
-                  <Save className="w-4 h-4" />
-                  설정 저장
-                </Button>
-              </div>
+                  <tab.icon className="w-4 h-4" />
+                  {tab.label}
+                </button>
+              ))}
+            </nav>
+          </div>
+
+          {/* 메인 콘텐츠 */}
+          <div className="mt-6">
+            {renderTabContent()}
+            
+            {/* 저장 버튼 */}
+            <div className="mt-6 flex justify-end">
+              <Button 
+                onClick={handleSave}
+                variant="primary"
+                className="flex items-center gap-2"
+              >
+                <Save className="w-4 h-4" />
+                설정 저장
+              </Button>
             </div>
           </div>
         </div>

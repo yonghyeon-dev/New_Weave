@@ -44,7 +44,7 @@ const navigation = [
     name: '프로젝트',
     href: '/projects',
     icon: Briefcase,
-    description: '프로젝트 중앙 관리 허브',
+    description: '프로젝트 중심 업무관리 (클라이언트, 인보이스, 결제)',
     badge: 'New'
   },
   {
@@ -55,37 +55,10 @@ const navigation = [
     badge: 'AI'
   },
   {
-    name: '업무 관리',
-    href: '#',
-    icon: FileText,
-    description: '인보이스, 결제, 고객 관리',
-    isSection: true,
-    children: [
-      {
-        name: '인보이스',
-        href: '/invoices',
-        icon: FileText,
-        description: '인보이스 생성 및 관리'
-      },
-      {
-        name: '결제 관리',
-        href: '/payments',
-        icon: CreditCard,
-        description: '결제 내역 및 미수금 추적'
-      },
-      {
-        name: '리마인더',
-        href: '/reminders',
-        icon: Bell,
-        description: '자동 결제 알림 설정'
-      },
-      {
-        name: '클라이언트',
-        href: '/clients',
-        icon: Users,
-        description: '고객 정보 관리'
-      }
-    ]
+    name: '리마인더',
+    href: '/reminders',
+    icon: Bell,
+    description: '자동 결제 알림 설정'
   },
   {
     name: '사업자 조회',
@@ -166,9 +139,9 @@ export default function MainNavigation({ className = '' }: MainNavigationProps) 
           <div className="flex-1 px-4 py-6 space-y-1">
             {navigation.map((item) => {
               const isActive = isActivePath(item.href);
-              const hasActiveChild = item.children ? isChildActive(item.children) : false;
+              const hasActiveChild = 'children' in item && Array.isArray(item.children) ? isChildActive(item.children) : false;
               
-              if (item.isSection) {
+              if ('isSection' in item && item.isSection) {
                 return (
                   <div key={item.name} className="space-y-1">
                     {/* 섹션 헤더 */}
@@ -207,7 +180,7 @@ export default function MainNavigation({ className = '' }: MainNavigationProps) 
                     {/* 하위 메뉴 */}
                     {expandedSections.includes(item.name) && (
                       <div className="ml-6 space-y-1">
-                        {item.children?.map((child) => {
+                        {('children' in item && Array.isArray(item.children) ? item.children : []).map((child) => {
                         const isChildActve = isActivePath(child.href);
                         return (
                           <Link
@@ -360,9 +333,9 @@ export default function MainNavigation({ className = '' }: MainNavigationProps) 
               <div className="px-4 py-6 space-y-1">
                 {navigation.map((item) => {
                   const isActive = isActivePath(item.href);
-                  const hasActiveChild = item.children ? isChildActive(item.children) : false;
+                  const hasActiveChild = 'children' in item && Array.isArray(item.children) ? isChildActive(item.children) : false;
                   
-                  if (item.isSection) {
+                  if ('isSection' in item && item.isSection) {
                     return (
                       <div key={item.name} className="space-y-1">
                         {/* 섹션 헤더 */}
@@ -396,7 +369,7 @@ export default function MainNavigation({ className = '' }: MainNavigationProps) 
                         {/* 하위 메뉴 */}
                         {expandedSections.includes(item.name) && (
                           <div className="ml-6 space-y-1">
-                            {item.children?.map((child) => {
+                            {('children' in item && Array.isArray(item.children) ? item.children : []).map((child) => {
                             const isChildActve = isActivePath(child.href);
                             return (
                               <Link

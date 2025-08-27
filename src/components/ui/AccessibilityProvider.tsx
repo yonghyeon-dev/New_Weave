@@ -28,7 +28,7 @@ export interface AccessibilitySettings {
 const DEFAULT_SETTINGS: AccessibilitySettings = {
   keyboardNavigation: true,
   focusVisible: true,
-  skipLinks: true,
+  skipLinks: false,
   highContrast: false,
   reducedMotion: false,
   largeText: false,

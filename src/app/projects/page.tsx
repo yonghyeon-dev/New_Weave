@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import AppLayout from '@/components/layout/AppLayout';
+import { ProjectTabContent, ClientTabContent, InvoiceTabContent, PaymentTabContent } from '@/components/projects/ProjectTabs';
 import { 
   Plus, 
   Search, 
@@ -17,7 +18,8 @@ import {
   MoreVertical,
   CheckCircle,
   XCircle,
-  PauseCircle
+  PauseCircle,
+  BarChart3
 } from 'lucide-react';
 import Typography from '@/components/ui/Typography';
 import type { ProjectSummary, ProjectStatistics } from '@/lib/types/project';
@@ -133,6 +135,7 @@ export default function ProjectsPage() {
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [projects] = useState<ProjectSummary[]>(mockProjects);
   const [statistics] = useState<ProjectStatistics>(mockStatistics);
+  const [activeTab, setActiveTab] = useState<'project' | 'clients' | 'invoices' | 'payments'>('project');
 
   // 상태별 색상 매핑
   const getStatusColor = (status: string) => {
@@ -192,19 +195,105 @@ export default function ProjectsPage() {
                   모든 프로젝트를 한눈에 관리하고 추적하세요
                 </p>
               </div>
-              <button
-                onClick={() => router.push('/projects/new')}
-                className="flex items-center gap-2 px-4 py-2 bg-weave-primary text-white rounded-lg hover:bg-weave-primary-dark transition-colors"
-              >
-                <Plus className="w-4 h-4" />
-                새 프로젝트
-              </button>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => router.push('/projects/new')}
+                  className="flex items-center gap-2 px-4 py-2 bg-weave-primary text-white rounded-lg hover:bg-weave-primary-dark transition-colors"
+                >
+                  <Plus className="w-4 h-4" />
+                  새 프로젝트
+                </button>
+              </div>
+            </div>
+            
+            {/* 4개 탭 네비게이션 */}
+            <div className="border-t border-border-light">
+              <nav className="flex space-x-8 px-0" aria-label="Tabs">
+                <button
+                  onClick={() => setActiveTab('project')}
+                  className={`flex items-center gap-2 py-4 px-6 border-b-2 font-medium text-sm transition-colors ${
+                    activeTab === 'project'
+                      ? 'border-weave-primary text-weave-primary'
+                      : 'border-transparent text-txt-secondary hover:text-txt-primary hover:border-border-light'
+                  }`}
+                >
+                  <FolderOpen className="w-4 h-4" />
+                  프로젝트
+                  <span className={`ml-2 py-0.5 px-2 rounded-full text-xs ${
+                    activeTab === 'project'
+                      ? 'bg-weave-primary-light text-weave-primary'
+                      : 'bg-bg-secondary text-txt-tertiary'
+                  }`}>
+                    1
+                  </span>
+                </button>
+                
+                <button
+                  onClick={() => setActiveTab('clients')}
+                  className={`flex items-center gap-2 py-4 px-6 border-b-2 font-medium text-sm transition-colors ${
+                    activeTab === 'clients'
+                      ? 'border-weave-primary text-weave-primary'
+                      : 'border-transparent text-txt-secondary hover:text-txt-primary hover:border-border-light'
+                  }`}
+                >
+                  <Users className="w-4 h-4" />
+                  클라이언트
+                  <span className={`ml-2 py-0.5 px-2 rounded-full text-xs ${
+                    activeTab === 'clients'
+                      ? 'bg-weave-primary-light text-weave-primary'
+                      : 'bg-bg-secondary text-txt-tertiary'
+                  }`}>
+                    12
+                  </span>
+                </button>
+                
+                <button
+                  onClick={() => setActiveTab('invoices')}
+                  className={`flex items-center gap-2 py-4 px-6 border-b-2 font-medium text-sm transition-colors ${
+                    activeTab === 'invoices'
+                      ? 'border-weave-primary text-weave-primary'
+                      : 'border-transparent text-txt-secondary hover:text-txt-primary hover:border-border-light'
+                  }`}
+                >
+                  <BarChart3 className="w-4 h-4" />
+                  인보이스
+                  <span className={`ml-2 py-0.5 px-2 rounded-full text-xs ${
+                    activeTab === 'invoices'
+                      ? 'bg-weave-primary-light text-weave-primary'
+                      : 'bg-bg-secondary text-txt-tertiary'
+                  }`}>
+                    8
+                  </span>
+                </button>
+                
+                <button
+                  onClick={() => setActiveTab('payments')}
+                  className={`flex items-center gap-2 py-4 px-6 border-b-2 font-medium text-sm transition-colors ${
+                    activeTab === 'payments'
+                      ? 'border-weave-primary text-weave-primary'
+                      : 'border-transparent text-txt-secondary hover:text-txt-primary hover:border-border-light'
+                  }`}
+                >
+                  <DollarSign className="w-4 h-4" />
+                  결제관리
+                  <span className={`ml-2 py-0.5 px-2 rounded-full text-xs ${
+                    activeTab === 'payments'
+                      ? 'bg-weave-primary-light text-weave-primary'
+                      : 'bg-bg-secondary text-txt-tertiary'
+                  }`}>
+                    5
+                  </span>
+                </button>
+              </nav>
             </div>
           </div>
         </div>
 
         <div className="max-w-7xl mx-auto p-6">
-          {/* 통계 카드 */}
+          {/* 탭에 따른 컨텐츠 렌더링 */}
+          {activeTab === 'project' ? (
+            <>
+              {/* 통계 카드 */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
             <div className="bg-white rounded-lg border border-border-light p-4">
               <div className="flex items-center justify-between mb-2">
@@ -411,21 +500,29 @@ export default function ProjectsPage() {
             )}
           </div>
 
-          {/* 긴급 알림 */}
-          {statistics.overdueProjects > 0 && (
-            <div className="mt-6 bg-red-50 border border-red-200 rounded-lg p-4">
-              <div className="flex items-start">
-                <AlertCircle className="w-5 h-5 text-red-500 mt-0.5 mr-3 flex-shrink-0" />
-                <div>
-                  <h3 className="text-sm font-medium text-red-800">주의가 필요한 프로젝트</h3>
-                  <p className="text-sm text-red-700 mt-1">
-                    {statistics.overdueProjects}개의 프로젝트가 마감일을 초과했습니다.
-                    {statistics.upcomingDeadlines > 0 && ` ${statistics.upcomingDeadlines}개의 프로젝트가 곧 마감됩니다.`}
-                  </p>
+              {/* 긴급 알림 */}
+              {statistics.overdueProjects > 0 && (
+                <div className="mt-6 bg-red-50 border border-red-200 rounded-lg p-4">
+                  <div className="flex items-start">
+                    <AlertCircle className="w-5 h-5 text-red-500 mt-0.5 mr-3 flex-shrink-0" />
+                    <div>
+                      <h3 className="text-sm font-medium text-red-800">주의가 필요한 프로젝트</h3>
+                      <p className="text-sm text-red-700 mt-1">
+                        {statistics.overdueProjects}개의 프로젝트가 마감일을 초과했습니다.
+                        {statistics.upcomingDeadlines > 0 && ` ${statistics.upcomingDeadlines}개의 프로젝트가 곧 마감됩니다.`}
+                      </p>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
-          )}
+              )}
+            </>
+          ) : activeTab === 'clients' ? (
+            <ClientTabContent projectId="current" />
+          ) : activeTab === 'invoices' ? (
+            <InvoiceTabContent projectId="current" />
+          ) : activeTab === 'payments' ? (
+            <PaymentTabContent projectId="current" />
+          ) : null}
         </div>
       </div>
     </AppLayout>

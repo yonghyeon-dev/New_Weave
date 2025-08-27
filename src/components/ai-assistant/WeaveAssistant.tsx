@@ -502,7 +502,7 @@ export default function WeaveAssistant() {
       <div>
         <Typography variant="h3" className="mb-2">AI 업무 상담</Typography>
         <Typography variant="body1" className="text-txt-secondary mb-1">
-          프리랜서 업무 전반에 대한 질문과 상담을 AI와 나누어보세요.
+프리랜서, 소상공인, 전문직을 위한 맞춤형 AI 상담. 독립 비즈니스 운영의 모든 궁금증을 해결해드립니다.
         </Typography>
         <Typography variant="body2" className="text-txt-tertiary">
           계약 협상, 견적 산정, 업무 관리, 고객 응대 등 모든 영역 상담 가능
@@ -514,7 +514,7 @@ export default function WeaveAssistant() {
         <Button 
           variant="outline" 
           className="text-left justify-start h-auto p-4"
-          onClick={() => setPrompt('프리랜서 계약서에 꼭 포함해야 할 조항들을 알려주세요')}
+          onClick={() => setPrompt('독립 워커 계약서에 꼭 포함해야 할 조항들을 알려주세요')}
         >
           <div>
             <div className="font-medium">💼 계약서 작성 가이드</div>
@@ -558,7 +558,7 @@ export default function WeaveAssistant() {
         <textarea
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
-          placeholder="프리랜서 업무에 대한 궁금한 점을 자유롭게 질문해보세요..."
+          placeholder="독립 비즈니스 운영에 대한 궁금한 점을 자유롭게 질문해보세요..."
           className="w-full px-3 py-2 border border-primary-borderSecondary rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-blue h-32 resize-none"
         />
       </div>
@@ -609,7 +609,7 @@ export default function WeaveAssistant() {
       <Card variant="outlined" className="p-4">
         <Typography variant="h4" className="mb-3">빠른 세무 질문</Typography>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-          <Button variant="outline" size="sm" onClick={() => setPrompt('프리랜서 부가세 신고 방법을 알려주세요')}>
+          <Button variant="outline" size="sm" onClick={() => setPrompt('개인사업자 부가세 신고 방법을 알려주세요')}>
             📊 부가세 신고
           </Button>
           <Button variant="outline" size="sm" onClick={() => setPrompt('소득세 절세 방법을 알려주세요')}>

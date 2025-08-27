@@ -110,7 +110,7 @@ export default function HomeLayout({ children }: HomeLayoutProps) {
                 <span className="text-xl font-bold">Weave</span>
               </div>
               <p className="text-gray-400 text-sm">
-                프리랜서를 위한 개인화 AI 기반 ERP
+독립 비즈니스를 위한 개인화 AI 기반 ERP
               </p>
               <p className="text-gray-400 text-sm mt-2">
                 계약부터 세무까지, 모든 업무를 한 곳에서

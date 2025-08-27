@@ -101,7 +101,7 @@ export default function LandingPage() {
                 <span className="text-yellow-300"> 하나로 엮다</span>
               </h1>
               <p className="text-xl mb-8 text-gray-100">
-                프리랜서를 위한 개인화 AI 기반 ERP. 계약부터 세무까지, 모든 업무를 한 곳에서 관리하세요.
+                독립 비즈니스를 위한 개인화 AI 기반 ERP. 프리랜서, 소상공인, 전문직, 크리에이터까지 계약부터 세무까지 모든 업무를 한 곳에서 관리하세요.
               </p>
               
               <div className="flex flex-col sm:flex-row gap-4 mb-8">
@@ -269,7 +269,7 @@ export default function LandingPage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             <div>
               <h2 className="text-4xl font-bold text-gray-900 mb-6">
-                프리랜서의 성공을 위한 모든 것
+                독립 워커의 성공을 위한 모든 것
               </h2>
               <p className="text-xl text-gray-600 mb-8">
                 업무 효율성을 극대화하고 수익을 증대시키는 스마트한 도구들을 제공합니다.
@@ -338,7 +338,7 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              성공한 프리랜서들의 이야기
+              성공한 독립 워커들의 이야기
             </h2>
             <p className="text-xl text-gray-600">
               Weave와 함께 업무 효율성을 높이고 수익을 늘린 실제 사용자들의 후기입니다.
@@ -464,7 +464,7 @@ export default function LandingPage() {
                 <span className="text-xl font-bold">Weave</span>
               </div>
               <p className="text-gray-400 text-sm">
-                프리랜서를 위한 개인화 AI 기반 ERP
+                독립 비즈니스를 위한 개인화 AI 기반 ERP
               </p>
               <p className="text-gray-400 text-sm mt-2">
                 계약부터 세무까지, 모든 업무를 한 곳에서

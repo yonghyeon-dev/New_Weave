@@ -42,9 +42,9 @@ const commonQuestions: TaxQuestion[] = [
   },
   {
     id: '2',
-    title: '프리랜서 종합소득세 신고 방법',
+title: '개인사업자 종합소득세 신고 방법',
     category: '소득세',
-    description: '프리랜서로 일하는데 종합소득세를 어떻게 신고해야 하나요?'
+description: '개인사업자로 일하는데 종합소득세를 어떻게 신고해야 하나요?'
   },
   {
     id: '3',

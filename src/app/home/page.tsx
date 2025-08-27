@@ -363,7 +363,7 @@ export default function Home() {
                     <span className="text-blue-600"> 하나로 엮다</span>
                   </h1>
                   <p className="text-lg text-gray-600 mb-6">
-                    프리랜서를 위한 개인화 AI 기반 ERP. 계약부터 세무까지, 모든 업무를 한 곳에서 관리하세요.
+독립 비즈니스를 위한 개인화 AI 기반 ERP. 프리랜서, 소상공인, 전문직, 크리에이터까지 계약부터 세무까지 모든 업무를 한 곳에서 관리하세요.
                   </p>
                   
                   <div className="flex gap-4">
@@ -437,7 +437,7 @@ export default function Home() {
                 <span className="text-xl font-bold">Weave</span>
               </div>
               <p className="text-gray-400 text-sm">
-                프리랜서를 위한 개인화 AI 기반 ERP
+독립 비즈니스를 위한 개인화 AI 기반 ERP
               </p>
               <p className="text-gray-400 text-sm mt-2">
                 계약부터 세무까지, 모든 업무를 한 곳에서
@@ -512,7 +512,7 @@ export default function Home() {
         </div>
       </footer>
 
-      {/* Floating Quick Menu */}
+      {/* 플로팅 퀵메뉴 */}
       <FloatingQuickMenu />
     </div>
   );

@@ -2,6 +2,7 @@
 
 import React from 'react';
 import MainNavigation from '@/components/navigation/MainNavigation';
+import FloatingQuickMenu from '@/components/FloatingQuickMenu';
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -21,6 +22,9 @@ export default function AppLayout({ children }: AppLayoutProps) {
           {children}
         </main>
       </div>
+      
+      {/* 플로팅 퀵메뉴 - 전역 적용 */}
+      <FloatingQuickMenu />
     </div>
   );
 }

@@ -9,7 +9,10 @@ import {
   X,
   ChevronLeft,
   ChevronRight,
-  Zap
+  Zap,
+  FolderPlus,
+  LayoutDashboard,
+  Settings
 } from 'lucide-react';
 
 interface QuickMenuItem {
@@ -52,28 +55,36 @@ export default function FloatingQuickMenu() {
 
   const menuItems: QuickMenuItem[] = [
     {
+      id: 'project',
+      icon: <FolderPlus className="w-5 h-5" />,
+      title: '새 프로젝트',
+      description: '새로운 프로젝트를 시작하세요',
+      action: () => router.push('/projects'),
+      color: 'bg-blue-600'
+    },
+    {
+      id: 'dashboard',
+      icon: <LayoutDashboard className="w-5 h-5" />,
+      title: '대시보드',
+      description: '실시간 비즈니스 현황을 확인하세요',
+      action: () => router.push('/dashboard'),
+      color: 'bg-green-500'
+    },
+    {
       id: 'ai',
       icon: <Brain className="w-5 h-5" />,
       title: 'AI 상담',
       description: 'AI와 대화하며 세무 및 업무 상담을 받으세요',
       action: () => router.push('/ai-assistant/consult'),
-      color: 'bg-blue-500'
-    },
-    {
-      id: 'invoice',
-      icon: <FileText className="w-5 h-5" />,
-      title: '인보이스 생성',
-      description: '새로운 청구서를 빠르게 생성하세요',
-      action: () => router.push('/invoices/new'),
-      color: 'bg-green-500'
-    },
-    {
-      id: 'report',
-      icon: <BarChart3 className="w-5 h-5" />,
-      title: '결제 추적',
-      description: '미결제 인보이스를 확인하세요',
-      action: () => router.push('/payments'),
       color: 'bg-purple-500'
+    },
+    {
+      id: 'settings',
+      icon: <Settings className="w-5 h-5" />,
+      title: '빠른 설정',
+      description: '시스템 설정을 변경하세요',
+      action: () => router.push('/settings'),
+      color: 'bg-orange-500'
     }
   ];
 

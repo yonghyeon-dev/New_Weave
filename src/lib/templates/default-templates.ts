@@ -96,12 +96,12 @@ export const DEFAULT_TEMPLATES: DocumentTemplate[] = [
     updatedAt: new Date()
   },
 
-  // 프리랜서 견적서
+// 소규모사업자 견적서
   {
     id: 'freelancer-quote',
-    name: '프리랜서 견적서',
+name: '독립 워커 견적서',
     category: TemplateCategory.QUOTE,
-    description: '프리랜서 프로젝트를 위한 견적서 템플릿',
+description: '독립 워커 프로젝트를 위한 견적서 템플릿',
     content: `# 견적서
 
 **견적서 번호:** QUOTE-{current_year}-001
@@ -178,7 +178,7 @@ export const DEFAULT_TEMPLATES: DocumentTemplate[] = [
 
 감사합니다.`,
     variables: COMMON_VARIABLES,
-    tags: ['견적서', '프리랜서', '프로젝트'],
+    tags: ['견적서', '독립워커', '프로젝트'],
     isDefault: true,
     createdAt: new Date(),
     updatedAt: new Date()

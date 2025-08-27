@@ -7,7 +7,7 @@ const mockContentCards: ContentCard[] = [
     id: 'tax-guide-001',
     type: 'guide',
     status: 'published',
-    title: '프리랜서 세금 신고 완벽 가이드',
+    title: '개인사업자 세금 신고 완벽 가이드',
     subtitle: '소득세 신고부터 부가세까지, 놓치면 안 되는 모든 것',
     tag: '세금',
     readTimeMin: 8,
@@ -21,7 +21,7 @@ const mockContentCards: ContentCard[] = [
     badge: 'New',
     publishAt: new Date('2024-08-20'),
     updatedAt: new Date('2024-08-20'),
-    excerpt: '2024년 개정된 세법에 맞춰 프리랜서가 꼭 알아야 할 세금 신고 방법을 단계별로 설명합니다.',
+    excerpt: '2024년 개정된 세법에 맞춰 개인사업자가 꼭 알아야 할 세금 신고 방법을 단계별로 설명합니다.',
     impressions: 1250,
     ctr: 8.2,
     avgReadTime: 6.5

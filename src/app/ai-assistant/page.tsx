@@ -57,9 +57,9 @@ const commonQuestions: TaxQuestion[] = [
   },
   {
     id: '2',
-    title: '프리랜서 종합소득세 신고 방법',
+title: '개인사업자 종합소득세 신고 방법',
     category: '소득세',
-    description: '프리랜서로 일하는데 종합소득세를 어떻게 신고해야 하나요?'
+description: '개인사업자로 일하는데 종합소득세를 어떻게 신고해야 하나요?'
   },
   {
     id: '3',
@@ -268,14 +268,17 @@ export default function AIAssistant() {
               </div>
             </div>
 
-            {/* 탭 네비게이션 - 기존 스타일 유지 */}
-            <div className="flex space-x-1 bg-bg-secondary rounded-lg p-1 w-fit">
+          </div>
+
+          {/* 헤더 탭 네비게이션 - 프로젝트 스타일 동일 적용 */}
+          <div className="border-t border-border-light">
+            <nav className="flex space-x-8 px-0" aria-label="Tabs">
               <button
                 onClick={() => setActiveTab('document')}
-                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2 ${
+                className={`flex items-center gap-2 py-4 px-6 border-b-2 font-medium text-sm transition-colors ${
                   activeTab === 'document'
-                    ? 'bg-white text-weave-primary shadow-sm'
-                    : 'text-txt-secondary hover:text-txt-primary'
+                    ? 'border-weave-primary text-weave-primary'
+                    : 'border-transparent text-txt-secondary hover:text-txt-primary hover:border-border-light'
                 }`}
               >
                 <FileText className="w-4 h-4" />
@@ -283,10 +286,10 @@ export default function AIAssistant() {
               </button>
               <button
                 onClick={() => setActiveTab('chat')}
-                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2 ${
+                className={`flex items-center gap-2 py-4 px-6 border-b-2 font-medium text-sm transition-colors ${
                   activeTab === 'chat'
-                    ? 'bg-white text-weave-primary shadow-sm'
-                    : 'text-txt-secondary hover:text-txt-primary'
+                    ? 'border-weave-primary text-weave-primary'
+                    : 'border-transparent text-txt-secondary hover:text-txt-primary hover:border-border-light'
                 }`}
               >
                 <MessageCircle className="w-4 h-4" />
@@ -294,10 +297,10 @@ export default function AIAssistant() {
               </button>
               <button
                 onClick={() => setActiveTab('tax')}
-                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2 ${
+                className={`flex items-center gap-2 py-4 px-6 border-b-2 font-medium text-sm transition-colors ${
                   activeTab === 'tax'
-                    ? 'bg-white text-weave-primary shadow-sm'
-                    : 'text-txt-secondary hover:text-txt-primary'
+                    ? 'border-weave-primary text-weave-primary'
+                    : 'border-transparent text-txt-secondary hover:text-txt-primary hover:border-border-light'
                 }`}
               >
                 <Calculator className="w-4 h-4" />
@@ -305,10 +308,10 @@ export default function AIAssistant() {
               </button>
               <button
                 onClick={() => setActiveTab('extract')}
-                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2 ${
+                className={`flex items-center gap-2 py-4 px-6 border-b-2 font-medium text-sm transition-colors ${
                   activeTab === 'extract'
-                    ? 'bg-white text-weave-primary shadow-sm'
-                    : 'text-txt-secondary hover:text-txt-primary'
+                    ? 'border-weave-primary text-weave-primary'
+                    : 'border-transparent text-txt-secondary hover:text-txt-primary hover:border-border-light'
                 }`}
               >
                 <Search className="w-4 h-4" />
@@ -316,16 +319,16 @@ export default function AIAssistant() {
               </button>
               <button
                 onClick={() => setActiveTab('file')}
-                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2 ${
+                className={`flex items-center gap-2 py-4 px-6 border-b-2 font-medium text-sm transition-colors ${
                   activeTab === 'file'
-                    ? 'bg-white text-weave-primary shadow-sm'
-                    : 'text-txt-secondary hover:text-txt-primary'
+                    ? 'border-weave-primary text-weave-primary'
+                    : 'border-transparent text-txt-secondary hover:text-txt-primary hover:border-border-light'
                 }`}
               >
                 <Upload className="w-4 h-4" />
                 파일 처리
               </button>
-            </div>
+            </nav>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
