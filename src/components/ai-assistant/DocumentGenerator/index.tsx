@@ -43,6 +43,8 @@ import {
   ProjectInfo
 } from '@/services/mock/data.service';
 import { generateDocumentWithGemini } from '@/services/ai/gemini.service';
+import MarkdownEditor from '@/components/ai-assistant/MarkdownEditor';
+import { exportToPDF, exportToWord, exportToHTML } from '@/utils/document-export';
 
 // 기본 내보내기 형식
 const DEFAULT_EXPORT_FORMATS: ExportFormat[] = ['markdown', 'pdf', 'docx', 'html'];
@@ -96,6 +98,7 @@ export default function DocumentGenerator({
   // 편집 모드
   const [isEditMode, setIsEditMode] = useState(false);
   const [editedContent, setEditedContent] = useState('');
+  const [useMarkdownEditor, setUseMarkdownEditor] = useState(false);
 
   // 데이터 로드
   useEffect(() => {
@@ -347,22 +350,39 @@ export default function DocumentGenerator({
   };
 
   // 문서 내보내기
-  const handleExportDocument = (format: ExportFormat) => {
+  const handleExportDocument = async (format: ExportFormat) => {
     const content = isEditMode ? editedContent : generationState.generatedDocument;
     if (!content) return;
     
-    // 현재는 마크다운만 지원 (추후 PDF, DOCX 변환 추가)
-    if (format === 'markdown') {
-      const blob = new Blob([content], { type: 'text/markdown' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${templateSelection.selectedTemplate?.name || 'document'}-${Date.now()}.md`;
-      a.click();
-      URL.revokeObjectURL(url);
-    }
+    const filename = `${templateSelection.selectedTemplate?.name || 'document'}-${Date.now()}`;
     
-    onExport?.(content, format);
+    try {
+      switch (format) {
+        case 'markdown':
+          const blob = new Blob([content], { type: 'text/markdown' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `${filename}.md`;
+          a.click();
+          URL.revokeObjectURL(url);
+          break;
+        case 'pdf':
+          await exportToPDF(content, `${filename}.pdf`);
+          break;
+        case 'docx':
+          await exportToWord(content, `${filename}.docx`);
+          break;
+        case 'html':
+          await exportToHTML(content, `${filename}.html`);
+          break;
+      }
+      
+      onExport?.(content, format);
+    } catch (error) {
+      console.error('내보내기 실패:', error);
+      onError?.(error instanceof Error ? error : new Error('내보내기 실패'));
+    }
   };
 
   // 미리보기 토글
@@ -389,6 +409,23 @@ export default function DocumentGenerator({
     }
     
     setIsEditMode(!isEditMode);
+  };
+  
+  // 마크다운 에디터 토글
+  const toggleMarkdownEditor = () => {
+    setUseMarkdownEditor(!useMarkdownEditor);
+    if (!useMarkdownEditor) {
+      setEditedContent(generationState.generatedDocument || '');
+    }
+  };
+  
+  // 마크다운 에디터 변경 핸들러
+  const handleMarkdownChange = (value: string) => {
+    setEditedContent(value);
+    setGenerationState(prev => ({
+      ...prev,
+      generatedDocument: value
+    }));
   };
 
   return (
@@ -585,71 +622,131 @@ export default function DocumentGenerator({
             <div className="flex gap-2">
               <Button
                 variant="outline"
-                onClick={togglePreview}
+                onClick={toggleMarkdownEditor}
                 className="text-sm"
               >
-                <Eye className="w-4 h-4 mr-1" />
-                미리보기
+                <Edit3 className="w-4 h-4 mr-1" />
+                {useMarkdownEditor ? '기본 편집기' : '마크다운 에디터'}
               </Button>
-              <Button
-                variant="outline"
-                onClick={toggleEditMode}
-                className="text-sm"
-              >
-                {isEditMode ? (
-                  <>
-                    <Save className="w-4 h-4 mr-1" />
-                    저장
-                  </>
-                ) : (
-                  <>
-                    <Edit3 className="w-4 h-4 mr-1" />
-                    편집
-                  </>
-                )}
-              </Button>
-              <Button
-                variant="outline"
-                onClick={handleCopyDocument}
-                className="text-sm"
-              >
-                {isCopied ? (
-                  <>
-                    <CheckCircle className="w-4 h-4 mr-1" />
-                    복사됨
-                  </>
-                ) : (
-                  <>
-                    <Copy className="w-4 h-4 mr-1" />
-                    복사
-                  </>
-                )}
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => handleExportDocument('markdown')}
-                className="text-sm"
-              >
-                <Download className="w-4 h-4 mr-1" />
-                다운로드
-              </Button>
+              {!useMarkdownEditor && (
+                <>
+                  <Button
+                    variant="outline"
+                    onClick={togglePreview}
+                    className="text-sm"
+                  >
+                    <Eye className="w-4 h-4 mr-1" />
+                    미리보기
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={toggleEditMode}
+                    className="text-sm"
+                  >
+                    {isEditMode ? (
+                      <>
+                        <Save className="w-4 h-4 mr-1" />
+                        저장
+                      </>
+                    ) : (
+                      <>
+                        <Edit3 className="w-4 h-4 mr-1" />
+                        편집
+                      </>
+                    )}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={handleCopyDocument}
+                    className="text-sm"
+                  >
+                    {isCopied ? (
+                      <>
+                        <CheckCircle className="w-4 h-4 mr-1" />
+                        복사됨
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-4 h-4 mr-1" />
+                        복사
+                      </>
+                    )}
+                  </Button>
+                </>
+              )}
+              
+              {/* 내보내기 버튼들 */}
+              <div className="flex gap-1">
+                <Button
+                  variant="outline"
+                  onClick={() => handleExportDocument('pdf')}
+                  className="text-sm"
+                  title="PDF로 내보내기"
+                >
+                  PDF
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => handleExportDocument('docx')}
+                  className="text-sm"
+                  title="Word로 내보내기"
+                >
+                  Word
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => handleExportDocument('html')}
+                  className="text-sm"
+                  title="HTML로 내보내기"
+                >
+                  HTML
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => handleExportDocument('markdown')}
+                  className="text-sm"
+                >
+                  <Download className="w-4 h-4 mr-1" />
+                  MD
+                </Button>
+              </div>
             </div>
           </div>
           
           {/* 문서 내용 */}
-          <div className="bg-bg-secondary rounded-lg p-4 max-h-96 overflow-y-auto">
-            {isEditMode ? (
-              <textarea
-                value={editedContent}
-                onChange={(e) => setEditedContent(e.target.value)}
-                className="w-full h-80 p-2 bg-transparent border-none outline-none resize-none font-mono text-sm"
-              />
-            ) : (
-              <pre className="whitespace-pre-wrap text-sm text-txt-primary font-mono">
-                {generationState.generatedDocument}
-              </pre>
-            )}
-          </div>
+          {useMarkdownEditor ? (
+            <MarkdownEditor
+              value={generationState.generatedDocument}
+              onChange={handleMarkdownChange}
+              height={500}
+              preview="live"
+              exportOptions={{
+                pdf: true,
+                word: true,
+                html: true,
+                markdown: true,
+                text: true
+              }}
+              onExport={(format, content) => {
+                console.log(`내보내기 완료: ${format}`);
+                onExport?.(content, format as ExportFormat);
+              }}
+            />
+          ) : (
+            <div className="bg-bg-secondary rounded-lg p-4 max-h-96 overflow-y-auto">
+              {isEditMode ? (
+                <textarea
+                  value={editedContent}
+                  onChange={(e) => setEditedContent(e.target.value)}
+                  className="w-full h-80 p-2 bg-transparent border-none outline-none resize-none font-mono text-sm"
+                />
+              ) : (
+                <pre className="whitespace-pre-wrap text-sm text-txt-primary font-mono">
+                  {generationState.generatedDocument}
+                </pre>
+              )}
+            </div>
+          )}
         </Card>
       )}
     </div>
