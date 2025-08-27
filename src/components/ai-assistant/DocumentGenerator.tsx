@@ -25,6 +25,7 @@ import { DocumentTemplate } from '@/templates/document-templates';
 import { documentTemplates } from '@/templates/document-templates';
 
 interface DocumentGeneratorProps {
+  selectedTemplateId?: string | null;
   onDocumentGenerated?: (document: string, template: DocumentTemplate) => void;
   onExport?: (document: string, format: string) => void;
   onError?: (error: Error) => void;
@@ -40,6 +41,7 @@ interface TemplateVariable {
 }
 
 export default function DocumentGenerator({
+  selectedTemplateId,
   onDocumentGenerated,
   onExport,
   onError,
@@ -57,6 +59,16 @@ export default function DocumentGenerator({
   const [isGenerating, setIsGenerating] = useState(false);
   const [expandedSections, setExpandedSections] = useState<{ [key: string]: boolean }>({});
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // selectedTemplateId가 전달되면 해당 템플릿 자동 선택
+  useEffect(() => {
+    if (selectedTemplateId) {
+      const template = documentTemplates.find(t => t.id === selectedTemplateId);
+      if (template) {
+        setSelectedTemplate(template);
+      }
+    }
+  }, [selectedTemplateId]);
 
   // 템플릿 선택 시 변수 초기화
   useEffect(() => {
