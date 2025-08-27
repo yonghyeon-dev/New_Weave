@@ -94,6 +94,14 @@ export default function Home() {
                       <div className="text-sm text-gray-500">프로젝트 관리 및 진행 상황</div>
                     </Link>
                     <Link 
+                      href="/projects?tab=clients" 
+                      className="block px-4 py-3 hover:bg-gray-50 transition-colors"
+                      onClick={() => setWorkMenuOpen(false)}
+                    >
+                      <div className="font-medium text-gray-900">클라이언트</div>
+                      <div className="text-sm text-gray-500">고객 정보 관리</div>
+                    </Link>
+                    <Link 
                       href="/projects?tab=invoices" 
                       className="block px-4 py-3 hover:bg-gray-50 transition-colors"
                       onClick={() => setWorkMenuOpen(false)}
@@ -108,14 +116,6 @@ export default function Home() {
                     >
                       <div className="font-medium text-gray-900">결제 관리</div>
                       <div className="text-sm text-gray-500">결제 내역 및 미수금 추적</div>
-                    </Link>
-                    <Link 
-                      href="/projects?tab=clients" 
-                      className="block px-4 py-3 hover:bg-gray-50 transition-colors"
-                      onClick={() => setWorkMenuOpen(false)}
-                    >
-                      <div className="font-medium text-gray-900">클라이언트</div>
-                      <div className="text-sm text-gray-500">고객 정보 관리</div>
                     </Link>
                   </div>
                 )}
