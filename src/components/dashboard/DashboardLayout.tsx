@@ -81,7 +81,7 @@ export default function DashboardLayout({
       </div>
 
       {/* Insight Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch">
         {insights.map((insight) => (
           <InsightCard
             key={insight.id}

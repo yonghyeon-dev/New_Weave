@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { cn } from '@/lib/utils';
+import Button from '@/components/ui/Button';
 
 export interface InsightCardProps {
   title: string;
@@ -75,7 +76,7 @@ export default function InsightCard({
 
   return (
     <div className={cn(
-      "rounded-lg border p-6 transition-all duration-200 hover:shadow-md",
+      "rounded-lg border p-6 transition-all duration-200 hover:shadow-md flex flex-col h-full",
       variantStyles[variant],
       className
     )}>
@@ -124,18 +125,21 @@ export default function InsightCard({
         </div>
       )}
       
-      {/* Action Button */}
+      {/* Spacer - 버튼을 하단에 고정하기 위한 공간 */}
+      <div className="flex-grow"></div>
+      
+      {/* Action Button - Secondary 버튼 스타일 적용 */}
       {actionLabel && onActionClick && (
-        <button
-          onClick={onActionClick}
-          className={cn(
-            "w-full mt-4 px-4 py-2 text-sm font-medium rounded-md transition-colors",
-            "text-weave-primary border border-weave-primary",
-            "hover:bg-weave-primary-light focus:outline-none focus:ring-2 focus:ring-weave-primary focus:ring-offset-2"
-          )}
-        >
-          {actionLabel}
-        </button>
+        <div className="mt-4">
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={onActionClick}
+            fullWidth
+          >
+            {actionLabel}
+          </Button>
+        </div>
       )}
     </div>
   );
