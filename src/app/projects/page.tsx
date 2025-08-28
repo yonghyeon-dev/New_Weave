@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useState, useEffect, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import AppLayout from '@/components/layout/AppLayout';
+import { DataPageContainer } from '@/components/layout/PageContainer';
 import { ProjectTabContent, ClientTabContent, InvoiceTabContent, PaymentTabContent } from '@/components/projects/ProjectTabs';
 import { 
   Plus, 
@@ -19,8 +20,10 @@ import {
   CheckCircle,
   XCircle,
   PauseCircle,
-  BarChart3
+  BarChart3,
+  Briefcase
 } from 'lucide-react';
+import Button from '@/components/ui/Button';
 import Typography from '@/components/ui/Typography';
 import type { ProjectSummary, ProjectStatistics } from '@/lib/types/project';
 
@@ -129,13 +132,30 @@ const mockStatistics: ProjectStatistics = {
   teamUtilization: 78
 };
 
-export default function ProjectsPage() {
+function ProjectsContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [projects] = useState<ProjectSummary[]>(mockProjects);
   const [statistics] = useState<ProjectStatistics>(mockStatistics);
   const [activeTab, setActiveTab] = useState<'project' | 'clients' | 'invoices' | 'payments'>('project');
+
+  // URL 파라미터로 탭 상태 초기화
+  useEffect(() => {
+    const tabParam = searchParams.get('tab');
+    if (tabParam) {
+      if (tabParam === 'projects') {
+        setActiveTab('project');
+      } else if (tabParam === 'clients') {
+        setActiveTab('clients');
+      } else if (tabParam === 'invoices') {
+        setActiveTab('invoices');
+      } else if (tabParam === 'payments') {
+        setActiveTab('payments');
+      }
+    }
+  }, [searchParams]);
 
   // 상태별 색상 매핑
   const getStatusColor = (status: string) => {
@@ -184,31 +204,37 @@ export default function ProjectsPage() {
 
   return (
     <AppLayout>
-      <div className="bg-bg-primary">
-        {/* 헤더 */}
-        <div className="bg-white border-b border-border-light px-6 py-4">
-          <div className="max-w-7xl mx-auto">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <Typography variant="h2" className="text-2xl text-txt-primary">프로젝트 관리</Typography>
-                <p className="text-sm text-txt-secondary mt-1">
-                  모든 프로젝트를 한눈에 관리하고 추적하세요
-                </p>
+      <DataPageContainer>
+        {/* 헤더 - 모바일 가로 배치 최적화 */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3 flex-1 min-w-0">
+                <div className="p-2 sm:p-3 bg-weave-primary-light rounded-lg flex-shrink-0">
+                  <Briefcase className="w-5 h-5 sm:w-6 sm:h-6 text-weave-primary" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <Typography variant="h2" className="text-xl sm:text-2xl mb-0 sm:mb-1 text-txt-primary leading-tight">프로젝트 관리</Typography>
+                  <Typography variant="body1" className="text-sm sm:text-base text-txt-secondary leading-tight hidden sm:block">
+                    모든 프로젝트를 한눈에 관리하고 추적하세요
+                  </Typography>
+                </div>
               </div>
-              <div className="flex items-center gap-3">
-                <button
+              <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+                <Button
+                  variant="primary"
                   onClick={() => router.push('/projects/new')}
-                  className="flex items-center gap-2 px-4 py-2 bg-weave-primary text-white rounded-lg hover:bg-weave-primary-dark transition-colors"
+                  className="flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2"
                 >
                   <Plus className="w-4 h-4" />
-                  새 프로젝트
-                </button>
+                  <span className="hidden sm:inline">새 프로젝트</span>
+                </Button>
               </div>
             </div>
-            
-            {/* 4개 탭 네비게이션 */}
-            <div className="border-t border-border-light">
-              <nav className="flex space-x-8 px-0" aria-label="Tabs">
+          </div>
+          
+          {/* 4개 탭 네비게이션 */}
+          <div className="border-t border-border-light">
+            <nav className="flex space-x-8 px-0" aria-label="Tabs">
                 <button
                   onClick={() => setActiveTab('project')}
                   className={`flex items-center gap-2 py-4 px-6 border-b-2 font-medium text-sm transition-colors ${
@@ -284,59 +310,56 @@ export default function ProjectsPage() {
                     5
                   </span>
                 </button>
-              </nav>
-            </div>
+            </nav>
           </div>
-        </div>
 
-        <div className="max-w-7xl mx-auto p-6">
+        <div className="pt-6">
           {/* 탭에 따른 컨텐츠 렌더링 */}
           {activeTab === 'project' ? (
             <>
               {/* 통계 카드 */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
             <div className="bg-white rounded-lg border border-border-light p-4">
-              <div className="flex items-center justify-between mb-2">
-                <FolderOpen className="w-5 h-5 text-blue-500" />
-                <span className="text-xs text-txt-tertiary">전체</span>
+              <div className="flex items-center gap-2 mb-3">
+                <FolderOpen className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500 flex-shrink-0" />
+                <span className="text-xs sm:text-sm font-medium text-txt-secondary flex-1">총 프로젝트</span>
               </div>
-              <div className="text-2xl font-bold text-txt-primary">
+              <div className="text-xl sm:text-2xl font-bold text-txt-primary">
                 {statistics.totalProjects}
               </div>
-              <div className="text-sm text-txt-secondary">총 프로젝트</div>
             </div>
 
             <div className="bg-white rounded-lg border border-border-light p-4">
-              <div className="flex items-center justify-between mb-2">
-                <TrendingUp className="w-5 h-5 text-green-500" />
-                <span className="text-xs text-green-600">진행중</span>
+              <div className="flex items-center gap-2 mb-3">
+                <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-green-500 flex-shrink-0" />
+                <span className="text-xs sm:text-sm font-medium text-txt-secondary flex-1">활성 프로젝트</span>
+                <span className="text-xs text-green-600 flex-shrink-0">진행중</span>
               </div>
-              <div className="text-2xl font-bold text-txt-primary">
+              <div className="text-xl sm:text-2xl font-bold text-txt-primary">
                 {statistics.activeProjects}
               </div>
-              <div className="text-sm text-txt-secondary">활성 프로젝트</div>
             </div>
 
             <div className="bg-white rounded-lg border border-border-light p-4">
-              <div className="flex items-center justify-between mb-2">
-                <DollarSign className="w-5 h-5 text-purple-500" />
-                <span className="text-xs text-txt-tertiary">수익</span>
+              <div className="flex items-center gap-2 mb-3">
+                <DollarSign className="w-4 h-4 sm:w-5 sm:h-5 text-purple-500 flex-shrink-0" />
+                <span className="text-xs sm:text-sm font-medium text-txt-secondary flex-1">총 매출액</span>
+                <span className="text-xs text-txt-tertiary flex-shrink-0">수익</span>
               </div>
-              <div className="text-2xl font-bold text-txt-primary">
-                {(statistics.totalRevenue / 1000000).toFixed(0)}M
+              <div className="text-xl sm:text-2xl font-bold text-txt-primary">
+                {(statistics.totalRevenue / 10000).toLocaleString()}만원
               </div>
-              <div className="text-sm text-txt-secondary">총 매출액</div>
             </div>
 
             <div className="bg-white rounded-lg border border-border-light p-4">
-              <div className="flex items-center justify-between mb-2">
-                <Users className="w-5 h-5 text-orange-500" />
-                <span className="text-xs text-txt-tertiary">{statistics.teamUtilization}%</span>
+              <div className="flex items-center gap-2 mb-3">
+                <Users className="w-4 h-4 sm:w-5 sm:h-5 text-orange-500 flex-shrink-0" />
+                <span className="text-xs sm:text-sm font-medium text-txt-secondary flex-1">평균 진행률</span>
+                <span className="text-xs text-txt-tertiary flex-shrink-0">팀 {statistics.teamUtilization}%</span>
               </div>
-              <div className="text-2xl font-bold text-txt-primary">
+              <div className="text-xl sm:text-2xl font-bold text-txt-primary">
                 {statistics.averageProgress}%
               </div>
-              <div className="text-sm text-txt-secondary">평균 진행률</div>
             </div>
           </div>
 
@@ -450,10 +473,10 @@ export default function ProjectsPage() {
                       <td className="px-6 py-4">
                         <div className="text-sm">
                           <div className="text-txt-primary">
-                            ₩{(project.budget.spent / 1000000).toFixed(1)}M
+                            {(project.budget.spent / 10000).toLocaleString()}만원
                           </div>
                           <div className="text-xs text-txt-tertiary">
-                            / ₩{(project.budget.estimated / 1000000).toFixed(1)}M
+                            / {(project.budget.estimated / 10000).toLocaleString()}만원
                           </div>
                         </div>
                       </td>
@@ -524,7 +547,31 @@ export default function ProjectsPage() {
             <PaymentTabContent projectId="current" />
           ) : null}
         </div>
-      </div>
+      </DataPageContainer>
     </AppLayout>
+  );
+}
+
+export default function ProjectsPage() {
+  return (
+    <Suspense fallback={
+      <AppLayout>
+        <DataPageContainer>
+          <div className="animate-pulse">
+            <div className="h-8 bg-gray-200 rounded w-1/4 mb-4"></div>
+            <div className="h-4 bg-gray-200 rounded w-1/2 mb-8"></div>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+              <div className="h-20 bg-gray-200 rounded-lg"></div>
+              <div className="h-20 bg-gray-200 rounded-lg"></div>
+              <div className="h-20 bg-gray-200 rounded-lg"></div>
+              <div className="h-20 bg-gray-200 rounded-lg"></div>
+            </div>
+            <div className="h-96 bg-gray-200 rounded-lg"></div>
+          </div>
+        </DataPageContainer>
+      </AppLayout>
+    }>
+      <ProjectsContent />
+    </Suspense>
   );
 }

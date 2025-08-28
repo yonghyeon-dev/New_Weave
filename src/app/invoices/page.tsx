@@ -202,21 +202,26 @@ export default function InvoicesPage() {
     <AppLayout>
       <div className="bg-bg-primary p-6">
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
+        {/* Header - 모바일 가로 배치 최적화 */}
         <div className="flex items-center justify-between mb-8">
-          <div>
-            <Typography variant="h2" className="text-2xl mb-1">인보이스 관리</Typography>
-            <Typography variant="body1" className="text-txt-secondary">
-              발행된 인보이스를 관리하고 결제 상태를 추적하세요
-            </Typography>
+          <div className="flex items-center gap-3 flex-1 min-w-0">
+            <div className="p-2 sm:p-3 bg-weave-primary-light rounded-lg flex-shrink-0">
+              <Plus className="w-5 h-5 sm:w-6 sm:h-6 text-weave-primary" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <Typography variant="h2" className="text-xl sm:text-2xl mb-0 sm:mb-1 text-txt-primary leading-tight">인보이스 관리</Typography>
+              <Typography variant="body1" className="text-sm sm:text-base text-txt-secondary leading-tight hidden sm:block">
+                발행된 인보이스를 관리하고 결제 상태를 추적하세요
+              </Typography>
+            </div>
           </div>
           <Button 
             variant="primary" 
-            className="flex items-center space-x-2"
+            className="flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 flex-shrink-0"
             onClick={() => console.log('Navigate to invoice creation')}
           >
             <Plus className="w-4 h-4" />
-            <span>새 인보이스</span>
+            <span className="hidden sm:inline">새 인보이스</span>
           </Button>
         </div>
 

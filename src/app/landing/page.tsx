@@ -28,7 +28,7 @@ import {
 
 export default function LandingPage() {
   const router = useRouter();
-  const currentYear = new Date().getFullYear();
+  const currentYear = 2025;
 
   return (
     <div className="min-h-screen">

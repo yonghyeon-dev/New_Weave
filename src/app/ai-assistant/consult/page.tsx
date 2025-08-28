@@ -15,7 +15,8 @@ import {
   BookOpen, 
   AlertCircle, 
   CheckCircle,
-  Cpu
+  Cpu,
+  BrainCircuit
 } from 'lucide-react';
 
 interface Message {
@@ -81,6 +82,7 @@ export default function AIConsultPage() {
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('전체');
+  const [messageIdCounter, setMessageIdCounter] = useState(2);
 
   const categories = ['전체', '부가세', '소득세', '법인세', '전자신고', '기타'];
 
@@ -88,12 +90,13 @@ export default function AIConsultPage() {
     if (!inputMessage.trim()) return;
 
     const userMessage: Message = {
-      id: Date.now().toString(),
+      id: `user-${messageIdCounter}`,
       content: inputMessage,
       sender: 'user',
       timestamp: new Date(),
       type: activeTab === 'tax' ? 'tax' : 'general'
     };
+    setMessageIdCounter(prev => prev + 1);
 
     setMessages(prev => [...prev, userMessage]);
     setInputMessage('');
@@ -128,12 +131,13 @@ export default function AIConsultPage() {
       }
 
       const aiMessage: Message = {
-        id: (Date.now() + 1).toString(),
+        id: `ai-${messageIdCounter + 1}`,
         content: aiResponse,
         sender: 'ai',
         timestamp: new Date(),
         type: activeTab === 'tax' ? 'tax' : 'general'
       };
+      setMessageIdCounter(prev => prev + 2);
       
       setMessages(prev => [...prev, aiMessage]);
       setIsLoading(false);
@@ -163,10 +167,10 @@ export default function AIConsultPage() {
           <div className="mb-8">
             <div className="flex items-center gap-3 mb-4">
               <div className="p-3 bg-weave-primary-light rounded-lg">
-                <MessageCircle className="w-6 h-6 text-weave-primary" />
+                <BrainCircuit className="w-6 h-6 text-weave-primary" />
               </div>
               <div>
-                <Typography variant="h1" className="mb-1">AI 상담</Typography>
+                <Typography variant="h2" className="text-2xl mb-1 text-txt-primary">AI 상담</Typography>
                 <Typography variant="body1" className="text-txt-secondary">
                   AI 채팅 및 세무 상담 통합 서비스
                 </Typography>

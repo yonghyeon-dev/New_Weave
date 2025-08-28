@@ -106,13 +106,21 @@ const Hero = React.forwardRef<HTMLElement, HeroProps>(
                   )}
                 >
                   {primaryAction && (
-                    <Button variant="secondary" size="lg" asChild>
-                      <a href={primaryAction.href}>{primaryAction.label}</a>
+                    <Button 
+                      variant={primaryAction.variant || "primary"} 
+                      size="lg" 
+                      onClick={() => window.location.href = primaryAction.href}
+                    >
+                      {primaryAction.label}
                     </Button>
                   )}
                   {secondaryAction && (
-                    <Button variant="primary" size="lg" asChild>
-                      <a href={secondaryAction.href}>{secondaryAction.label}</a>
+                    <Button 
+                      variant={secondaryAction.variant || "secondary"} 
+                      size="lg" 
+                      onClick={() => window.location.href = secondaryAction.href}
+                    >
+                      {secondaryAction.label}
                     </Button>
                   )}
                 </div>

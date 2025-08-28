@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -23,12 +23,23 @@ import {
   Mail,
   Phone,
   MapPin,
-  Github
+  Github,
+  Menu
 } from 'lucide-react';
 
 export default function LandingPage() {
+  const currentYear = 2025;
   const router = useRouter();
-  const currentYear = new Date().getFullYear();
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  const navigateToPage = (path: string) => {
+    if (!isMounted) return;
+    router.push(path);
+  };
 
   return (
     <div className="min-h-screen">
@@ -50,28 +61,28 @@ export default function LandingPage() {
             </Link>
 
             {/* Main Navigation */}
-            <nav className="hidden md:flex items-center space-x-8">
-              <Link href="#features" className="text-gray-600 hover:text-gray-900 transition-colors">
+            <nav className="hidden lg:flex items-center space-x-8">
+              <Link href="#features" className="flex items-center h-6 text-gray-700 hover:text-blue-600 font-medium transition-colors">
                 기능
               </Link>
-              <Link href="#benefits" className="text-gray-600 hover:text-gray-900 transition-colors">
+              <Link href="#benefits" className="flex items-center h-6 text-gray-700 hover:text-blue-600 font-medium transition-colors">
                 혜택
               </Link>
-              <Link href="#testimonials" className="text-gray-600 hover:text-gray-900 transition-colors">
+              <Link href="#testimonials" className="flex items-center h-6 text-gray-700 hover:text-blue-600 font-medium transition-colors">
                 고객 후기
               </Link>
-              <Link href="#contact" className="text-gray-600 hover:text-gray-900 transition-colors">
+              <Link href="#contact" className="flex items-center h-6 text-gray-700 hover:text-blue-600 font-medium transition-colors">
                 문의
               </Link>
             </nav>
 
             {/* CTA Buttons */}
-            <div className="flex items-center space-x-4">
+            <div className="hidden lg:flex items-center space-x-4">
               <Button
-                variant="ghost"
+                variant="secondary"
                 size="sm"
-                onClick={() => router.push('/dashboard')}
-                className="hidden sm:flex items-center gap-2"
+                onClick={() => navigateToPage('/dashboard')}
+                className="flex items-center gap-2"
               >
                 <LogIn className="w-4 h-4" />
                 로그인
@@ -79,13 +90,21 @@ export default function LandingPage() {
               <Button
                 variant="primary"
                 size="sm"
-                onClick={() => router.push('/dashboard')}
+                onClick={() => navigateToPage('/dashboard')}
                 className="flex items-center gap-2"
               >
                 <UserPlus className="w-4 h-4" />
-                무료 시작
+                시작하기
               </Button>
             </div>
+
+            {/* Mobile Menu Button */}
+            <button
+              className="lg:hidden p-2 rounded-md hover:bg-gray-100"
+              onClick={() => {/* Mobile menu logic if needed */}}
+            >
+              <Menu className="w-6 h-6" />
+            </button>
           </div>
         </div>
       </header>
@@ -98,8 +117,9 @@ export default function LandingPage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div>
               <h1 className="text-5xl lg:text-6xl font-bold mb-6 leading-tight">
-                흩어진 당신의 업무를
-                <span className="text-yellow-300"> 하나로 엮다</span>
+                <span className="sm:inline">흩어진 당신의 업무를</span>
+                <br className="hidden sm:block" />
+                <span className="text-yellow-300">하나로 엮다</span>
               </h1>
               <p className="text-xl mb-8 text-gray-100">
 독립 비즈니스를 위한 개인화 AI 기반 ERP. 프리랜서, 소상공인, 전문직, 크리에이터까지 계약부터 세무까지 모든 업무를 한 곳에서 관리하세요.
@@ -109,16 +129,16 @@ export default function LandingPage() {
                 <Button
                   variant="primary"
                   size="lg"
-                  onClick={() => router.push('/home')}
-                  className="bg-white text-blue-600 hover:bg-gray-100 border-0 px-8 py-4 text-lg font-semibold"
+                  onClick={() => navigateToPage('/home')}
+                  className="px-8 py-4 text-lg font-semibold"
                 >
                   홈 화면 바로가기 <ArrowRight className="w-5 h-5 ml-2" />
                 </Button>
                 <Button
-                  variant="outline"
+                  variant="secondary-dark"
                   size="lg"
-                  onClick={() => router.push('/dashboard')}
-                  className="border-white text-white hover:bg-white hover:text-blue-600 px-8 py-4 text-lg font-semibold"
+                  onClick={() => navigateToPage('/dashboard')}
+                  className="px-8 py-4 text-lg font-semibold"
                 >
                   데모 보기
                 </Button>
@@ -417,7 +437,7 @@ export default function LandingPage() {
       <section className="py-20 bg-gradient-to-r from-blue-600 to-purple-600 text-white">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-4xl font-bold mb-6">
-            오늘부터 스마트하게 일하기 시작하세요
+            오늘부터 스마트하게 일을 시작하세요
           </h2>
           <p className="text-xl mb-8 text-blue-100">
             무료로 시작하고, 독립 비즈니스의 새로운 기준을 경험해보세요.
@@ -427,16 +447,16 @@ export default function LandingPage() {
             <Button
               variant="primary"
               size="lg"
-              onClick={() => router.push('/home')}
-              className="bg-white text-blue-600 hover:bg-gray-100 border-0 px-8 py-4 text-lg font-semibold"
+              onClick={() => navigateToPage('/home')}
+              className="px-8 py-4 text-lg font-semibold"
             >
               홈 화면 바로가기 <ArrowRight className="w-5 h-5 ml-2" />
             </Button>
             <Button
-              variant="outline"
+              variant="secondary-dark"
               size="lg"
-              onClick={() => router.push('/dashboard')}
-              className="border-white text-white hover:bg-white hover:text-blue-600 px-8 py-4 text-lg font-semibold"
+              onClick={() => navigateToPage('/dashboard')}
+              className="px-8 py-4 text-lg font-semibold"
             >
               더 알아보기
             </Button>

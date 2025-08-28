@@ -1,340 +1,247 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useState } from 'react';
 import AppLayout from '@/components/layout/AppLayout';
 import { Card } from '@/components/ui/Card';
-import Typography from '@/components/ui/Typography';
 import Button from '@/components/ui/Button';
-import Badge from '@/components/ui/Badge';
-import { 
-  FileText, 
-  ArrowLeft, 
-  ArrowRight,
-  Upload, 
-  Sparkles,
-  User as UserIcon,
-  Building2,
-  Folder,
-  FileText as DocIcon,
-  Layout,
-  Check,
-  ChevronRight
-} from 'lucide-react';
-import DocumentGeneratorV2 from '@/components/ai-assistant/DocumentGeneratorV2';
-import DocumentTemplateSelector from '@/components/ai-assistant/DocumentTemplateSelector';
-import ClientSelector from '@/components/ai-assistant/workflow/ClientSelector';
-import ProjectSelector from '@/components/ai-assistant/workflow/ProjectSelector';
-import DocumentTypeSelector from '@/components/ai-assistant/workflow/DocumentTypeSelector';
-import { DocumentTemplate } from '@/templates/document-templates';
-import { 
-  User,
-  Client,
-  Project,
-  DocumentType,
-  DocumentWorkflow,
-  WorkflowStep 
-} from '@/types/document-workflow';
+import Input from '@/components/ui/Input';
+import Typography from '@/components/ui/Typography';
+import { FileText, Download, Copy, Wand2, BrainCircuit } from 'lucide-react';
+
+interface DocumentTemplate {
+  id: string;
+  name: string;
+  description: string;
+  category: string;
+}
+
+const documentTemplates: DocumentTemplate[] = [
+  {
+    id: 'contract',
+    name: '계약서',
+    description: '업무 계약서 및 용역 계약서',
+    category: '계약'
+  },
+  {
+    id: 'proposal',
+    name: '제안서',
+    description: '프로젝트 제안서 및 사업 제안서',
+    category: '제안'
+  },
+  {
+    id: 'invoice',
+    name: '세금계산서',
+    description: '세금계산서 및 계산서',
+    category: '세무'
+  },
+  {
+    id: 'report',
+    name: '보고서',
+    description: '업무 보고서 및 진행 보고서',
+    category: '보고'
+  }
+];
 
 export default function DocumentGeneratePage() {
-  const router = useRouter();
-  
-  // 워크플로우 상태
-  const [workflow, setWorkflow] = useState<DocumentWorkflow>({
-    currentStep: 1,
-    user: {
-      id: 'user-1',
-      name: '김철수',
-      email: 'kim@techstart.co.kr',
-      company: '주식회사 테크스타트',
-      department: '개발팀'
-    }, // 자동 설정 (실제로는 로그인 정보에서 가져옴)
-    client: null,
-    project: null,
-    documentType: null,
-    templateId: null,
-    steps: [
-      { id: 1, title: '사용자 정보', completed: true },
-      { id: 2, title: '클라이언트 선택', completed: false },
-      { id: 3, title: '프로젝트 선택', completed: false },
-      { id: 4, title: '문서 종류', completed: false },
-      { id: 5, title: '템플릿 선택', completed: false },
-      { id: 6, title: '문서 생성', completed: false }
-    ]
+  const [selectedTemplate, setSelectedTemplate] = useState<DocumentTemplate | null>(null);
+  const [generatedContent, setGeneratedContent] = useState('');
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [formData, setFormData] = useState({
+    client: '',
+    project: '',
+    amount: '',
+    description: ''
   });
 
-  // 단계별 핸들러
-  const handleClientSelect = (client: Client) => {
-    setWorkflow(prev => ({
-      ...prev,
-      client,
-      currentStep: 3,
-      steps: prev.steps.map(step => 
-        step.id === 2 ? { ...step, completed: true } : step
-      )
-    }));
+  const handleGenerate = async () => {
+    if (!selectedTemplate) return;
+
+    setIsGenerating(true);
+    
+    // 모의 문서 생성
+    setTimeout(() => {
+      const mockContent = `
+# ${selectedTemplate.name}
+
+## 기본 정보
+- 클라이언트: ${formData.client || '[클라이언트명]'}
+- 프로젝트: ${formData.project || '[프로젝트명]'}
+- 금액: ${formData.amount || '[금액]'}원
+
+## 상세 내용
+${formData.description || '[상세 내용]'}
+
+## 조건
+1. 계약 기간: [계약 기간]
+2. 납기일: [납기일]
+3. 결제 조건: [결제 조건]
+
+---
+본 문서는 AI에 의해 생성된 초안입니다. 실제 사용 전 검토가 필요합니다.
+      `.trim();
+      
+      setGeneratedContent(mockContent);
+      setIsGenerating(false);
+    }, 2000);
   };
 
-  const handleProjectSelect = (project: Project) => {
-    setWorkflow(prev => ({
-      ...prev,
-      project,
-      currentStep: 4,
-      steps: prev.steps.map(step => 
-        step.id === 3 ? { ...step, completed: true } : step
-      )
-    }));
-  };
-
-  const handleDocumentTypeSelect = (documentType: DocumentType) => {
-    setWorkflow(prev => ({
-      ...prev,
-      documentType,
-      currentStep: 5,
-      steps: prev.steps.map(step => 
-        step.id === 4 ? { ...step, completed: true } : step
-      )
-    }));
-  };
-
-  const handleTemplateSelect = (templateId: string) => {
-    setWorkflow(prev => ({
-      ...prev,
-      templateId,
-      currentStep: 6,
-      steps: prev.steps.map(step => 
-        step.id === 5 ? { ...step, completed: true } : step
-      )
-    }));
-  };
-
-  // 이전 단계로
-  const goToPreviousStep = () => {
-    if (workflow.currentStep > 2) {
-      setWorkflow(prev => ({
-        ...prev,
-        currentStep: prev.currentStep - 1
-      }));
-    }
-  };
-
-  // 특정 단계로 이동
-  const goToStep = (stepId: number) => {
-    // 완료된 단계나 다음 단계로만 이동 가능
-    const step = workflow.steps.find(s => s.id === stepId);
-    if (step && (step.completed || stepId === workflow.currentStep + 1)) {
-      setWorkflow(prev => ({
-        ...prev,
-        currentStep: stepId
-      }));
-    }
-  };
-
-  // 문서 내보내기 핸들러
-  const handleExport = (document: string, format: string) => {
-    console.log('문서 내보내기:', {
-      format,
-      documentLength: document.length
-    });
-    // PDF, DOCX 등은 서버 API 호출 필요
-    // 추후 구현
-  };
-
-  // 에러 핸들러
-  const handleError = (error: Error) => {
-    console.error('문서 생성 오류:', error);
-    // 에러 토스트 표시 등
-  };
-  
-  // 이전 단계로 돌아가기 (문서 생성 단계에서)
-  const handleBackFromGenerator = () => {
-    setWorkflow(prev => ({
-      ...prev,
-      currentStep: 5
-    }));
+  const handleCopy = () => {
+    navigator.clipboard.writeText(generatedContent);
   };
 
   return (
     <AppLayout>
-      <div className="bg-bg-primary min-h-screen">
-        <div className="max-w-7xl mx-auto p-6">
+      <div className="bg-bg-primary p-6">
+        <div className="max-w-6xl mx-auto">
           {/* 헤더 */}
           <div className="mb-8">
-            <div className="flex items-center justify-between">
-              <div>
-                <Typography variant="h2" className="text-2xl mb-1 flex items-center">
-                  문서 생성
-                  <Badge variant="primary" className="ml-3 flex items-center gap-1">
-                    <Sparkles className="w-3 h-3" />
-                    <span>AI 지원</span>
-                  </Badge>
-                </Typography>
-                <Typography variant="body1" className="text-txt-secondary">
-                  단계별로 진행하여 맞춤형 문서를 생성하세요
-                </Typography>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-3 bg-weave-primary-light rounded-lg">
+                <BrainCircuit className="w-6 h-6 text-weave-primary" />
               </div>
-              <div className="flex space-x-3">
-                <Button 
-                  variant="ghost"
-                  onClick={() => router.push('/ai-assistant')}
-                  className="flex items-center space-x-2"
-                >
-                  <ArrowLeft className="w-4 h-4" />
-                  <span>AI Assistant로</span>
-                </Button>
+              <div>
+                <Typography variant="h2" className="text-2xl mb-1 text-txt-primary">문서 생성</Typography>
+                <Typography variant="body1" className="text-txt-secondary">
+                  AI로 계약서, 제안서 등 업무 문서를 자동 생성하세요
+                </Typography>
               </div>
             </div>
           </div>
 
-          {/* 워크플로우 스텝 인디케이터 */}
-          <Card className="bg-white rounded-lg border border-border-light p-6 mb-6">
-            <div className="flex items-center justify-between">
-              {workflow.steps.map((step, index) => (
-                <div key={step.id} className="flex items-center">
-                  <button
-                    onClick={() => goToStep(step.id)}
-                    disabled={!step.completed && step.id !== workflow.currentStep}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${
-                      workflow.currentStep === step.id
-                        ? 'bg-weave-primary text-white'
-                        : step.completed
-                        ? 'bg-green-50 text-green-700 cursor-pointer hover:bg-green-100'
-                        : 'bg-gray-50 text-gray-400 cursor-not-allowed'
-                    }`}
-                  >
-                    <div className={`w-6 h-6 rounded-full flex items-center justify-center ${
-                      workflow.currentStep === step.id
-                        ? 'bg-white/20'
-                        : step.completed
-                        ? 'bg-green-500 text-white'
-                        : 'bg-gray-200'
-                    }`}>
-                      {step.completed ? (
-                        <Check className="w-3 h-3" />
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* 템플릿 선택 및 입력 */}
+            <div className="space-y-6">
+              {/* 템플릿 선택 */}
+              <Card className="p-6">
+                <Typography variant="h3" className="mb-4">문서 템플릿</Typography>
+                <div className="grid grid-cols-1 gap-3">
+                  {documentTemplates.map((template) => (
+                    <button
+                      key={template.id}
+                      onClick={() => setSelectedTemplate(template)}
+                      className={`p-4 text-left rounded-lg border transition-colors ${
+                        selectedTemplate?.id === template.id
+                          ? 'border-weave-primary bg-weave-primary-light/20'
+                          : 'border-border-light hover:bg-bg-secondary'
+                      }`}
+                    >
+                      <Typography variant="h4" className="mb-1">{template.name}</Typography>
+                      <Typography variant="body2" className="text-txt-secondary">
+                        {template.description}
+                      </Typography>
+                      <span className="inline-block mt-2 px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded">
+                        {template.category}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </Card>
+
+              {/* 입력 폼 */}
+              {selectedTemplate && (
+                <Card className="p-6">
+                  <Typography variant="h3" className="mb-4">문서 정보</Typography>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-txt-primary mb-2">
+                        클라이언트명
+                      </label>
+                      <Input
+                        value={formData.client}
+                        onChange={(e) => setFormData(prev => ({ ...prev, client: e.target.value }))}
+                        placeholder="클라이언트명을 입력하세요"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-txt-primary mb-2">
+                        프로젝트명
+                      </label>
+                      <Input
+                        value={formData.project}
+                        onChange={(e) => setFormData(prev => ({ ...prev, project: e.target.value }))}
+                        placeholder="프로젝트명을 입력하세요"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-txt-primary mb-2">
+                        금액
+                      </label>
+                      <Input
+                        value={formData.amount}
+                        onChange={(e) => setFormData(prev => ({ ...prev, amount: e.target.value }))}
+                        placeholder="금액을 입력하세요"
+                        type="number"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-txt-primary mb-2">
+                        상세 설명
+                      </label>
+                      <textarea
+                        value={formData.description}
+                        onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                        placeholder="프로젝트나 업무에 대한 상세 설명을 입력하세요"
+                        className="w-full px-3 py-2 border border-border-light rounded-lg focus:ring-2 focus:ring-weave-primary focus:border-transparent resize-none"
+                        rows={4}
+                      />
+                    </div>
+                    <Button
+                      onClick={handleGenerate}
+                      disabled={isGenerating}
+                      className="w-full flex items-center gap-2"
+                    >
+                      {isGenerating ? (
+                        <>
+                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                          생성 중...
+                        </>
                       ) : (
-                        <span className="text-xs font-semibold">{step.id}</span>
+                        <>
+                          <Wand2 className="w-4 h-4" />
+                          문서 생성
+                        </>
                       )}
-                    </div>
-                    <span className="font-medium hidden md:inline">{step.title}</span>
-                  </button>
-                  {index < workflow.steps.length - 1 && (
-                    <ChevronRight className="w-4 h-4 mx-2 text-gray-400" />
-                  )}
-                </div>
-              ))}
-            </div>
-          </Card>
-
-          {/* 현재 단계 정보 표시 */}
-          {workflow.currentStep === 1 && (
-            <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200/50 p-6 mb-6">
-              <div className="flex items-start gap-4">
-                <div className="p-3 bg-white/80 backdrop-blur rounded-lg shadow-sm">
-                  <UserIcon className="w-6 h-6 text-weave-primary" />
-                </div>
-                <div className="flex-1">
-                  <Typography variant="h3" className="text-lg font-semibold text-txt-primary mb-2">
-                    사용자 정보 (자동 설정)
-                  </Typography>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <div>
-                      <Typography variant="body2" className="text-txt-tertiary">이름</Typography>
-                      <Typography variant="body1" className="font-medium">{workflow.user?.name}</Typography>
-                    </div>
-                    <div>
-                      <Typography variant="body2" className="text-txt-tertiary">이메일</Typography>
-                      <Typography variant="body1" className="font-medium">{workflow.user?.email}</Typography>
-                    </div>
-                    <div>
-                      <Typography variant="body2" className="text-txt-tertiary">회사</Typography>
-                      <Typography variant="body1" className="font-medium">{workflow.user?.company}</Typography>
-                    </div>
-                    <div>
-                      <Typography variant="body2" className="text-txt-tertiary">부서</Typography>
-                      <Typography variant="body1" className="font-medium">{workflow.user?.department}</Typography>
-                    </div>
+                    </Button>
                   </div>
-                  <Button
-                    variant="primary"
-                    className="mt-4"
-                    onClick={() => setWorkflow(prev => ({ ...prev, currentStep: 2 }))}
-                  >
-                    다음 단계로
-                    <ArrowRight className="w-4 h-4 ml-2" />
-                  </Button>
-                </div>
-              </div>
-            </Card>
-          )}
-
-          {/* 단계별 컴포넌트 렌더링 */}
-          {workflow.currentStep === 2 && (
-            <ClientSelector
-              onSelectClient={handleClientSelect}
-              selectedClient={workflow.client}
-            />
-          )}
-
-          {workflow.currentStep === 3 && workflow.client && (
-            <ProjectSelector
-              client={workflow.client}
-              onSelectProject={handleProjectSelect}
-              selectedProject={workflow.project}
-            />
-          )}
-
-          {workflow.currentStep === 4 && (
-            <DocumentTypeSelector
-              onSelectType={handleDocumentTypeSelect}
-              selectedType={workflow.documentType}
-              projectType={workflow.project?.type}
-            />
-          )}
-
-          {workflow.currentStep === 5 && (
-            <DocumentTemplateSelector
-              onSelectTemplate={handleTemplateSelect}
-              documentType={workflow.documentType}
-            />
-          )}
-
-          {workflow.currentStep === 6 && workflow.templateId && (
-            <DocumentGeneratorV2
-              workflow={workflow}
-              onBack={handleBackFromGenerator}
-              onExport={handleExport}
-              onError={handleError}
-            />
-          )}
-
-          {/* 네비게이션 버튼 */}
-          {workflow.currentStep > 1 && workflow.currentStep < 6 && (
-            <div className="flex justify-between mt-6">
-              <Button
-                variant="outline"
-                onClick={goToPreviousStep}
-                className="flex items-center gap-2"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                이전 단계
-              </Button>
-              
-              {/* 선택 완료 후 다음 버튼 표시 */}
-              {((workflow.currentStep === 2 && workflow.client) ||
-                (workflow.currentStep === 3 && workflow.project) ||
-                (workflow.currentStep === 4 && workflow.documentType) ||
-                (workflow.currentStep === 5 && workflow.templateId)) && (
-                <Button
-                  variant="primary"
-                  onClick={() => goToStep(workflow.currentStep + 1)}
-                  className="flex items-center gap-2"
-                >
-                  다음 단계
-                  <ArrowRight className="w-4 h-4" />
-                </Button>
+                </Card>
               )}
             </div>
-          )}
+
+            {/* 생성된 문서 */}
+            <div>
+              <Card className="p-6 h-full">
+                <div className="flex items-center justify-between mb-4">
+                  <Typography variant="h3">생성된 문서</Typography>
+                  {generatedContent && (
+                    <div className="flex gap-2">
+                      <Button variant="outline" size="sm" onClick={handleCopy}>
+                        <Copy className="w-4 h-4" />
+                      </Button>
+                      <Button variant="outline" size="sm">
+                        <Download className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  )}
+                </div>
+                
+                {generatedContent ? (
+                  <div className="bg-bg-secondary p-4 rounded-lg">
+                    <pre className="whitespace-pre-wrap text-sm text-txt-primary font-mono">
+                      {generatedContent}
+                    </pre>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center h-64 text-center">
+                    <FileText className="w-12 h-12 text-txt-tertiary mb-4" />
+                    <Typography variant="h4" className="mb-2">문서를 생성해보세요</Typography>
+                    <Typography variant="body2" className="text-txt-secondary">
+                      왼쪽에서 템플릿을 선택하고 정보를 입력한 후 문서를 생성하세요
+                    </Typography>
+                  </div>
+                )}
+              </Card>
+            </div>
+          </div>
         </div>
       </div>
     </AppLayout>

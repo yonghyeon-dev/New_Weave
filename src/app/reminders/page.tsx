@@ -5,6 +5,7 @@ import { ArrowLeft, Bell, Settings, Clock, Plus, BarChart3 } from 'lucide-react'
 import Button from '@/components/ui/Button';
 import Typography from '@/components/ui/Typography';
 import AppLayout from '@/components/layout/AppLayout';
+import { WorkspacePageContainer } from '@/components/layout/PageContainer';
 import ReminderDashboard from '@/components/reminders/ReminderDashboard';
 import ReminderRulesManager from '@/components/reminders/ReminderRulesManager';
 import { ReminderRule } from '@/lib/types/reminder';
@@ -52,7 +53,7 @@ export default function RemindersPage() {
     };
 
     const icons = {
-      dashboard: <BarChart3 className="w-6 h-6" />,
+      dashboard: <Bell className="w-6 h-6" />,
       rules: <Settings className="w-6 h-6" />,
       settings: <Settings className="w-6 h-6" />,
       logs: <Clock className="w-6 h-6" />,
@@ -74,11 +75,11 @@ export default function RemindersPage() {
         )}
         
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-weave-primary-light rounded-lg">
+          <div className="p-3 bg-weave-primary-light rounded-lg">
             {icons[currentView]}
           </div>
           <div>
-            <Typography variant="h2" className="text-2xl text-txt-primary">
+            <Typography variant="h2" className="text-2xl mb-1 text-txt-primary">
               {titles[currentView]}
             </Typography>
             <Typography variant="body1" className="text-txt-secondary">
@@ -204,12 +205,10 @@ export default function RemindersPage() {
 
   return (
     <AppLayout>
-      <div className="bg-bg-primary p-6">
-        <div className="max-w-7xl mx-auto">
-          {renderHeader()}
-          {renderContent()}
-        </div>
-      </div>
+      <WorkspacePageContainer>
+        {renderHeader()}
+        {renderContent()}
+      </WorkspacePageContainer>
     </AppLayout>
   );
 }

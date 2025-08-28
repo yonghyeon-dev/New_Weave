@@ -21,6 +21,13 @@ import Typography from '@/components/ui/Typography';
 import Progress from '@/components/ui/Progress';
 import { ReminderEngine } from '@/lib/reminder-engine';
 import { ReminderStats, ReminderStatus, ReminderType } from '@/lib/types/reminder';
+import ChartContainer from './charts/ChartContainer';
+import ReminderStatusChart from './charts/ReminderStatusChart';
+import ReminderTypeChart from './charts/ReminderTypeChart';
+import CompactStats from './CompactStats';
+import CompactRecentActivity from './CompactRecentActivity';
+import IntegratedInfoPanel from './IntegratedInfoPanel';
+import TabbedCharts from './TabbedCharts';
 
 interface ReminderDashboardProps {
   onCreateRule?: () => void;
@@ -136,8 +143,8 @@ export default function ReminderDashboard({
       <div className="flex items-center justify-end">
         <div className="flex items-center gap-3">
           <Badge 
-            variant={systemEnabled ? "accent" : "secondary"} 
-            className="px-3 py-1"
+            variant={systemEnabled ? "positive" : "neutral"} 
+            size="sm"
           >
             {systemEnabled ? '활성화됨' : '비활성화됨'}
           </Badge>
@@ -224,237 +231,14 @@ export default function ReminderDashboard({
         </div>
       </Card>
 
-      {/* Stats Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card className="p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <Typography variant="body2" className="text-txt-secondary mb-1">
-                오늘 발송
-              </Typography>
-              <Typography variant="h2" className="text-blue-600">
-                {stats.sentToday}
-              </Typography>
-            </div>
-            <div className="p-3 bg-weave-primary-light rounded-lg">
-              <Mail className="w-6 h-6 text-weave-primary" />
-            </div>
-          </div>
-        </Card>
+      {/* 통합 정보 패널 (주요지표 + 최근활동 + 발송내역) */}
+      <IntegratedInfoPanel 
+        stats={stats} 
+        onViewLogs={onViewLogs} 
+      />
 
-        <Card className="p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <Typography variant="body2" className="text-txt-secondary mb-1">
-                예정된 리마인더
-              </Typography>
-              <Typography variant="h2" className="text-orange-600">
-                {stats.upcomingReminders}
-              </Typography>
-            </div>
-            <div className="p-3 bg-bg-secondary rounded-lg">
-              <Calendar className="w-6 h-6 text-txt-tertiary" />
-            </div>
-          </div>
-        </Card>
-
-        <Card className="p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <Typography variant="body2" className="text-txt-secondary mb-1">
-                성공률
-              </Typography>
-              <Typography variant="h2" className="text-green-600">
-                {Math.round(stats.successRate)}%
-              </Typography>
-            </div>
-            <div className="p-3 bg-weave-primary-light rounded-lg">
-              <TrendingUp className="w-6 h-6 text-green-600" />
-            </div>
-          </div>
-        </Card>
-
-        <Card className="p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <Typography variant="body2" className="text-txt-secondary mb-1">
-                연체 인보이스
-              </Typography>
-              <Typography variant="h2" className="text-red-600">
-                {stats.overdueInvoices}
-              </Typography>
-            </div>
-            <div className="p-3 bg-bg-secondary rounded-lg">
-              <AlertCircle className="w-6 h-6 text-red-600" />
-            </div>
-          </div>
-        </Card>
-      </div>
-
-      {/* Charts Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Status Distribution */}
-        <Card className="p-6">
-          <Typography variant="h4" className="mb-4">
-            상태별 리마인더 분포
-          </Typography>
-          <div className="space-y-3">
-            {Object.entries(stats.remindersByStatus).map(([status, count]) => {
-              if (count === 0) return null;
-              const percentage = stats.totalReminders > 0 
-                ? (count / stats.totalReminders) * 100 
-                : 0;
-              
-              return (
-                <div key={status} className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className={`w-3 h-3 rounded-full ${
-                      status === 'sent' || status === 'delivered' ? 'bg-green-500' :
-                      status === 'failed' || status === 'bounced' ? 'bg-red-500' :
-                      status === 'pending' ? 'bg-yellow-500' : 'bg-blue-500'
-                    }`} />
-                    <Typography variant="body2" className="capitalize">
-                      {status === 'sent' ? '발송됨' :
-                       status === 'delivered' ? '전달됨' :
-                       status === 'failed' ? '실패' :
-                       status === 'bounced' ? '반송됨' :
-                       status === 'pending' ? '대기중' :
-                       status === 'clicked' ? '클릭됨' : '응답함'}
-                    </Typography>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Progress value={percentage} className="w-20" />
-                    <Typography variant="body2" className="w-12 text-right">
-                      {count}
-                    </Typography>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </Card>
-
-        {/* Type Distribution */}
-        <Card className="p-6">
-          <Typography variant="h4" className="mb-4">
-            유형별 리마인더 분포
-          </Typography>
-          <div className="space-y-3">
-            {Object.entries(stats.remindersByType).map(([type, count]) => {
-              if (count === 0) return null;
-              const percentage = stats.totalReminders > 0 
-                ? (count / stats.totalReminders) * 100 
-                : 0;
-              
-              return (
-                <div key={type} className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <span className="text-lg">
-                      {getTypeIcon(type as ReminderType)}
-                    </span>
-                    <Typography variant="body2">
-                      {type === 'gentle_reminder' ? '정중한 리마인더' :
-                       type === 'payment_due' ? '결제 기한' :
-                       type === 'overdue_notice' ? '연체 통지' :
-                       type === 'final_notice' ? '최종 통지' :
-                       type === 'thank_you' ? '감사 인사' : '사용자 정의'}
-                    </Typography>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Progress value={percentage} className="w-20" />
-                    <Typography variant="body2" className="w-12 text-right">
-                      {count}
-                    </Typography>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </Card>
-      </div>
-
-      {/* Quick Actions */}
-      <Card className="p-6">
-        <Typography variant="h4" className="mb-4">
-          빠른 액션
-        </Typography>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Button
-            variant="outline"
-            onClick={onViewRules}
-            className="flex items-center justify-center gap-2 py-6"
-          >
-            <Settings className="w-5 h-5" />
-            리마인더 규칙 관리
-          </Button>
-          
-          <Button
-            variant="outline"
-            onClick={onViewLogs}
-            className="flex items-center justify-center gap-2 py-6"
-          >
-            <Clock className="w-5 h-5" />
-            발송 내역 조회
-          </Button>
-          
-          <Button
-            variant="outline"
-            onClick={onCreateRule}
-            className="flex items-center justify-center gap-2 py-6"
-          >
-            <Plus className="w-5 h-5" />
-            새 리마인더 규칙
-          </Button>
-          
-          <Button
-            variant="outline"
-            onClick={handleProcessReminders}
-            disabled={isProcessing || !systemEnabled}
-            className="flex items-center justify-center gap-2 py-6"
-          >
-            <Play className="w-5 h-5" />
-            수동 리마인더 처리
-          </Button>
-        </div>
-      </Card>
-
-      {/* Recent Activity */}
-      <Card className="p-6">
-        <div className="flex items-center justify-between mb-4">
-          <Typography variant="h4">
-            최근 활동
-          </Typography>
-          <Button variant="ghost" onClick={onViewLogs}>
-            전체 보기
-          </Button>
-        </div>
-        
-        <div className="space-y-3">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="flex items-center justify-between py-3 border-b border-border-light last:border-0">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-weave-primary-light rounded-full flex items-center justify-center">
-                  <Mail className="w-4 h-4 text-weave-primary" />
-                </div>
-                <div>
-                  <Typography variant="body2" className="font-medium">
-                    테크스타트업에 결제 리마인더 발송
-                  </Typography>
-                  <Typography variant="caption" className="text-txt-secondary">
-                    INV-2024-00{i} • ₩1,200,000
-                  </Typography>
-                </div>
-              </div>
-              <div className="text-right">
-                <Badge variant="accent" size="sm">전달됨</Badge>
-                <Typography variant="caption" className="block text-txt-secondary mt-1">
-                  {i}시간 전
-                </Typography>
-              </div>
-            </div>
-          ))}
-        </div>
-      </Card>
+      {/* 탭형 분포 차트 */}
+      <TabbedCharts stats={stats} />
     </div>
   );
 }

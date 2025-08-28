@@ -90,7 +90,7 @@ const AcceptanceCriteria: React.FC<AcceptanceCriteriaProps> = ({ className }) =>
         <div className="flex gap-2">
           <Button variant="primary" size="sm">버튼 1</Button>
           <Button variant="secondary" size="sm">버튼 2</Button>
-          <Button variant="outline" size="sm" disabled disabledReason="권한이 없습니다">
+          <Button variant="outline" size="sm" disabled>
             비활성
           </Button>
         </div>

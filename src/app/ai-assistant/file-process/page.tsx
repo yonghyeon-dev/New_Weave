@@ -5,7 +5,7 @@ import AppLayout from '@/components/layout/AppLayout';
 import { Card } from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Typography from '@/components/ui/Typography';
-import { Upload, FileText, Shield, CheckCircle, AlertTriangle, X } from 'lucide-react';
+import { Upload, FileText, Shield, CheckCircle, AlertTriangle, X, BrainCircuit } from 'lucide-react';
 
 interface ProcessedFile {
   id: string;
@@ -23,16 +23,16 @@ interface ProcessedFile {
 
 export default function FileProcessPage() {
   const [files, setFiles] = useState<ProcessedFile[]>([]);
+  const [fileIdCounter, setFileIdCounter] = useState(1);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = event.target.files;
     if (!selectedFiles) return;
 
-    Array.from(selectedFiles).forEach((file) => {
-      const fileId = Date.now().toString() + Math.random().toString(36).substr(2, 9);
+    Array.from(selectedFiles).forEach((file, index) => {
       const newFile: ProcessedFile = {
-        id: fileId,
+        id: `file-${fileIdCounter + index}`,
         name: file.name,
         size: file.size,
         status: 'uploading',
@@ -42,8 +42,10 @@ export default function FileProcessPage() {
       setFiles(prev => [...prev, newFile]);
 
       // 파일 업로드 및 처리 시뮬레이션
-      simulateFileProcessing(fileId);
+      simulateFileProcessing(newFile.id);
     });
+    
+    setFileIdCounter(prev => prev + selectedFiles.length);
   };
 
   const simulateFileProcessing = (fileId: string) => {
@@ -98,7 +100,8 @@ export default function FileProcessPage() {
             }
           ];
 
-          const randomResult = mockResults[Math.floor(Math.random() * mockResults.length)];
+          const resultIndex = parseInt(fileId.split('-')[1]) % mockResults.length;
+          const randomResult = mockResults[resultIndex];
 
           setFiles(prev => prev.map(file => 
             file.id === fileId 
@@ -161,10 +164,10 @@ export default function FileProcessPage() {
           <div className="mb-8">
             <div className="flex items-center gap-3 mb-4">
               <div className="p-3 bg-weave-primary-light rounded-lg">
-                <Upload className="w-6 h-6 text-weave-primary" />
+                <BrainCircuit className="w-6 h-6 text-weave-primary" />
               </div>
               <div>
-                <Typography variant="h1" className="mb-1">파일 처리</Typography>
+                <Typography variant="h2" className="text-2xl mb-1 text-txt-primary">파일 처리</Typography>
                 <Typography variant="body1" className="text-txt-secondary">
                   보안 업로드 및 파일 분석 처리
                 </Typography>

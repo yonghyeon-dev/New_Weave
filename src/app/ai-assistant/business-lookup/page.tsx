@@ -6,7 +6,7 @@ import { Card } from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import Typography from '@/components/ui/Typography';
-import { Building, Search, CheckCircle, AlertCircle, X, Copy } from 'lucide-react';
+import { Building, Search, CheckCircle, AlertCircle, X, Copy, BrainCircuit } from 'lucide-react';
 
 interface BusinessInfo {
   businessNumber: string;
@@ -56,6 +56,7 @@ export default function BusinessLookupPage() {
   const [isSearching, setIsSearching] = useState(false);
   const [searchHistory, setSearchHistory] = useState<SearchHistory[]>([]);
   const [error, setError] = useState('');
+  const [historyIdCounter, setHistoryIdCounter] = useState(1);
 
   const formatBusinessNumber = (value: string) => {
     // 숫자만 추출
@@ -98,7 +99,7 @@ export default function BusinessLookupPage() {
         
         // 검색 기록 추가
         const historyItem: SearchHistory = {
-          id: Date.now().toString(),
+          id: `history-${historyIdCounter}`,
           businessNumber: foundBusiness.businessNumber,
           companyName: foundBusiness.companyName,
           searchTime: new Date(),
@@ -106,6 +107,7 @@ export default function BusinessLookupPage() {
         };
         
         setSearchHistory(prev => [historyItem, ...prev.slice(0, 9)]); // 최근 10개만 유지
+        setHistoryIdCounter(prev => prev + 1);
       } else {
         setError('해당 사업자등록번호를 찾을 수 없습니다.');
       }
@@ -160,10 +162,10 @@ export default function BusinessLookupPage() {
           <div className="mb-8">
             <div className="flex items-center gap-3 mb-4">
               <div className="p-3 bg-weave-primary-light rounded-lg">
-                <Building className="w-6 h-6 text-weave-primary" />
+                <BrainCircuit className="w-6 h-6 text-weave-primary" />
               </div>
               <div>
-                <Typography variant="h1" className="mb-1">사업자 조회</Typography>
+                <Typography variant="h2" className="text-2xl mb-1 text-txt-primary">사업자 조회</Typography>
                 <Typography variant="body1" className="text-txt-secondary">
                   사업자등록번호 조회 및 검증 서비스
                 </Typography>

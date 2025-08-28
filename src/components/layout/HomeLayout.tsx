@@ -26,7 +26,7 @@ interface HomeLayoutProps {
 
 export default function HomeLayout({ children }: HomeLayoutProps) {
   const router = useRouter();
-  const currentYear = new Date().getFullYear();
+  const currentYear = 2025;
 
   return (
     <div className="min-h-screen flex flex-col">

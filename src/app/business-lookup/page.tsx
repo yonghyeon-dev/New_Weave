@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import AppLayout from '@/components/layout/AppLayout';
+import { FormPageContainer } from '@/components/layout/PageContainer';
 import { Card } from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
@@ -103,8 +104,7 @@ export default function BusinessLookup() {
 
   return (
     <AppLayout>
-      <div className="bg-bg-primary p-6">
-        <div className="max-w-4xl mx-auto">
+      <FormPageContainer>
           {/* 헤더 */}
           <div className="mb-8">
             <div className="flex items-center gap-3 mb-4">
@@ -112,7 +112,7 @@ export default function BusinessLookup() {
                 <Search className="w-6 h-6 text-weave-primary" />
               </div>
               <div>
-                <Typography variant="h2" className="text-2xl mb-1">사업자 조회</Typography>
+                <Typography variant="h2" className="text-2xl mb-1 text-txt-primary">사업자 조회</Typography>
                 <Typography variant="body1" className="text-txt-secondary">
                   공공 API를 통해 사업자등록번호 진위 여부를 확인합니다
                 </Typography>
@@ -292,8 +292,7 @@ export default function BusinessLookup() {
               </div>
             </div>
           </Card>
-        </div>
-      </div>
+      </FormPageContainer>
     </AppLayout>
   );
 }

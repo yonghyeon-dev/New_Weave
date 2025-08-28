@@ -88,18 +88,23 @@ export default function ClientsPage() {
     <AppLayout>
       <div className="bg-bg-primary p-6">
         <div className="max-w-7xl mx-auto">
-          {/* 헤더 */}
+          {/* 헤더 - 모바일 가로 배치 최적화 */}
           <div className="mb-8">
             <div className="flex items-center justify-between">
-              <div>
-                <Typography variant="h2" className="text-2xl mb-2">클라이언트 관리</Typography>
-                <Typography variant="body1" className="text-txt-secondary">
-                  고객 정보를 관리하고 프로젝트 현황을 확인하세요
-                </Typography>
+              <div className="flex items-center gap-3 flex-1 min-w-0">
+                <div className="p-2 sm:p-3 bg-weave-primary-light rounded-lg flex-shrink-0">
+                  <Users className="w-5 h-5 sm:w-6 sm:h-6 text-weave-primary" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <Typography variant="h2" className="text-xl sm:text-2xl mb-0 sm:mb-1 text-txt-primary leading-tight">클라이언트 관리</Typography>
+                  <Typography variant="body1" className="text-sm sm:text-base text-txt-secondary leading-tight hidden sm:block">
+                    고객 정보를 관리하고 프로젝트 현황을 확인하세요
+                  </Typography>
+                </div>
               </div>
-              <Button variant="primary" className="flex items-center gap-2">
+              <Button variant="primary" className="flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 flex-shrink-0">
                 <Plus className="w-4 h-4" />
-                새 클라이언트
+                <span className="hidden sm:inline">새 클라이언트</span>
               </Button>
             </div>
           </div>

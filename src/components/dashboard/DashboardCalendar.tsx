@@ -386,63 +386,81 @@ export default function DashboardCalendar({
   };
 
   return (
-    <Card className="p-6">
-      {/* 캘린더 헤더 */}
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2">
+    <Card className="p-4 md:p-6">
+      {/* 캘린더 헤더 - 모바일 최적화 */}
+      <div className="space-y-3 md:space-y-0">
+        {/* 상단: 날짜 네비게이션 */}
+        <div className="flex items-center justify-between">
           <Button
             variant="ghost"
             size="sm"
             onClick={handlePrevious}
+            className="flex-shrink-0"
           >
             <ChevronLeft className="w-4 h-4" />
           </Button>
-          <Typography variant="h3" className="min-w-[200px] text-center">
-            {getTitle()}
-          </Typography>
+          
+          {/* 동적 크기 타이틀 */}
+          <div className="flex-1 mx-2 md:mx-4">
+            <Typography 
+              variant="h3" 
+              className="text-center text-sm md:text-base lg:text-lg truncate px-2"
+            >
+              {getTitle()}
+            </Typography>
+          </div>
+          
           <Button
             variant="ghost"
             size="sm"
             onClick={handleNext}
+            className="flex-shrink-0"
           >
             <ChevronRight className="w-4 h-4" />
           </Button>
+        </div>
+
+        {/* 하단: 오늘 버튼 & 뷰 모드 선택 */}
+        <div className="flex items-center justify-between gap-2">
           <Button
             variant="outline"
             size="sm"
             onClick={handleToday}
-            className="ml-2"
+            className="flex-shrink-0"
           >
             오늘
           </Button>
-        </div>
 
-        {/* 뷰 모드 선택 */}
-        <div className="flex items-center gap-1">
-          <Button
-            variant={viewMode === 'week' ? 'primary' : 'ghost'}
-            size="sm"
-            onClick={() => setViewMode('week')}
-          >
-            <Calendar className="w-4 h-4 mr-1" />
-            주간
-          </Button>
-          <Button
-            variant={viewMode === 'month' ? 'primary' : 'ghost'}
-            size="sm"
-            onClick={() => setViewMode('month')}
-          >
-            <CalendarDays className="w-4 h-4 mr-1" />
-            월간
-          </Button>
-          <Button
-            variant={viewMode === 'year' ? 'primary' : 'ghost'}
-            size="sm"
-            onClick={() => setViewMode('year')}
-          >
-            <CalendarRange className="w-4 h-4 mr-1" />
-            연간
-          </Button>
+          {/* 뷰 모드 선택 - 모바일 최적화 */}
+          <div className="flex items-center gap-1">
+            <Button
+              variant={viewMode === 'week' ? 'primary' : 'ghost'}
+              size="sm"
+              onClick={() => setViewMode('week')}
+              className="px-2 md:px-3"
+            >
+              <Calendar className="w-4 h-4" />
+              <span className="hidden sm:inline ml-1">주간</span>
+            </Button>
+            <Button
+              variant={viewMode === 'month' ? 'primary' : 'ghost'}
+              size="sm"
+              onClick={() => setViewMode('month')}
+              className="px-2 md:px-3"
+            >
+              <CalendarDays className="w-4 h-4" />
+              <span className="hidden sm:inline ml-1">월간</span>
+            </Button>
+            <Button
+              variant={viewMode === 'year' ? 'primary' : 'ghost'}
+              size="sm"
+              onClick={() => setViewMode('year')}
+              className="px-2 md:px-3"
+            >
+              <CalendarRange className="w-4 h-4" />
+              <span className="hidden sm:inline ml-1">연간</span>
+            </Button>
+          </div>
         </div>
       </div>
 

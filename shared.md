@@ -8,7 +8,6 @@
 
 **작업 원칙**:
 
-- 자동 푸시 금지, 오토 커밋만 수행
 - 요청된 작업만 수행하세요 (그 이상도 그 이하도 아님)
 - 목표 달성에 절대적으로 필요한 경우가 아니라면 파일을 생성하지 마세요
 - 항상 새 파일보다 기존 파일 편집을 우선하세요
@@ -37,41 +36,46 @@
 **푸쉬 전 필수 절차**:
 
 1. **릴리즈노트 작성**: RELEASE_NOTES.md에 변경사항 문서화
-2. **버전명 결정**: 사용자 요청에 따른 배포/개발 버전 결정
+2. **버전명 결정**: 빌드 유무에 따른 배포/개발 버전 결정
 3. **커밋 메시지 생성**: 버전명 + 커밋타입 조합
-4. **품질 검증**: 기본 검증만 수행 (빌드테스트는 별도 트리거)
+4. **품질 검증**: 테스트, 린트, 타입체크 완료
 5. **커밋 실행**: 검증된 변경사항 커밋
 6. **푸쉬 실행**: 원격 저장소에 변경사항 반영
 
 ### 🏷️ 버전명 결정 로직
 
-**배포 버전 조건** (사용자가 명시적으로 요청한 경우):
-- 사용자가 "배포 버전으로 커밋" 명시적 요청
-- production 환경 배포 준비 명시
-- 주요 기능 완성 및 릴리즈 준비 완료 요청
-- 사용자 대면 기능 릴리즈 명시
+**배포 버전 조건** (다음 중 하나라도 해당):
 
-**개발 버전 조건** (기본값):
-- 일반적인 개발 진행
-- 기능 구현 및 개선 작업
-- 버그 수정 및 리팩토링
-- 별도 요청이 없는 모든 작업
+- `npm run build` 또는 `yarn build` 실행됨
+- production 환경 배포 준비
+- 주요 기능 완성 및 품질 검증 완료
+- 사용자 대면 기능 릴리즈
+
+**개발 버전 조건**:
+
+- 빌드 없이 개발 진행
+- 개발 환경에서만 테스트
+- 진행 중인 기능 구현
+- 내부 개발 반복 작업
 
 ### 🔄 자동 버전명 생성
 
 **배포 버전 형식**:
+
 ```
 V{Major}.{Minor}.{Patch}_{YYMMDD}
 예: V1.3.0_250827
 ```
 
 **개발 버전 형식**:
+
 ```
 V{Major}.{Minor}.{Patch}_{YYMMDD}_REV{순차번호}
 예: V1.3.0_250827_REV003
 ```
 
 **REV 번호 관리**:
+
 - 동일 날짜 내 순차적으로 증가 (001, 002, 003...)
 - 배포 버전 릴리즈 후 REV001로 초기화
 - 개발 진행 상황을 명확하게 추적
@@ -90,6 +94,7 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 **커밋 메시지 예시**:
 
 **배포 버전**:
+
 ```
 feat(ui): [V1.3.0_250827] implement user dashboard enhancement
 
@@ -103,6 +108,7 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 ```
 
 **개발 버전**:
+
 ```
 fix(api): [V1.3.0_250827_REV002] resolve authentication timeout issue
 
@@ -114,17 +120,6 @@ fix(api): [V1.3.0_250827_REV002] resolve authentication timeout issue
 🤖 Generated with [Claude Code](https://claude.ai/code)
 Co-Authored-By: Claude <noreply@anthropic.com>
 ```
-
-## 🚀 빌드테스트 트리거 명령어
-
-**빌드테스트 실행 키워드**:
-- "빌드 테스트 실행해줘"
-- "npm run build 해줘"
-- "빌드 확인 필요"
-- "프로덕션 빌드 테스트"
-- "배포 전 검증"
-
-**기본 개발 워크플로우**: 빌드테스트 없이 기본 검증만 수행하여 빠른 개발 진행
 
 ## 🔧 Context7 MCP 사용 정책
 
@@ -186,43 +181,18 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 **모든 변경사항 푸쉬 시**:
 
 1. **릴리즈노트 작성** → RELEASE_NOTES.md 업데이트
-2. **버전 결정** → 사용자 요청에 따른 배포/개발 버전 결정
-3. **기본 검증** → 기본적인 문법 및 구조 확인
-4. **커밋 생성** → [V버전명] 포함한 메시지
-5. **푸쉬 실행** → git push origin main
-
-### 🏗️ 별도 빌드테스트 트리거
-
-**빌드테스트 실행 조건** (사용자 명시적 요청 시에만):
-
-- 사용자가 "빌드 테스트 실행" 명시적 요청
-- "npm run build 실행해줘" 직접 명령
-- "빌드 확인 필요" 또는 "프로덕션 빌드 테스트" 언급
-- 배포 전 최종 검증 단계에서 요청
-
-**빌드테스트 워크플로우**:
-
-1. **빌드 실행** → `npm run build` 또는 `yarn build`
-2. **타입체크** → TypeScript 타입 검증
-3. **린트 검사** → ESLint 규칙 준수 확인
-4. **테스트 실행** → Jest/Vitest 단위 테스트
-5. **결과 보고** → 빌드 성공/실패 및 상세 결과 리포트
-6. **문제 해결** → 빌드 실패 시 이슈 분석 및 해결 방안 제시
+2. **빌드 확인** → production build 여부 판단
+3. **버전 결정** → 배포(V1.3.0_YYMMDD) vs 개발(V1.3.0_YYMMDD_REV###)
+4. **품질 검증** → 테스트, 린트, 타입체크
+5. **커밋 생성** → [V버전명] 포함한 메시지
+6. **푸쉬 실행** → git push origin main
 
 ### 품질 게이트 체크리스트
 
-**기본 품질 확인** (모든 커밋 시):
+**릴리즈 필수 확인**:
 
 - [ ] Critical 이슈 완전 해결
-- [ ] 기본 문법 및 구조 검증
-- [ ] 코드 일관성 확인
-
-**빌드테스트 품질 확인** (사용자 요청 시):
-
-- [ ] 빌드 성공 확인
-- [ ] TypeScript 타입 검증 통과
-- [ ] ESLint 규칙 준수
-- [ ] 단위 테스트 통과
+- [ ] 회귀 테스트 통과
 - [ ] 성능 지표 측정
 - [ ] 접근성 테스트 (UI 변경 시)
 - [ ] 크로스 브라우저 호환성
@@ -244,6 +214,7 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 ```
 
 **버전명 포함 규칙**:
+
 - **배포 버전**: `[V1.3.0_250827]` 형식
 - **개발 버전**: `[V1.3.0_250827_REV002]` 형식
 - 모든 커밋 메시지에 버전명 필수 포함
@@ -325,16 +296,19 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 ### 🎯 핵심 원칙
 
 #### 1. 중앙화 (Centralization)
+
 - **단일 진실의 원천(Single Source of Truth)**
 - **재사용 가능한 컴포넌트 우선**
 - **중복 코드 제거**
 
-#### 2. 시스템화 (Systematization)  
+#### 2. 시스템화 (Systematization)
+
 - **일관된 패턴 적용**
 - **예측 가능한 구조**
 - **명확한 책임 분리**
 
 #### 3. 표준 준수 (Standards Compliance)
+
 - **기존 UI 컴포넌트 사용 필수**
 - **글로벌 CSS 변수 활용**
 - **Tailwind 디자인 시스템 준수**
@@ -369,6 +343,7 @@ src/
 #### 필수 사용 요소
 
 **Typography 컴포넌트**
+
 ```tsx
 // ✅ 올바른 사용
 <Typography variant="h1">제목</Typography>
@@ -380,6 +355,7 @@ src/
 ```
 
 **Card 컴포넌트**
+
 ```tsx
 // ✅ 올바른 사용
 <Card className="p-6">컨텐츠</Card>
@@ -389,6 +365,7 @@ src/
 ```
 
 **Button 컴포넌트**
+
 ```tsx
 // ✅ 올바른 사용
 <Button variant="primary">확인</Button>
@@ -401,6 +378,7 @@ src/
 #### 색상 시스템
 
 **글로벌 CSS 변수 (필수 사용)**
+
 ```css
 /* 배경 색상 */
 --bg-primary: 기본 배경
@@ -423,6 +401,7 @@ src/
 ```
 
 **Tailwind 클래스 사용법**
+
 ```tsx
 // ✅ 올바른 사용 - CSS 변수 활용
 <div className="bg-bg-primary text-txt-primary border-border-light">
@@ -431,72 +410,18 @@ src/
 <div className="bg-gray-50 text-gray-900 border-gray-200">
 ```
 
-### 📐 표준 레이아웃 시스템
-
-#### 필수 레이아웃 컴포넌트 사용
-
-**PageContainer 컴포넌트** (모든 페이지에 필수 적용)
-```tsx
-import { WorkspacePageContainer, DataPageContainer, FormPageContainer } from '@/components/layout/PageContainer';
-
-// 페이지 타입별 적용
-<WorkspacePageContainer>  // 대시보드, AI 업무비서, 리마인더
-<DataPageContainer>       // 프로젝트 (테이블/목록 위주)  
-<FormPageContainer>       // 설정, 사업자 조회 (폼 위주)
-```
-
-#### 표준 H1 헤더 구조
-
-**아이콘 + 제목 패턴** (모든 페이지 공통)
-```tsx
-<div className="flex items-center gap-3 mb-4">
-  <div className="p-3 bg-weave-primary-light rounded-lg">
-    <NavigationIcon className="w-6 h-6 text-weave-primary" />
-  </div>
-  <div>
-    <Typography variant="h2" className="text-2xl mb-1 text-txt-primary">페이지 제목</Typography>
-    <Typography variant="body1" className="text-txt-secondary">
-      페이지 설명
-    </Typography>
-  </div>
-</div>
-```
-
-**네비게이션 아이콘 매핑** (Navigation에서 사용하는 동일한 아이콘)
-- 대시보드: `LayoutDashboard`
-- 프로젝트: `Briefcase`
-- AI 업무비서 & 하위페이지: `BrainCircuit`  
-- 리마인더: `Bell`
-- 사업자 조회: `Search`
-- 설정: `Settings`
-
-#### 고정 레이아웃 규칙
-
-**여백 시스템** (자동 적용됨)
-```css
-/* 좌우 고정 여백 - 콘텐츠 확장형 */
-padding-x: px-12 (기본) → px-8 (모바일) ~ px-24 (대형화면)
-
-/* 상하 고정 여백 */  
-padding-y: py-12 (기본) → py-8 (모바일) ~ py-24 (대형화면)
-
-/* 최대 너비 제거 - 전체 화면 활용 */
-max-width: 제한 없음 (콘텐츠가 사용 가능한 공간을 최대 활용)
-```
-
 ### 🚫 금지 사항
 
 #### 절대 금지
+
 1. ❌ 인라인 스타일 사용
 2. ❌ 하드코딩된 색상값 사용
 3. ❌ 중복 컴포넌트 생성
 4. ❌ 글로벌 스타일 무시
 5. ❌ 무단 컴포넌트 생성
-6. ❌ PageContainer 미사용
-7. ❌ 네비게이션과 다른 아이콘 사용
-8. ❌ max-width 직접 설정
 
 #### 예외 처리
+
 - 불가피한 경우 반드시 사용자 승인 필요
 - 승인 시 이유를 코드 주석으로 명시
 
@@ -512,10 +437,12 @@ max-width: 제한 없음 (콘텐츠가 사용 가능한 공간을 최대 활용)
 #### 새 컴포넌트 생성 프로세스
 
 1. **필요성 검증**
+
    - 기존 컴포넌트로 불가능함을 증명
    - 3개 이상의 위치에서 재사용 예정
 
 2. **사용자 승인**
+
    ```
    "새로운 [컴포넌트명] 컴포넌트가 필요합니다.
    이유: [구체적 이유]

@@ -30,7 +30,7 @@ import {
 
 export default function Home() {
   const router = useRouter();
-  const currentYear = new Date().getFullYear();
+  const currentYear = 2025;
   const [aiMenuOpen, setAiMenuOpen] = useState(false);
   const [workMenuOpen, setWorkMenuOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -70,6 +70,57 @@ export default function Home() {
                 대시보드
               </Link>
 
+              {/* 프로젝트 드롭다운 */}
+              <div className="relative">
+                <button
+                  onClick={() => {
+                    setWorkMenuOpen(!workMenuOpen);
+                    setAiMenuOpen(false);
+                  }}
+                  className="flex items-center gap-1 h-6 text-gray-700 hover:text-blue-600 font-medium transition-colors"
+                >
+                  프로젝트
+                  <ChevronDown className={`w-4 h-4 transition-transform ${workMenuOpen ? 'rotate-180' : ''}`} />
+                </button>
+                
+                {workMenuOpen && (
+                  <div className="absolute top-full left-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 py-2">
+                    <Link 
+                      href="/projects?tab=projects" 
+                      className="block px-4 py-3 hover:bg-gray-50 transition-colors"
+                      onClick={() => setWorkMenuOpen(false)}
+                    >
+                      <div className="font-medium text-gray-900">프로젝트</div>
+                      <div className="text-sm text-gray-500">프로젝트 관리 및 진행 상황</div>
+                    </Link>
+                    <Link 
+                      href="/projects?tab=clients" 
+                      className="block px-4 py-3 hover:bg-gray-50 transition-colors"
+                      onClick={() => setWorkMenuOpen(false)}
+                    >
+                      <div className="font-medium text-gray-900">클라이언트</div>
+                      <div className="text-sm text-gray-500">고객 정보 관리</div>
+                    </Link>
+                    <Link 
+                      href="/projects?tab=invoices" 
+                      className="block px-4 py-3 hover:bg-gray-50 transition-colors"
+                      onClick={() => setWorkMenuOpen(false)}
+                    >
+                      <div className="font-medium text-gray-900">인보이스</div>
+                      <div className="text-sm text-gray-500">인보이스 생성 및 관리</div>
+                    </Link>
+                    <Link 
+                      href="/projects?tab=payments" 
+                      className="block px-4 py-3 hover:bg-gray-50 transition-colors"
+                      onClick={() => setWorkMenuOpen(false)}
+                    >
+                      <div className="font-medium text-gray-900">결제 관리</div>
+                      <div className="text-sm text-gray-500">결제 내역 및 미수금 추적</div>
+                    </Link>
+                  </div>
+                )}
+              </div>
+
               {/* AI 업무 비서 드롭다운 */}
               <div className="relative">
                 <button
@@ -86,15 +137,7 @@ export default function Home() {
                 {aiMenuOpen && (
                   <div className="absolute top-full left-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 py-2">
                     <Link 
-                      href="/ai-assistant/consult" 
-                      className="block px-4 py-3 hover:bg-gray-50 transition-colors"
-                      onClick={() => setAiMenuOpen(false)}
-                    >
-                      <div className="font-medium text-gray-900">AI 상담</div>
-                      <div className="text-sm text-gray-500">AI 채팅 및 세무 상담</div>
-                    </Link>
-                    <Link 
-                      href="/ai-assistant/generate" 
+                      href="/ai-assistant?tab=document" 
                       className="block px-4 py-3 hover:bg-gray-50 transition-colors"
                       onClick={() => setAiMenuOpen(false)}
                     >
@@ -102,7 +145,23 @@ export default function Home() {
                       <div className="text-sm text-gray-500">계약서, 제안서 자동 생성</div>
                     </Link>
                     <Link 
-                      href="/ai-assistant/extract" 
+                      href="/ai-assistant?tab=chat" 
+                      className="block px-4 py-3 hover:bg-gray-50 transition-colors"
+                      onClick={() => setAiMenuOpen(false)}
+                    >
+                      <div className="font-medium text-gray-900">AI 상담</div>
+                      <div className="text-sm text-gray-500">AI 채팅 및 업무 상담</div>
+                    </Link>
+                    <Link 
+                      href="/ai-assistant?tab=tax" 
+                      className="block px-4 py-3 hover:bg-gray-50 transition-colors"
+                      onClick={() => setAiMenuOpen(false)}
+                    >
+                      <div className="font-medium text-gray-900">세무 상담</div>
+                      <div className="text-sm text-gray-500">세무 관련 전문 상담</div>
+                    </Link>
+                    <Link 
+                      href="/ai-assistant?tab=extract" 
                       className="block px-4 py-3 hover:bg-gray-50 transition-colors"
                       onClick={() => setAiMenuOpen(false)}
                     >
@@ -110,81 +169,46 @@ export default function Home() {
                       <div className="text-sm text-gray-500">파일에서 핵심 정보 추출</div>
                     </Link>
                     <Link 
-                      href="/ai-assistant/file-process" 
+                      href="/ai-assistant?tab=file" 
                       className="block px-4 py-3 hover:bg-gray-50 transition-colors"
                       onClick={() => setAiMenuOpen(false)}
                     >
                       <div className="font-medium text-gray-900">파일 처리</div>
                       <div className="text-sm text-gray-500">보안 업로드 및 분석</div>
                     </Link>
-                    <Link 
-                      href="/ai-assistant/business-lookup" 
-                      className="block px-4 py-3 hover:bg-gray-50 transition-colors"
-                      onClick={() => setAiMenuOpen(false)}
-                    >
-                      <div className="font-medium text-gray-900">사업자 조회</div>
-                      <div className="text-sm text-gray-500">사업자등록번호 검증</div>
-                    </Link>
                   </div>
                 )}
               </div>
 
-              {/* 업무 관리 드롭다운 */}
-              <div className="relative">
-                <button
-                  onClick={() => {
-                    setWorkMenuOpen(!workMenuOpen);
-                    setAiMenuOpen(false);
-                  }}
-                  className="flex items-center gap-1 h-6 text-gray-700 hover:text-blue-600 font-medium transition-colors"
-                >
-                  업무 관리
-                  <ChevronDown className={`w-4 h-4 transition-transform ${workMenuOpen ? 'rotate-180' : ''}`} />
-                </button>
-                
-                {workMenuOpen && (
-                  <div className="absolute top-full left-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 py-2">
-                    <Link 
-                      href="/invoices" 
-                      className="block px-4 py-3 hover:bg-gray-50 transition-colors"
-                      onClick={() => setWorkMenuOpen(false)}
-                    >
-                      <div className="font-medium text-gray-900">인보이스</div>
-                      <div className="text-sm text-gray-500">인보이스 생성 및 관리</div>
-                    </Link>
-                    <Link 
-                      href="/payments" 
-                      className="block px-4 py-3 hover:bg-gray-50 transition-colors"
-                      onClick={() => setWorkMenuOpen(false)}
-                    >
-                      <div className="font-medium text-gray-900">결제 관리</div>
-                      <div className="text-sm text-gray-500">결제 내역 및 미수금 추적</div>
-                    </Link>
-                    <Link 
-                      href="/reminders" 
-                      className="block px-4 py-3 hover:bg-gray-50 transition-colors"
-                      onClick={() => setWorkMenuOpen(false)}
-                    >
-                      <div className="font-medium text-gray-900">리마인더</div>
-                      <div className="text-sm text-gray-500">자동 결제 알림 설정</div>
-                    </Link>
-                    <Link 
-                      href="/clients" 
-                      className="block px-4 py-3 hover:bg-gray-50 transition-colors"
-                      onClick={() => setWorkMenuOpen(false)}
-                    >
-                      <div className="font-medium text-gray-900">클라이언트</div>
-                      <div className="text-sm text-gray-500">고객 정보 관리</div>
-                    </Link>
-                  </div>
-                )}
-              </div>
+              {/* 리마인더 */}
+              <Link 
+                href="/reminders" 
+                className="flex items-center h-6 text-gray-700 hover:text-blue-600 font-medium transition-colors"
+              >
+                리마인더
+              </Link>
+
+              {/* 사업자 조회 */}
+              <Link 
+                href="/business-lookup" 
+                className="flex items-center h-6 text-gray-700 hover:text-blue-600 font-medium transition-colors"
+              >
+                사업자 조회
+              </Link>
+
+              {/* 설정 */}
+              <Link 
+                href="/settings" 
+                className="flex items-center h-6 text-gray-700 hover:text-blue-600 font-medium transition-colors"
+              >
+                설정
+              </Link>
             </nav>
 
             {/* Desktop CTA Buttons */}
             <div className="hidden lg:flex items-center space-x-4">
               <Button
-                variant="ghost"
+                variant="secondary"
                 size="sm"
                 onClick={() => router.push('/dashboard')}
                 className="flex items-center gap-2"
@@ -231,87 +255,110 @@ export default function Home() {
                   대시보드
                 </Link>
                 
-                {/* AI 업무 비서 모바일 */}
+                {/* 프로젝트 모바일 */}
                 <div className="px-4 py-2">
-                  <div className="font-medium text-gray-900 mb-2">AI 업무 비서</div>
+                  <div className="font-medium text-gray-900 mb-2">프로젝트</div>
                   <div className="ml-4 space-y-1">
                     <Link 
-                      href="/ai-assistant/consult" 
+                      href="/projects?tab=projects" 
                       className="block py-1 text-gray-600 hover:text-blue-600 text-sm"
                       onClick={() => setMobileMenuOpen(false)}
                     >
-                      AI 상담
+                      프로젝트
                     </Link>
                     <Link 
-                      href="/ai-assistant/generate" 
+                      href="/projects?tab=clients" 
                       className="block py-1 text-gray-600 hover:text-blue-600 text-sm"
                       onClick={() => setMobileMenuOpen(false)}
                     >
-                      문서 생성
+                      클라이언트
                     </Link>
                     <Link 
-                      href="/ai-assistant/extract" 
-                      className="block py-1 text-gray-600 hover:text-blue-600 text-sm"
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      정보 추출
-                    </Link>
-                    <Link 
-                      href="/ai-assistant/file-process" 
-                      className="block py-1 text-gray-600 hover:text-blue-600 text-sm"
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      파일 처리
-                    </Link>
-                    <Link 
-                      href="/ai-assistant/business-lookup" 
-                      className="block py-1 text-gray-600 hover:text-blue-600 text-sm"
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      사업자 조회
-                    </Link>
-                  </div>
-                </div>
-
-                {/* 업무 관리 모바일 */}
-                <div className="px-4 py-2">
-                  <div className="font-medium text-gray-900 mb-2">업무 관리</div>
-                  <div className="ml-4 space-y-1">
-                    <Link 
-                      href="/invoices" 
+                      href="/projects?tab=invoices" 
                       className="block py-1 text-gray-600 hover:text-blue-600 text-sm"
                       onClick={() => setMobileMenuOpen(false)}
                     >
                       인보이스
                     </Link>
                     <Link 
-                      href="/payments" 
+                      href="/projects?tab=payments" 
                       className="block py-1 text-gray-600 hover:text-blue-600 text-sm"
                       onClick={() => setMobileMenuOpen(false)}
                     >
                       결제 관리
                     </Link>
+                  </div>
+                </div>
+
+                {/* AI 업무 비서 모바일 */}
+                <div className="px-4 py-2">
+                  <div className="font-medium text-gray-900 mb-2">AI 업무 비서</div>
+                  <div className="ml-4 space-y-1">
                     <Link 
-                      href="/reminders" 
+                      href="/ai-assistant?tab=document" 
                       className="block py-1 text-gray-600 hover:text-blue-600 text-sm"
                       onClick={() => setMobileMenuOpen(false)}
                     >
-                      리마인더
+                      문서 생성
                     </Link>
                     <Link 
-                      href="/clients" 
+                      href="/ai-assistant?tab=chat" 
                       className="block py-1 text-gray-600 hover:text-blue-600 text-sm"
                       onClick={() => setMobileMenuOpen(false)}
                     >
-                      클라이언트
+                      AI 상담
+                    </Link>
+                    <Link 
+                      href="/ai-assistant?tab=tax" 
+                      className="block py-1 text-gray-600 hover:text-blue-600 text-sm"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      세무 상담
+                    </Link>
+                    <Link 
+                      href="/ai-assistant?tab=extract" 
+                      className="block py-1 text-gray-600 hover:text-blue-600 text-sm"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      정보 추출
+                    </Link>
+                    <Link 
+                      href="/ai-assistant?tab=file" 
+                      className="block py-1 text-gray-600 hover:text-blue-600 text-sm"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      파일 처리
                     </Link>
                   </div>
                 </div>
 
+                {/* 기타 메뉴 */}
+                <Link 
+                  href="/reminders" 
+                  className="block px-4 py-2 text-gray-700 hover:bg-gray-50 rounded-md font-medium"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  리마인더
+                </Link>
+                <Link 
+                  href="/business-lookup" 
+                  className="block px-4 py-2 text-gray-700 hover:bg-gray-50 rounded-md font-medium"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  사업자 조회
+                </Link>
+                <Link 
+                  href="/settings" 
+                  className="block px-4 py-2 text-gray-700 hover:bg-gray-50 rounded-md font-medium"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  설정
+                </Link>
+
                 {/* Mobile CTA Buttons */}
                 <div className="flex gap-2 px-4 pt-2">
                   <Button
-                    variant="ghost"
+                    variant="secondary"
                     size="sm"
                     onClick={() => {
                       router.push('/dashboard');
@@ -359,8 +406,9 @@ export default function Home() {
               <div className="relative grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
                 <div>
                   <h1 className="text-4xl font-bold text-gray-900 mb-4">
-                    흩어진 당신의 업무를
-                    <span className="text-blue-600"> 하나로 엮다</span>
+                    <span className="sm:inline">흩어진 당신의 업무를</span>
+                    <br className="hidden sm:block" />
+                    <span className="text-blue-600">하나로 엮다</span>
                   </h1>
                   <p className="text-lg text-gray-600 mb-6">
 독립 비즈니스를 위한 개인화 AI 기반 ERP. 프리랜서, 소상공인, 전문직, 크리에이터까지 계약부터 세무까지 모든 업무를 한 곳에서 관리하세요.

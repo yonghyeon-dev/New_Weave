@@ -2,20 +2,17 @@
 
 import React from "react";
 import { cn } from "@/lib/utils";
-import { useTheme } from "@/lib/theme/ThemeContext";
-import type { ButtonVariant, ButtonSize } from "@/lib/theme/types";
-import type { ButtonElementProps } from "@/lib/types/components";
-import Tooltip from "./Tooltip";
-import { Check } from "lucide-react";
+import { Check, Loader2 } from "lucide-react";
 
-export interface ButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
-          Omit<ButtonElementProps, 'className' | 'id' | 'role' | 'aria-label' | 'aria-describedby'> {
-  variant?: ButtonVariant;
-  size?: ButtonSize;
+export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  variant?: "primary" | "secondary" | "secondary-dark" | "filled-secondary" | "outline" | "ghost" | "destructive" | "positive" | "negative" | "notice" | "information" | "neutral" | "inverse-secondary" | "inverse-primary";
+  size?: "sm" | "md" | "lg";
   children: React.ReactNode;
-  /** 자식 요소로 렌더링 */
-  asChild?: boolean;
+  fullWidth?: boolean;
+  loading?: boolean;
+  success?: boolean;
+  leftIcon?: React.ReactNode;
+  rightIcon?: React.ReactNode;
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
@@ -25,109 +22,125 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       variant = "primary",
       size = "md",
       children,
-      loading = false,
       disabled = false,
       fullWidth = false,
-      asChild = false,
-      disabledReason,
-      loadingText,
+      loading = false,
+      success = false,
       leftIcon,
       rightIcon,
-      success = false,
-      successText,
       ...props
     },
     ref
   ) => {
-    const { currentColors } = useTheme();
-    
-    // 접근성 속성 설정
-    const ariaProps = {
-      'aria-disabled': disabled || loading,
-      'aria-busy': loading,
-      'aria-describedby': disabledReason ? `${props.id || 'button'}-description` : undefined,
-      'aria-pressed': variant === 'secondary' && !disabled ? false : undefined,
-    };
-
+    // 기본 스타일 - 홈화면과 동일한 매력적인 호버효과 적용
     const baseStyles = cn(
-      "inline-flex items-center justify-center font-medium transition-all duration-fast focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed",
+      "inline-flex items-center justify-center font-medium rounded-lg",
+      "transition-all duration-300 ease-in-out", // 홈화면과 동일한 부드러운 전환
+      "transform hover:scale-105 hover:-translate-y-1 hover:shadow-lg", // 홈화면과 동일한 움직임 효과
+      "focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed",
+      "disabled:transform-none disabled:hover:scale-100 disabled:hover:translate-y-0 disabled:hover:shadow-none", // disabled 시 호버효과 비활성화
       fullWidth && "w-full"
     );
 
+    // 변형별 스타일 - 홈화면의 색상 변경 효과와 그림자 효과 통합
     const variants = {
+      // 브랜드 변형 - 홈화면과 동일한 색상 전환 효과
       primary: cn(
         "bg-weave-primary text-white border border-transparent",
-        "hover:bg-weave-primary-hover hover:-translate-y-0.5 hover:shadow-md",
-        "focus:ring-weave-primary focus:ring-offset-2",
-        success && "bg-status-success hover:bg-status-success"
+        "hover:bg-weave-primary-hover hover:shadow-weave-primary/25", // 그림자에 브랜드 색상 적용
+        "focus:ring-weave-primary"
       ),
       secondary: cn(
-        "bg-transparent text-weave-primary border border-weave-primary",
-        "hover:bg-weave-primary-light",
-        "focus:ring-weave-primary focus:ring-offset-2",
-        success && "border-status-success text-status-success hover:bg-green-50"
+        "bg-transparent text-txt-secondary border-2 border-border-medium", // WEAVE 디자인 시스템 표준: 중성적 회색 초기 상태
+        "hover:border-weave-primary hover:text-weave-primary", // WEAVE 디자인 시스템 표준: 브랜드 컬러 포인트 전환
+        "hover:shadow-md", // WEAVE 디자인 시스템 표준: 미묘한 그림자 효과
+        "focus:ring-weave-primary"
+      ),
+      "secondary-dark": cn(
+        "bg-transparent text-white border-2 border-white/80", // 어두운 배경용: 반투명 흰색 테두리 + 흰색 텍스트
+        "hover:bg-white hover:text-weave-primary hover:border-white", // 디자인 시스템 표준: 배경 채우기 + 브랜드 컬러 텍스트 전환
+        "hover:shadow-lg", // 어두운 배경에서 돋보이는 그림자
+        "focus:ring-white"
+      ),
+      "filled-secondary": cn(
+        "bg-transparent text-weave-primary border-2 border-weave-primary", // 강력한 액션용: 프라이머리 색상
+        "hover:bg-weave-primary hover:text-white hover:border-weave-primary", // 강력한 배경 채우기 전환
+        "hover:shadow-weave-primary/25", // 강력한 그림자
+        "focus:ring-weave-primary"
+      ),
+      outline: cn(
+        "bg-transparent text-txt-secondary border-2 border-border-medium", // 표준 회색 테두리 + 회색 텍스트
+        "hover:border-weave-primary hover:text-weave-primary", // 미묘한 포인트 색상 전환 (홈화면 표준)
+        "hover:shadow-md", // 미묘한 그림자
+        "focus:ring-weave-primary"
       ),
       ghost: cn(
         "bg-transparent text-txt-primary border border-transparent",
-        "hover:bg-bg-secondary hover:text-txt-primary",
-        "focus:ring-weave-primary focus:ring-offset-2",
-        success && "text-status-success hover:bg-green-50"
+        "hover:bg-bg-secondary hover:text-txt-primary hover:shadow-md",
+        "focus:ring-weave-primary"
       ),
-      danger: cn(
+      destructive: cn(
         "bg-status-error text-white border border-status-error",
-        "hover:bg-red-600 hover:border-red-600",
-        "focus:ring-red-500 focus:ring-offset-2",
-        "shadow-sm"
+        "hover:bg-red-700 hover:border-red-700 hover:shadow-red-500/25",
+        "focus:ring-red-500"
       ),
-      outline: cn(
-        "bg-transparent text-txt-secondary border border-border-medium",
-        "hover:border-weave-primary hover:text-weave-primary",
-        "focus:ring-weave-primary focus:ring-offset-2",
-        success && "border-status-success text-status-success hover:border-status-success"
-      ),
-      gradient: cn(
-        "bg-gradient-to-r from-weave-primary to-weave-primary-hover text-white border border-transparent",
-        "hover:from-weave-primary-hover hover:to-weave-primary hover:-translate-y-0.5 hover:shadow-md",
-        "focus:ring-weave-primary focus:ring-offset-2",
-        success && "from-status-success to-green-500 hover:from-green-500 hover:to-status-success"
-      ),
-    };
-
-    const sizes = {
-      sm: "px-3 py-1.5 text-xs rounded-md h-8",
-      md: "px-4 py-2 text-sm rounded-lg h-10",
-      lg: "px-6 py-3 text-base rounded-xl h-12",
-    };
-
-    // Weave 디자인 시스템 - 단순화된 스타일
-    const getDynamicStyles = () => {
-      const styles: React.CSSProperties = {};
       
-      // Weave 디자인 시스템에서는 단일 브랜드 컬러(Teal) 사용
-      // 복잡한 그라데이션 대신 깔끔한 단색 스타일 적용
-      return styles;
+      // 의미론적 변형 - 통합된 디자인 시스템 아키텍처 적용
+      positive: cn(
+        "bg-green-600 text-white border-2 border-green-600",
+        "hover:bg-green-700 hover:border-green-700 hover:shadow-green-500/25", // 테두리 색상 동시 전환
+        "focus:ring-green-500"
+      ),
+      negative: cn(
+        "bg-red-600 text-white border-2 border-red-600", 
+        "hover:bg-red-700 hover:border-red-700 hover:shadow-red-500/25", // 테두리 색상 동시 전환
+        "focus:ring-red-500"
+      ),
+      notice: cn(
+        "bg-orange-500 text-white border-2 border-orange-500",
+        "hover:bg-orange-600 hover:border-orange-600 hover:shadow-orange-500/25", // 테두리 색상 동시 전환
+        "focus:ring-orange-500"
+      ),
+      information: cn(
+        "bg-blue-600 text-white border-2 border-blue-600",
+        "hover:bg-blue-700 hover:border-blue-700 hover:shadow-blue-500/25", // 테두리 색상 동시 전환
+        "focus:ring-blue-500"
+      ),
+      neutral: cn(
+        "bg-gray-500 text-white border-2 border-gray-500",
+        "hover:bg-gray-600 hover:border-gray-600 hover:shadow-gray-500/25", // 테두리 색상 동시 전환
+        "focus:ring-gray-500"
+      ),
+      
+      // 특수 컨텍스트용 변형
+      "inverse-secondary": cn(
+        "bg-transparent text-white border-2 border-white", // 어두운 배경용: 흰색 테두리 + 흰색 텍스트
+        "hover:bg-white hover:text-weave-primary", // 디자인 시스템 표준: 배경 채우기 + 브랜드 컬러 텍스트
+        "hover:shadow-lg", // 어두운 배경에서 돋보이는 그림자
+        "focus:ring-white"
+      ),
+      "inverse-primary": cn(
+        "bg-white text-weave-primary border-2 border-white", // 어두운 배경용: 흰색 배경 + 브랜드 컬러 텍스트
+        "hover:bg-gray-100 hover:text-weave-primary-hover", // 디자인 시스템 표준: 미묘한 배경 변화
+        "hover:shadow-lg", // 어두운 배경에서 돋보이는 그림자
+        "focus:ring-white"
+      ),
     };
 
-    const buttonProps = {
-      className: cn(baseStyles, variants[variant], sizes[size], className),
-      style: getDynamicStyles(),
-      ref,
-      disabled: disabled || loading,
-      ...ariaProps,
-      ...props,
+    // 크기별 스타일
+    const sizes = {
+      sm: "px-3 py-1.5 text-xs h-8",
+      md: "px-4 py-2 text-sm h-10",
+      lg: "px-6 py-3 text-base h-12",
     };
 
-    if (asChild) {
-      return React.cloneElement(children as React.ReactElement, buttonProps);
-    }
-
-    // 버튼 상태에 따른 컨텐츠 결정
-    const getButtonContent = () => {
+    // 버튼 콘텐츠 렌더링
+    const renderContent = () => {
       if (success) {
         return (
           <>
             <Check className="w-4 h-4 mr-2" />
-            {successText || children}
+            {children}
           </>
         );
       }
@@ -135,27 +148,8 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       if (loading) {
         return (
           <>
-            <svg
-              className="animate-spin -ml-1 mr-2 h-4 w-4"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-            >
-              <circle
-                className="opacity-25"
-                cx="12"
-                cy="12"
-                r="10"
-                stroke="currentColor"
-                strokeWidth="4"
-              />
-              <path
-                className="opacity-75"
-                fill="currentColor"
-                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-              />
-            </svg>
-            {loadingText || children}
+            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+            {children}
           </>
         );
       }
@@ -169,30 +163,22 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       );
     };
 
-    const buttonElement = (
-      <button {...buttonProps}>
-        {getButtonContent()}
+    return (
+      <button
+        ref={ref}
+        className={cn(
+          baseStyles,
+          variants[variant],
+          sizes[size],
+          className // className이 마지막에 오므로 모든 기본 스타일을 오버라이드 가능
+        )}
+        disabled={disabled || loading}
+        aria-busy={loading}
+        {...props}
+      >
+        {renderContent()}
       </button>
     );
-
-    // 비활성 상태일 때 이유가 제공되면 툴팁과 스크린 리더용 설명 추가
-    if (disabled && disabledReason) {
-      return (
-        <>
-          <Tooltip content={disabledReason} position="top">
-            {buttonElement}
-          </Tooltip>
-          <span 
-            id={`${props.id || 'button'}-description`} 
-            className="sr-only"
-          >
-            {disabledReason}
-          </span>
-        </>
-      );
-    }
-
-    return buttonElement;
   }
 );
 

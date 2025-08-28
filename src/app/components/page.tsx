@@ -361,7 +361,7 @@ export default function ComponentsPage() {
               <CardHeader>
                 <CardTitle>Secondary Buttons</CardTitle>
                 <CardDescription>
-                  보조 액션을 위한 버튼들 (기본 색상, 투명 배경, 그림자 효과)
+                  WEAVE 디자인 시스템 표준 - 중성적 회색에서 브랜드 컬러로 우아한 포인트 전환 (전체 시스템 적용)
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -389,6 +389,40 @@ export default function ComponentsPage() {
 
             <Card variant="elevated">
               <CardHeader>
+                <CardTitle>Secondary Dark Buttons</CardTitle>
+                <CardDescription>
+                  어두운 배경용 Secondary 버튼 - 반투명 흰색 테두리에서 브랜드 컬러 전환 (랜딩페이지 그라데이션 배경 적용)
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 p-6 rounded-lg">
+                  <div className="space-y-4">
+                    <div className="flex flex-wrap gap-3">
+                      <Button variant="secondary-dark" size="sm">
+                        Small
+                      </Button>
+                      <Button variant="secondary-dark" size="md">
+                        Medium
+                      </Button>
+                      <Button variant="secondary-dark" size="lg">
+                        Large
+                      </Button>
+                    </div>
+                    <div className="flex flex-wrap gap-3">
+                      <Button variant="secondary-dark" loading>
+                        Loading
+                      </Button>
+                      <Button variant="secondary-dark" disabled>
+                        Disabled
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card variant="elevated">
+              <CardHeader>
                 <CardTitle>Other Button Variants</CardTitle>
                 <CardDescription>다양한 버튼 스타일</CardDescription>
               </CardHeader>
@@ -397,18 +431,18 @@ export default function ComponentsPage() {
                   <Button variant="ghost" size="md">
                     Ghost
                   </Button>
-                  <Button variant="danger" size="md">
-                    Danger
+                  <Button variant="destructive" size="md">
+                    Destructive
                   </Button>
-                  <Button variant="gradient" size="md">
-                    Gradient
+                  <Button variant="positive" size="md">
+                    Positive
                   </Button>
                 </div>
                 <div className="flex flex-wrap gap-3">
                   <Button variant="ghost" loading>
                     Loading
                   </Button>
-                  <Button variant="danger" disabled>
+                  <Button variant="destructive" disabled>
                     Disabled
                   </Button>
                 </div>
