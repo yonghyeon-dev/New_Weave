@@ -3,6 +3,7 @@
 import React from 'react';
 import { useRouter } from 'next/navigation';
 import AppLayout from '@/components/layout/AppLayout';
+import { WorkspacePageContainer } from '@/components/layout/PageContainer';
 import Typography from '@/components/ui/Typography';
 import Button from '@/components/ui/Button';
 import { Upload, ArrowLeft, FileText } from 'lucide-react';
@@ -26,46 +27,49 @@ export default function InfoExtractPage() {
 
   return (
     <AppLayout>
-      <div className="bg-bg-primary p-6">
-        <div className="max-w-6xl mx-auto">
-          {/* 헤더 */}
-          <div className="mb-8">
-            <div className="flex items-center justify-between">
-              <div>
-                <Typography variant="h2" className="text-2xl mb-1">정보 추출</Typography>
-                <Typography variant="body1" className="text-txt-secondary">
+      <WorkspacePageContainer>
+        {/* 헤더 섹션 - 대시보드/프로젝트와 동일한 형식 */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3 flex-1 min-w-0">
+              <div className="p-2 sm:p-3 bg-weave-primary-light rounded-lg flex-shrink-0">
+                <Upload className="w-5 h-5 sm:w-6 sm:h-6 text-weave-primary" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <Typography variant="h2" className="text-xl sm:text-2xl mb-0 sm:mb-1 text-txt-primary leading-tight">정보 추출</Typography>
+                <Typography variant="body1" className="text-sm sm:text-base text-txt-secondary leading-tight hidden sm:block">
                   이미지나 PDF 문서에서 핵심 정보를 자동으로 추출하세요
                 </Typography>
               </div>
-              <div className="flex space-x-3">
-                <Button 
-                  variant="ghost"
-                  onClick={() => router.push('/ai-assistant')}
-                  className="flex items-center space-x-2"
-                >
-                  <ArrowLeft className="w-4 h-4" />
-                  <span>돌아가기</span>
-                </Button>
-                <Button 
-                  variant="secondary"
-                  onClick={() => router.push('/ai-assistant/generate')}
-                  className="flex items-center space-x-2"
-                >
-                  <FileText className="w-4 h-4" />
-                  <span>문서 생성</span>
-                </Button>
-              </div>
+            </div>
+            <div className="flex space-x-2 sm:space-x-3 flex-shrink-0">
+              <Button 
+                variant="ghost"
+                onClick={() => router.push('/ai-assistant')}
+                className="flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                <span className="hidden sm:inline">돌아가기</span>
+              </Button>
+              <Button 
+                variant="secondary"
+                onClick={() => router.push('/ai-assistant/generate')}
+                className="flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2"
+              >
+                <FileText className="w-4 h-4" />
+                <span className="hidden sm:inline">문서 생성</span>
+              </Button>
             </div>
           </div>
-
-          {/* DataExtractor 컴포넌트 사용 */}
-          <DataExtractor
-            onDataExtracted={handleDataExtracted}
-            onError={handleError}
-            maxFileSize={10}
-          />
         </div>
-      </div>
+
+        {/* DataExtractor 컴포넌트 사용 */}
+        <DataExtractor
+          onDataExtracted={handleDataExtracted}
+          onError={handleError}
+          maxFileSize={10}
+        />
+      </WorkspacePageContainer>
     </AppLayout>
   );
 }

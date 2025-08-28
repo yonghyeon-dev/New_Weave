@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import AppLayout from '@/components/layout/AppLayout';
+import { WorkspacePageContainer } from '@/components/layout/PageContainer';
 import { Card } from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Typography from '@/components/ui/Typography';
@@ -20,7 +21,8 @@ import {
   CheckCircle,
   TrendingUp,
   Shield,
-  Clock
+  Clock,
+  BrainCircuit
 } from 'lucide-react';
 
 // 기능 카드 타입
@@ -95,20 +97,6 @@ export default function AIAssistant() {
       ]
     },
     {
-      id: 'lookup',
-      title: '사업자 조회',
-      description: '사업자 정보를 빠르게 조회하고 검증합니다',
-      icon: <FileImage className="w-6 h-6" />,
-      href: '/ai-assistant/lookup',
-      color: 'bg-green-500',
-      features: [
-        '사업자번호 검증',
-        '상호명 조회',
-        '업태/종목 확인',
-        '사업자 상태 확인'
-      ]
-    },
-    {
       id: 'analysis',
       title: 'AI 분석',
       description: 'Gemini AI를 활용한 고급 데이터 분석 및 인사이트',
@@ -177,36 +165,40 @@ export default function AIAssistant() {
 
   return (
     <AppLayout>
-      <div className="bg-bg-primary p-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="space-y-8">
-            {/* 헤더 섹션 */}
-            <div className="flex items-center justify-between">
-              <div>
-                <Typography variant="h2" className="text-2xl mb-1">AI Assistant</Typography>
-                <Typography variant="body1" className="text-txt-secondary">
+      <WorkspacePageContainer>
+        <div className="space-y-8">
+          {/* 헤더 섹션 - 대시보드/프로젝트와 동일한 형식 */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3 flex-1 min-w-0">
+              <div className="p-2 sm:p-3 bg-weave-primary-light rounded-lg flex-shrink-0">
+                <BrainCircuit className="w-5 h-5 sm:w-6 sm:h-6 text-weave-primary" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <Typography variant="h2" className="text-xl sm:text-2xl mb-0 sm:mb-1 text-txt-primary leading-tight">AI Assistant</Typography>
+                <Typography variant="body1" className="text-sm sm:text-base text-txt-secondary leading-tight hidden sm:block">
                   AI 기반 업무 자동화 도구를 활용하세요
                 </Typography>
               </div>
-              <div className="flex space-x-3">
-                <Button 
-                  variant="primary"
-                  onClick={() => router.push('/ai-assistant/chat')}
-                  className="flex items-center space-x-2"
-                >
-                  <Cpu className="w-4 h-4" />
-                  <span>AI 챗봇 시작</span>
-                </Button>
-                <Button 
-                  variant="secondary"
-                  onClick={() => router.push('/ai-assistant/generate')}
-                  className="flex items-center space-x-2"
-                >
-                  <FileText className="w-4 h-4" />
-                  <span>문서 생성</span>
-                </Button>
-              </div>
             </div>
+            <div className="flex space-x-2 sm:space-x-3 flex-shrink-0">
+              <Button 
+                variant="primary"
+                onClick={() => router.push('/ai-assistant/chat')}
+                className="flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2"
+              >
+                <Cpu className="w-4 h-4" />
+                <span className="hidden sm:inline">AI 챗봇 시작</span>
+              </Button>
+              <Button 
+                variant="secondary"
+                onClick={() => router.push('/ai-assistant/generate')}
+                className="flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2"
+              >
+                <FileText className="w-4 h-4" />
+                <span className="hidden sm:inline">문서 생성</span>
+              </Button>
+            </div>
+          </div>
 
             {/* 통계 카드 섹션 */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -374,9 +366,8 @@ export default function AIAssistant() {
               </div>
             </div>
 
-          </div>
         </div>
-      </div>
+      </WorkspacePageContainer>
     </AppLayout>
   );
 }

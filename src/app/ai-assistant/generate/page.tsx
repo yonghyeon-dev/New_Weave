@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import AppLayout from '@/components/layout/AppLayout';
+import { WorkspacePageContainer } from '@/components/layout/PageContainer';
 import { Card } from '@/components/ui/Card';
 import Typography from '@/components/ui/Typography';
 import Button from '@/components/ui/Button';
@@ -156,31 +157,36 @@ export default function DocumentGeneratePage() {
 
   return (
     <AppLayout>
-      <div className="bg-bg-primary min-h-screen">
-        <div className="max-w-7xl mx-auto p-6">
-          {/* 헤더 */}
+      <WorkspacePageContainer>
+        <div className="space-y-8">
+          {/* 헤더 섹션 - 대시보드/프로젝트와 동일한 형식 */}
           <div className="mb-8">
             <div className="flex items-center justify-between">
-              <div>
-                <Typography variant="h2" className="text-2xl mb-1 flex items-center">
-                  문서 생성
-                  <Badge variant="primary" className="ml-3 flex items-center gap-1">
-                    <Sparkles className="w-3 h-3" />
-                    <span>AI 지원</span>
-                  </Badge>
-                </Typography>
-                <Typography variant="body1" className="text-txt-secondary">
-                  단계별로 진행하여 맞춤형 문서를 생성하세요
-                </Typography>
+              <div className="flex items-center gap-3 flex-1 min-w-0">
+                <div className="p-2 sm:p-3 bg-weave-primary-light rounded-lg flex-shrink-0">
+                  <FileText className="w-5 h-5 sm:w-6 sm:h-6 text-weave-primary" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <Typography variant="h2" className="text-xl sm:text-2xl mb-0 sm:mb-1 text-txt-primary leading-tight flex items-center gap-2">
+                    문서 생성
+                    <Badge variant="primary" className="flex items-center gap-1">
+                      <Sparkles className="w-3 h-3" />
+                      <span>AI 지원</span>
+                    </Badge>
+                  </Typography>
+                  <Typography variant="body1" className="text-sm sm:text-base text-txt-secondary leading-tight hidden sm:block">
+                    단계별로 진행하여 맞춤형 문서를 생성하세요
+                  </Typography>
+                </div>
               </div>
-              <div className="flex space-x-3">
+              <div className="flex-shrink-0">
                 <Button 
                   variant="ghost"
                   onClick={() => router.push('/ai-assistant')}
-                  className="flex items-center space-x-2"
+                  className="flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2"
                 >
                   <ArrowLeft className="w-4 h-4" />
-                  <span>AI Assistant로</span>
+                  <span className="hidden sm:inline">AI Assistant로</span>
                 </Button>
               </div>
             </div>
@@ -336,7 +342,7 @@ export default function DocumentGeneratePage() {
             </div>
           )}
         </div>
-      </div>
+      </WorkspacePageContainer>
     </AppLayout>
   );
 }
