@@ -1,795 +1,382 @@
 'use client';
 
-import React, { useState, useEffect, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
+import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import AppLayout from '@/components/layout/AppLayout';
-import { WorkspacePageContainer } from '@/components/layout/PageContainer';
 import { Card } from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
-import Input from '@/components/ui/Input';
 import Typography from '@/components/ui/Typography';
-import Alert from '@/components/ui/Alert';
 import { 
-  MessageCircle, 
-  Calculator, 
-  Send, 
-  Bot, 
-  User, 
-  BookOpen, 
-  AlertCircle, 
-  CheckCircle,
-  Cpu,
   FileText,
-  Search,
   Upload,
+  ArrowRight,
+  Sparkles,
+  FileImage,
+  FileCode,
+  Zap,
+  Cpu,
   Download,
-  FileUp,
-  Copy,
-  BrainCircuit
+  Edit3,
+  CheckCircle,
+  TrendingUp,
+  Shield,
+  Clock
 } from 'lucide-react';
 
-interface Message {
-  id: string;
-  content: string;
-  sender: 'user' | 'ai';
-  timestamp: Date;
-  type?: 'general' | 'tax' | 'document' | 'extract' | 'file';
-}
-
-interface TaxQuestion {
+// 기능 카드 타입
+interface FeatureCard {
   id: string;
   title: string;
-  category: string;
   description: string;
+  icon: React.ReactNode;
+  href: string;
+  color: string;
+  badge?: string;
+  features: string[];
 }
 
-interface DocumentTemplate {
-  id: string;
-  name: string;
-  category: string;
-  description: string;
-  fields: string[];
-}
-
-const commonQuestions: TaxQuestion[] = [
-  {
-    id: '1',
-    title: '부가세 신고 기한은 언제인가요?',
-    category: '부가세',
-    description: '부가세 신고와 납부 기한에 대해 궁금합니다.'
-  },
-  {
-    id: '2',
-title: '개인사업자 종합소득세 신고 방법',
-    category: '소득세',
-description: '개인사업자로 일하는데 종합소득세를 어떻게 신고해야 하나요?'
-  },
-  {
-    id: '3',
-    title: '사업용 차량 구입 시 세금 혜택',
-    category: '법인세',
-    description: '법인명의로 차량을 구입할 때 받을 수 있는 세금 혜택이 있나요?'
-  },
-  {
-    id: '4',
-    title: '홈택스 전자신고 방법',
-    category: '전자신고',
-    description: '홈택스를 통한 전자신고 절차가 궁금합니다.'
-  }
-];
-
-const quickQuestions = [
-  '인보이스 작성 방법을 알려주세요',
-  '클라이언트 관리 팁을 알려주세요',
-  '계약서 작성할 때 주의사항은?',
-  '업무 효율성을 높이는 방법은?'
-];
-
-const documentTemplates: DocumentTemplate[] = [
-  {
-    id: 'contract',
-    name: '표준 계약서',
-    category: '계약서',
-    description: '서비스/제품 공급 표준 계약서',
-    fields: ['계약 당사자', '계약 내용', '계약 기간', '대금', '특약사항']
-  },
-  {
-    id: 'proposal',
-    name: '사업 제안서',
-    category: '제안서',
-    description: '프로젝트 또는 사업 제안서',
-    fields: ['제안 배경', '제안 내용', '예산', '일정', '기대효과']
-  },
-  {
-    id: 'invoice',
-    name: '세금계산서',
-    category: '회계',
-    description: '세금계산서 자동 생성',
-    fields: ['공급자', '공급받는자', '품목', '단가', '공급가액', 'VAT']
-  },
-  {
-    id: 'minutes',
-    name: '회의록',
-    category: '보고서',
-    description: '회의 내용 정리 및 문서화',
-    fields: ['회의 일시', '참석자', '안건', '논의사항', '결정사항']
-  }
-];
-
-function AIAssistantContent() {
-  const searchParams = useSearchParams();
-  const [activeTab, setActiveTab] = useState<'document' | 'chat' | 'tax' | 'extract' | 'file'>('document');
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: '1',
-      content: '안녕하세요! AI 업무 비서입니다. 어떤 도움이 필요하신가요?',
-      sender: 'ai',
-      timestamp: new Date(),
-      type: 'general'
-    }
-  ]);
-  const [inputMessage, setInputMessage] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState('전체');
-  const [selectedTemplate, setSelectedTemplate] = useState<string>('');
-  const [messageIdCounter, setMessageIdCounter] = useState(1);
-  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
-  const [documentFields, setDocumentFields] = useState<Record<string, string>>({});
-  const [generatedDocument, setGeneratedDocument] = useState<string>('');
-
-  const categories = ['전체', '부가세', '소득세', '법인세', '전자신고', '기타'];
-
-  // URL 파라미터로 탭 상태 초기화
-  useEffect(() => {
-    const tabParam = searchParams.get('tab');
-    if (tabParam && ['document', 'chat', 'tax', 'extract', 'file'].includes(tabParam)) {
-      setActiveTab(tabParam as 'document' | 'chat' | 'tax' | 'extract' | 'file');
-    }
-  }, [searchParams]);
-
-  const handleSendMessage = async () => {
-    if (!inputMessage.trim()) return;
-
-    const userMessage: Message = {
-      id: `user-${messageIdCounter}`,
-      content: inputMessage,
-      sender: 'user',
-      timestamp: new Date(),
-      type: activeTab === 'tax' ? 'tax' : activeTab === 'chat' ? 'general' : activeTab
-    };
-    setMessageIdCounter(prev => prev + 1);
-
-    setMessages(prev => [...prev, userMessage]);
-    setInputMessage('');
-    setIsLoading(true);
-
-    // 모의 AI 응답
-    setTimeout(() => {
-      let aiResponse = '';
-      
-      if (activeTab === 'tax') {
-        aiResponse = `
-"${inputMessage}"에 대한 세무 답변입니다.
-
-**핵심 내용:**
-• 관련 법령: 소득세법 제1조, 부가가치세법 제2조
-• 신고 기한: 매년 5월 31일까지
-• 필요 서류: 소득금액증명원, 사업자등록증
-
-**상세 설명:**
-현재 질문하신 내용은 일반적인 세무 처리 절차에 해당합니다. 구체적인 사항은 개인의 상황에 따라 달라질 수 있으므로, 정확한 처리를 위해서는 세무사와의 개별 상담을 권장합니다.
-
-⚠️ 본 답변은 일반적인 정보 제공을 위한 것으로, 개별 사안에 대한 전문적인 세무 상담이 필요할 수 있습니다.
-        `.trim();
-      } else if (activeTab === 'document') {
-        aiResponse = `문서 생성과 관련된 도움을 드리겠습니다. 왼쪽 템플릿에서 원하시는 문서 유형을 선택하시거나, 구체적인 문서 작성 요청을 말씀해 주세요.`;
-      } else if (activeTab === 'extract') {
-        aiResponse = `정보 추출 기능입니다. PDF, 이미지, 텍스트 파일을 업로드하시면 주요 정보를 자동으로 추출해 드립니다.`;
-      } else if (activeTab === 'file') {
-        aiResponse = `파일 처리 기능입니다. 대용량 파일 변환이나 포맷 변경을 도와드립니다.`;
-      } else {
-        aiResponse = `"${inputMessage}"에 대해 도움을 드리겠습니다. 구체적으로 어떤 업무를 진행하고 계신가요?
-
-업무와 관련된 추가적인 질문이 있으시면 언제든 말씀해 주세요.`;
-      }
-
-      const aiMessage: Message = {
-        id: `ai-${messageIdCounter + 1}`,
-        content: aiResponse,
-        sender: 'ai',
-        timestamp: new Date(),
-        type: activeTab === 'tax' ? 'tax' : activeTab === 'chat' ? 'general' : activeTab
-      };
-      setMessageIdCounter(prev => prev + 2);
-      
-      setMessages(prev => [...prev, aiMessage]);
-      setIsLoading(false);
-    }, 1000);
-  };
-
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSendMessage();
-    }
-  };
-
-  const handleQuestionClick = (question: string) => {
-    setInputMessage(question);
-  };
-
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setUploadedFile(file);
-      const message = `"${file.name}" 파일이 업로드되었습니다. 처리를 시작합니다...`;
-      const uploadMessage: Message = {
-        id: `upload-${messageIdCounter}`,
-        content: message,
-        sender: 'ai',
-        timestamp: new Date(),
-        type: activeTab === 'extract' ? 'extract' : 'file'
-      };
-      setMessages(prev => [...prev, uploadMessage]);
-      setMessageIdCounter(prev => prev + 1);
-    }
-  };
-
-  const handleGenerateDocument = () => {
-    const template = documentTemplates.find(t => t.id === selectedTemplate);
-    if (!template) return;
-
-    // 문서 생성 로직 (실제로는 API 호출)
-    let document = `【 ${template.name} 】\n\n`;
-    document += `작성일자: ${new Date().toLocaleDateString('ko-KR')}\n\n`;
-    document += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
-    
-    template.fields.forEach(field => {
-      const value = documentFields[field] || '[미입력]';
-      document += `■ ${field}\n`;
-      document += `${value}\n\n`;
-    });
-    
-    document += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
-    document += `※ 본 문서는 AI에 의해 자동 생성되었습니다.\n`;
-    document += `※ 법적 효력을 위해서는 전문가 검토가 필요할 수 있습니다.`;
-    
-    setGeneratedDocument(document);
-  };
-
-  const filteredMessages = messages.filter(msg => {
-    if (activeTab === 'chat') return msg.type === 'general';
-    if (activeTab === 'tax') return msg.type === 'tax';
-    if (activeTab === 'document') return msg.type === 'document' || msg.type === 'general';
-    if (activeTab === 'extract') return msg.type === 'extract' || msg.type === 'general';
-    if (activeTab === 'file') return msg.type === 'file' || msg.type === 'general';
-    return false;
-  });
-
-  return (
-    <AppLayout>
-      <WorkspacePageContainer>
-          {/* 헤더 */}
-          <div className="mb-8">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-3 bg-weave-primary-light rounded-lg">
-                <BrainCircuit className="w-6 h-6 text-weave-primary" />
-              </div>
-              <div>
-                <Typography variant="h2" className="text-2xl mb-1 text-txt-primary">AI 업무비서</Typography>
-                <Typography variant="body1" className="text-txt-secondary">
-                  통합 AI 기반 업무 자동화 허브
-                </Typography>
-              </div>
-            </div>
-
-          </div>
-
-          {/* 헤더 탭 네비게이션 - 프로젝트 스타일 동일 적용 */}
-          <div className="border-t border-border-light">
-            <nav className="flex space-x-8 px-0" aria-label="Tabs">
-              <button
-                onClick={() => setActiveTab('document')}
-                className={`flex items-center gap-2 py-4 px-6 border-b-2 font-medium text-sm transition-colors ${
-                  activeTab === 'document'
-                    ? 'border-weave-primary text-weave-primary'
-                    : 'border-transparent text-txt-secondary hover:text-txt-primary hover:border-border-light'
-                }`}
-              >
-                <FileText className="w-4 h-4" />
-                문서 생성
-              </button>
-              <button
-                onClick={() => setActiveTab('chat')}
-                className={`flex items-center gap-2 py-4 px-6 border-b-2 font-medium text-sm transition-colors ${
-                  activeTab === 'chat'
-                    ? 'border-weave-primary text-weave-primary'
-                    : 'border-transparent text-txt-secondary hover:text-txt-primary hover:border-border-light'
-                }`}
-              >
-                <MessageCircle className="w-4 h-4" />
-                AI 상담
-              </button>
-              <button
-                onClick={() => setActiveTab('tax')}
-                className={`flex items-center gap-2 py-4 px-6 border-b-2 font-medium text-sm transition-colors ${
-                  activeTab === 'tax'
-                    ? 'border-weave-primary text-weave-primary'
-                    : 'border-transparent text-txt-secondary hover:text-txt-primary hover:border-border-light'
-                }`}
-              >
-                <Calculator className="w-4 h-4" />
-                세무 상담
-              </button>
-              <button
-                onClick={() => setActiveTab('extract')}
-                className={`flex items-center gap-2 py-4 px-6 border-b-2 font-medium text-sm transition-colors ${
-                  activeTab === 'extract'
-                    ? 'border-weave-primary text-weave-primary'
-                    : 'border-transparent text-txt-secondary hover:text-txt-primary hover:border-border-light'
-                }`}
-              >
-                <Search className="w-4 h-4" />
-                정보 추출
-              </button>
-              <button
-                onClick={() => setActiveTab('file')}
-                className={`flex items-center gap-2 py-4 px-6 border-b-2 font-medium text-sm transition-colors ${
-                  activeTab === 'file'
-                    ? 'border-weave-primary text-weave-primary'
-                    : 'border-transparent text-txt-secondary hover:text-txt-primary hover:border-border-light'
-                }`}
-              >
-                <Upload className="w-4 h-4" />
-                파일 처리
-              </button>
-            </nav>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
-            {/* 메인 영역 */}
-            <div className="lg:col-span-2">
-              {/* 문서 생성 탭 */}
-              {activeTab === 'document' && (
-                <div className="space-y-6">
-                  {/* 템플릿 선택 */}
-                  <Card className="p-6">
-                    <Typography variant="h3" className="mb-4">문서 템플릿 선택</Typography>
-                    <div className="grid grid-cols-2 gap-3">
-                      {documentTemplates.map((template) => (
-                        <button
-                          key={template.id}
-                          onClick={() => setSelectedTemplate(template.id)}
-                          className={`p-4 text-left rounded-lg border transition-all ${
-                            selectedTemplate === template.id
-                              ? 'bg-weave-primary-light border-weave-primary'
-                              : 'bg-white border-border-light hover:bg-bg-secondary'
-                          }`}
-                        >
-                          <Typography variant="body2" className="font-medium mb-1">
-                            {template.name}
-                          </Typography>
-                          <Typography variant="body2" className="text-txt-secondary text-xs">
-                            {template.description}
-                          </Typography>
-                          <span className={`inline-block mt-2 px-2 py-1 text-xs rounded ${
-                            selectedTemplate === template.id
-                              ? 'bg-weave-primary text-white'
-                              : 'bg-gray-100 text-gray-700'
-                          }`}>
-                            {template.category}
-                          </span>
-                        </button>
-                      ))}
-                    </div>
-                  </Card>
-
-                  {/* 선택된 템플릿 필드 입력 */}
-                  {selectedTemplate && (
-                    <Card className="p-6">
-                      <Typography variant="h3" className="mb-4">
-                        {documentTemplates.find(t => t.id === selectedTemplate)?.name} 작성
-                      </Typography>
-                      <div className="space-y-4">
-                        {documentTemplates.find(t => t.id === selectedTemplate)?.fields.map((field) => (
-                          <div key={field}>
-                            <label className="block text-sm font-medium text-txt-secondary mb-2">
-                              {field}
-                            </label>
-                            <Input
-                              placeholder={`${field} 내용을 입력하세요...`}
-                              className="w-full"
-                              value={documentFields[field] || ''}
-                              onChange={(e) => setDocumentFields(prev => ({
-                                ...prev,
-                                [field]: e.target.value
-                              }))}
-                            />
-                          </div>
-                        ))}
-                        <div className="flex gap-3">
-                          <Button onClick={() => handleGenerateDocument()}>
-                            <FileText className="w-4 h-4 mr-2" />
-                            문서 생성
-                          </Button>
-                          <Button variant="outline">
-                            <Download className="w-4 h-4 mr-2" />
-                            템플릿 저장
-                          </Button>
-                        </div>
-                      </div>
-                    </Card>
-                  )}
-
-                  {/* 문서 프리뷰 */}
-                  {generatedDocument && (
-                    <Card className="p-6">
-                      <div className="flex items-center justify-between mb-4">
-                        <Typography variant="h3">생성된 문서 미리보기</Typography>
-                        <div className="flex gap-2">
-                          <Button variant="outline">
-                            <Copy className="w-4 h-4 mr-1" />
-                            복사
-                          </Button>
-                          <Button variant="outline">
-                            <Download className="w-4 h-4 mr-1" />
-                            다운로드
-                          </Button>
-                        </div>
-                      </div>
-                      <div className="p-4 bg-bg-secondary rounded-lg">
-                        <Typography variant="body1" className="whitespace-pre-wrap">
-                          {generatedDocument}
-                        </Typography>
-                      </div>
-                    </Card>
-                  )}
-                </div>
-              )}
-
-              {/* 정보 추출 / 파일 처리 탭 */}
-              {(activeTab === 'extract' || activeTab === 'file') && (
-                <Card className="p-12 text-center">
-                  <div className="max-w-md mx-auto">
-                    <div className="mb-6">
-                      {activeTab === 'extract' ? (
-                        <FileUp className="w-16 h-16 mx-auto text-weave-primary mb-4" />
-                      ) : (
-                        <Upload className="w-16 h-16 mx-auto text-weave-primary mb-4" />
-                      )}
-                      <Typography variant="h3" className="mb-2">
-                        {activeTab === 'extract' ? '파일에서 정보 추출' : '파일 처리'}
-                      </Typography>
-                      <Typography variant="body1" className="text-txt-secondary">
-                        {activeTab === 'extract' 
-                          ? 'PDF, 이미지, 텍스트 파일에서 핵심 정보를 자동으로 추출합니다'
-                          : '대용량 파일 처리 및 다양한 포맷 변환을 지원합니다'}
-                      </Typography>
-                    </div>
-
-                    <div className="border-2 border-dashed border-border-light rounded-lg p-8 mb-4">
-                      <input
-                        type="file"
-                        id="file-upload"
-                        className="hidden"
-                        onChange={handleFileUpload}
-                        accept={activeTab === 'extract' ? '.pdf,.png,.jpg,.jpeg,.txt' : '*'}
-                      />
-                      <label htmlFor="file-upload" className="cursor-pointer">
-                        <span className="inline-flex items-center justify-center px-4 py-2 bg-weave-primary text-white rounded-md hover:bg-weave-primary/90 transition-colors">
-                          파일 선택
-                        </span>
-                        <Typography variant="body2" className="text-txt-tertiary mt-3">
-                          또는 파일을 여기로 드래그하세요
-                        </Typography>
-                      </label>
-                    </div>
-
-                    {uploadedFile && (
-                      <div className="p-3 bg-green-50 rounded-lg text-left">
-                        <Typography variant="body2" className="text-green-800">
-                          업로드된 파일: {uploadedFile.name}
-                        </Typography>
-                      </div>
-                    )}
-
-                    {activeTab === 'file' && (
-                      <div className="flex justify-center gap-4 text-xs text-txt-tertiary mt-4">
-                        <span>• 최대 100MB</span>
-                        <span>• 암호화 전송</span>
-                        <span>• 자동 바이러스 검사</span>
-                      </div>
-                    )}
-                  </div>
-                </Card>
-              )}
-
-              {/* 채팅 영역 (AI 상담, 세무 상담) */}
-              {(activeTab === 'chat' || activeTab === 'tax') && (
-                <Card className="flex flex-col h-[600px]">
-                  {/* 채팅 메시지 영역 */}
-                  <div className="flex-1 p-6 overflow-y-auto">
-                    <div className="space-y-4">
-                      {filteredMessages.map((message) => (
-                        <div
-                          key={message.id}
-                          className={`flex items-start gap-3 ${
-                            message.sender === 'user' ? 'flex-row-reverse' : ''
-                          }`}
-                        >
-                          <div className={`p-2 rounded-full ${
-                            message.sender === 'user' 
-                              ? 'bg-weave-primary text-white' 
-                              : 'bg-gray-100'
-                          }`}>
-                            {message.sender === 'user' ? (
-                              <User className="w-4 h-4" />
-                            ) : (
-                              <Bot className="w-4 h-4" />
-                            )}
-                          </div>
-                          <div className={`max-w-[70%] ${
-                            message.sender === 'user' ? 'text-right' : ''
-                          }`}>
-                            <div className={`p-3 rounded-lg ${
-                              message.sender === 'user'
-                                ? 'bg-weave-primary text-white'
-                                : 'bg-gray-100 text-txt-primary'
-                            }`}>
-                              <Typography variant="body1" className={`whitespace-pre-line ${
-                                message.sender === 'user' ? 'text-white' : 'text-txt-primary'
-                              }`}>
-                                {message.content}
-                              </Typography>
-                            </div>
-                            <Typography variant="body2" className={`mt-1 text-txt-tertiary ${
-                              message.sender === 'user' ? 'text-right' : ''
-                            }`}>
-                              {message.timestamp.toLocaleTimeString('ko-KR', {
-                                hour: '2-digit',
-                                minute: '2-digit'
-                              })}
-                            </Typography>
-                          </div>
-                        </div>
-                      ))}
-                      
-                      {isLoading && (
-                        <div className="flex items-start gap-3">
-                          <div className="p-2 rounded-full bg-gray-100">
-                            <Bot className="w-4 h-4" />
-                          </div>
-                          <div className="p-3 rounded-lg bg-gray-100">
-                            <div className="flex space-x-1">
-                              <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                              <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
-                              <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* 입력 영역 */}
-                  <div className="p-4 border-t border-border-light">
-                    {activeTab === 'tax' && (
-                      <div className="mb-3">
-                        <select
-                          value={selectedCategory}
-                          onChange={(e) => setSelectedCategory(e.target.value)}
-                          className="px-3 py-2 border border-border-light rounded-lg text-sm focus:ring-2 focus:ring-weave-primary focus:border-transparent"
-                        >
-                          {categories.map(category => (
-                            <option key={category} value={category}>{category}</option>
-                          ))}
-                        </select>
-                      </div>
-                    )}
-                    
-                    <div className="flex gap-3">
-                      <div className="flex-1">
-                        <Input
-                          value={inputMessage}
-                          onChange={(e) => setInputMessage(e.target.value)}
-                          onKeyPress={handleKeyPress}
-                          placeholder={activeTab === 'tax' ? '세무 관련 질문을 입력하세요...' : '메시지를 입력하세요...'}
-                          disabled={isLoading}
-                        />
-                      </div>
-                      <Button
-                        onClick={handleSendMessage}
-                        disabled={!inputMessage.trim() || isLoading}
-                        className="px-4"
-                      >
-                        <Send className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </Card>
-              )}
-            </div>
-
-            {/* 사이드바 */}
-            <div className="space-y-6">
-              {/* 빠른 질문 (AI 상담) */}
-              {activeTab === 'chat' && (
-                <Card className="p-6">
-                  <Typography variant="h3" className="mb-4">빠른 질문</Typography>
-                  <div className="space-y-3">
-                    {quickQuestions.map((question, index) => (
-                      <Button
-                        key={index}
-                        variant="outline"
-                        className="w-full text-left justify-start p-3 h-auto text-sm"
-                        onClick={() => handleQuestionClick(question)}
-                      >
-                        {question}
-                      </Button>
-                    ))}
-                  </div>
-                </Card>
-              )}
-
-              {/* 자주 묻는 세무 질문 */}
-              {activeTab === 'tax' && (
-                <Card className="p-6">
-                  <div className="flex items-center gap-2 mb-4">
-                    <BookOpen className="w-5 h-5 text-weave-primary" />
-                    <Typography variant="h3">자주 묻는 질문</Typography>
-                  </div>
-                  
-                  <div className="space-y-3">
-                    {commonQuestions.map((question) => (
-                      <button
-                        key={question.id}
-                        onClick={() => handleQuestionClick(question.title)}
-                        className="w-full p-3 text-left rounded-lg border border-border-light hover:bg-bg-secondary transition-colors"
-                      >
-                        <Typography variant="body2" className="font-medium mb-1">
-                          {question.title}
-                        </Typography>
-                        <Typography variant="body2" className="text-txt-secondary text-xs">
-                          {question.description}
-                        </Typography>
-                        <span className="inline-block mt-2 px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded">
-                          {question.category}
-                        </span>
-                      </button>
-                    ))}
-                  </div>
-                </Card>
-              )}
-
-              {/* 문서 생성 가이드 */}
-              {activeTab === 'document' && (
-                <Card className="p-6">
-                  <Typography variant="h3" className="mb-4">문서 생성 가이드</Typography>
-                  <div className="space-y-3">
-                    <div className="p-3 bg-blue-50 rounded-lg">
-                      <Typography variant="body2" className="text-blue-800 font-medium mb-1">
-                        1. 템플릿 선택
-                      </Typography>
-                      <Typography variant="body2" className="text-blue-700 text-xs">
-                        왼쪽에서 원하는 문서 템플릿을 선택하세요
-                      </Typography>
-                    </div>
-                    <div className="p-3 bg-blue-50 rounded-lg">
-                      <Typography variant="body2" className="text-blue-800 font-medium mb-1">
-                        2. 필드 입력
-                      </Typography>
-                      <Typography variant="body2" className="text-blue-700 text-xs">
-                        필요한 정보를 각 필드에 입력하세요
-                      </Typography>
-                    </div>
-                    <div className="p-3 bg-blue-50 rounded-lg">
-                      <Typography variant="body2" className="text-blue-800 font-medium mb-1">
-                        3. 문서 생성
-                      </Typography>
-                      <Typography variant="body2" className="text-blue-700 text-xs">
-                        AI가 자동으로 문서를 생성합니다
-                      </Typography>
-                    </div>
-                  </div>
-                </Card>
-              )}
-
-              {/* 정보 추출 안내 */}
-              {activeTab === 'extract' && (
-                <Card className="p-6">
-                  <Typography variant="h3" className="mb-4">지원 파일 형식</Typography>
-                  <div className="space-y-2">
-                    {['PDF 문서', '이미지 (PNG, JPG)', '텍스트 파일', 'Word 문서', 'Excel 스프레드시트'].map((format) => (
-                      <div key={format} className="flex items-center gap-2">
-                        <CheckCircle className="w-4 h-4 text-green-600" />
-                        <Typography variant="body2">{format}</Typography>
-                      </div>
-                    ))}
-                  </div>
-                </Card>
-              )}
-
-              {/* 파일 처리 안내 */}
-              {activeTab === 'file' && (
-                <Card className="p-6">
-                  <Typography variant="h3" className="mb-4">파일 처리 기능</Typography>
-                  <div className="space-y-2">
-                    {['포맷 변환', '파일 압축', '대용량 파일 분할', '메타데이터 추출', '보안 암호화'].map((feature) => (
-                      <div key={feature} className="flex items-center gap-2">
-                        <CheckCircle className="w-4 h-4 text-blue-600" />
-                        <Typography variant="body2">{feature}</Typography>
-                      </div>
-                    ))}
-                  </div>
-                </Card>
-              )}
-
-              {/* 세무 일정 (세무 탭에서만) */}
-              {activeTab === 'tax' && (
-                <Card className="p-6">
-                  <Typography variant="h3" className="mb-4">주요 세무 일정</Typography>
-                  
-                  <div className="space-y-3">
-                    {[
-                      { date: '매월 10일', event: '원천세 신고·납부' },
-                      { date: '매월 25일', event: '부가세 신고·납부' },
-                      { date: '5월 31일', event: '종합소득세 신고·납부' },
-                      { date: '11월 30일', event: '연말정산 서류 제출' }
-                    ].map((schedule, index) => (
-                      <div key={index} className="flex items-center gap-3 p-3 bg-bg-secondary rounded-lg">
-                        <div className="w-2 h-2 bg-weave-primary rounded-full flex-shrink-0" />
-                        <div>
-                          <Typography variant="body2" className="font-medium">
-                            {schedule.date}
-                          </Typography>
-                          <Typography variant="body2" className="text-txt-secondary">
-                            {schedule.event}
-                          </Typography>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </Card>
-              )}
-
-              {/* 알림사항 */}
-              <Card className="p-6">
-                <Alert
-                  variant="warning"
-                  title="알림사항"
-                >
-                  {activeTab === 'tax' 
-                    ? '제공되는 정보는 일반적인 세무 가이드입니다. 구체적인 사안은 세무 전문가와 상담하시기 바랍니다.'
-                    : activeTab === 'document'
-                    ? '생성된 문서는 법적 검토가 필요할 수 있습니다. 중요한 계약은 전문가 검토를 받으시기 바랍니다.'
-                    : 'AI가 제공하는 정보는 참고용입니다. 중요한 업무 결정 시에는 전문가와 상담하시기 바랍니다.'
-                  }
-                </Alert>
-              </Card>
-            </div>
-          </div>
-        </WorkspacePageContainer>
-    </AppLayout>
-  );
+// 통계 데이터 타입
+interface StatCard {
+  label: string;
+  value: string;
+  trend?: string;
+  icon: React.ReactNode;
 }
 
 export default function AIAssistant() {
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
+
+  // 주요 기능 카드들
+  const featureCards: FeatureCard[] = [
+    {
+      id: 'chat',
+      title: 'AI 챗봇',
+      description: '실시간 대화형 AI 어시스턴트와 질문하고 답변받으세요',
+      icon: <Cpu className="w-6 h-6" />,
+      href: '/ai-assistant/chat',
+      color: 'bg-green-500',
+      badge: '새로운 기능',
+      features: [
+        '실시간 스트리밍 응답',
+        '대화 컨텍스트 유지',
+        '마크다운 지원',
+        '대화 내보내기 기능'
+      ]
+    },
+    {
+      id: 'extract',
+      title: '정보 추출',
+      description: '이미지나 PDF에서 데이터를 자동으로 추출하고 구조화합니다',
+      icon: <Upload className="w-6 h-6" />,
+      href: '/ai-assistant/extract',
+      color: 'bg-blue-500',
+      badge: 'AI 지원',
+      features: [
+        '드래그앤드롭 파일 업로드',
+        'PDF/이미지 자동 인식',
+        'JSON 형식 데이터 추출',
+        '실시간 미리보기'
+      ]
+    },
+    {
+      id: 'generate',
+      title: '문서 생성',
+      description: '템플릿 기반으로 전문적인 비즈니스 문서를 자동 생성합니다',
+      icon: <FileText className="w-6 h-6" />,
+      href: '/ai-assistant/generate',
+      color: 'bg-purple-500',
+      badge: '신규 기능',
+      features: [
+        '5종 문서 템플릿',
+        '마크다운 에디터 통합',
+        'PDF/Word 내보내기',
+        '실시간 편집 가능'
+      ]
+    },
+    {
+      id: 'lookup',
+      title: '사업자 조회',
+      description: '사업자 정보를 빠르게 조회하고 검증합니다',
+      icon: <FileImage className="w-6 h-6" />,
+      href: '/ai-assistant/lookup',
+      color: 'bg-green-500',
+      features: [
+        '사업자번호 검증',
+        '상호명 조회',
+        '업태/종목 확인',
+        '사업자 상태 확인'
+      ]
+    },
+    {
+      id: 'analysis',
+      title: 'AI 분석',
+      description: 'Gemini AI를 활용한 고급 데이터 분석 및 인사이트',
+      icon: <Sparkles className="w-6 h-6" />,
+      href: '/ai-assistant/analysis',
+      color: 'bg-yellow-500',
+      badge: 'Coming Soon',
+      features: [
+        '패턴 분석',
+        '트렌드 예측',
+        '자동 보고서 생성',
+        '데이터 시각화'
+      ]
+    }
+  ];
+
+  // 통계 카드 데이터
+  const statCards: StatCard[] = [
+    {
+      label: '처리한 문서',
+      value: '1,234',
+      trend: '+12%',
+      icon: <FileText className="w-5 h-5 text-blue-500" />
+    },
+    {
+      label: '절약한 시간',
+      value: '156시간',
+      trend: '+23%',
+      icon: <Clock className="w-5 h-5 text-green-500" />
+    },
+    {
+      label: '정확도',
+      value: '99.8%',
+      icon: <Shield className="w-5 h-5 text-purple-500" />
+    },
+    {
+      label: '처리 속도',
+      value: '< 2초',
+      icon: <Zap className="w-5 h-5 text-yellow-500" />
+    }
+  ];
+
+  // 최근 업데이트 내용
+  const recentUpdates = [
+    {
+      date: '2025-08-28',
+      title: 'AI 챗봇 기능 출시',
+      type: 'feature'
+    },
+    {
+      date: '2025-08-27',
+      title: 'PDF/Word 내보내기 기능 추가',
+      type: 'feature'
+    },
+    {
+      date: '2025-08-27',
+      title: '마크다운 에디터 통합',
+      type: 'feature'
+    },
+    {
+      date: '2025-08-27',
+      title: '5종 문서 템플릿 추가',
+      type: 'enhancement'
+    }
+  ];
+
   return (
-    <Suspense fallback={
-      <AppLayout>
-        <WorkspacePageContainer>
-          <div className="animate-pulse">
-            <div className="h-8 bg-gray-200 rounded w-1/4 mb-4"></div>
-            <div className="h-4 bg-gray-200 rounded w-1/2 mb-8"></div>
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div className="h-96 bg-gray-200 rounded-lg"></div>
-              <div className="lg:col-span-2 h-96 bg-gray-200 rounded-lg"></div>
+    <AppLayout>
+      <div className="bg-bg-primary p-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="space-y-8">
+            {/* 헤더 섹션 */}
+            <div className="flex items-center justify-between">
+              <div>
+                <Typography variant="h2" className="text-2xl mb-1">AI Assistant</Typography>
+                <Typography variant="body1" className="text-txt-secondary">
+                  AI 기반 업무 자동화 도구를 활용하세요
+                </Typography>
+              </div>
+              <div className="flex space-x-3">
+                <Button 
+                  variant="primary"
+                  onClick={() => router.push('/ai-assistant/chat')}
+                  className="flex items-center space-x-2"
+                >
+                  <Cpu className="w-4 h-4" />
+                  <span>AI 챗봇 시작</span>
+                </Button>
+                <Button 
+                  variant="secondary"
+                  onClick={() => router.push('/ai-assistant/generate')}
+                  className="flex items-center space-x-2"
+                >
+                  <FileText className="w-4 h-4" />
+                  <span>문서 생성</span>
+                </Button>
+              </div>
             </div>
+
+            {/* 통계 카드 섹션 */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {statCards.map((stat, index) => (
+              <Card className="bg-white rounded-lg border border-border-light p-6">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-3">
+                      <div className="p-2 bg-bg-secondary rounded-lg">
+                        {stat.icon}
+                      </div>
+                    </div>
+                    <Typography variant="body2" className="text-txt-tertiary mb-1">
+                      {stat.label}
+                    </Typography>
+                    <Typography variant="h3" className="text-2xl font-bold text-txt-primary">
+                      {stat.value}
+                    </Typography>
+                    {stat.trend && (
+                      <div className="flex items-center gap-1 mt-2">
+                        <TrendingUp className="w-4 h-4 text-green-500" />
+                        <Typography variant="body2" className="text-green-500 font-medium">
+                          {stat.trend}
+                        </Typography>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </Card>
+            ))}
           </div>
-        </WorkspacePageContainer>
-      </AppLayout>
-    }>
-      <AIAssistantContent />
-    </Suspense>
+
+            {/* 주요 기능 카드 그리드 */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {featureCards.map((feature) => (
+                <Card 
+                  key={feature.id}
+                  className="bg-white rounded-lg border border-border-light hover:shadow-lg transition-all cursor-pointer group overflow-hidden"
+                  onClick={() => router.push(feature.href)}
+                >
+                  <div className="p-6">
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="p-3 bg-bg-secondary rounded-lg">
+                        <div className={`${feature.color} bg-opacity-20 rounded-lg p-2`}>
+                          {React.cloneElement(feature.icon as React.ReactElement, { 
+                            className: `w-6 h-6 ${feature.color.replace('bg-', 'text-')}`
+                          })}
+                        </div>
+                      </div>
+                      {feature.badge && (
+                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                          feature.badge === 'AI 지원' ? 'bg-blue-50 text-blue-600' :
+                          feature.badge === '신규 기능' ? 'bg-green-50 text-green-600' :
+                          'bg-gray-100 text-gray-600'
+                        }`}>
+                          {feature.badge}
+                        </span>
+                      )}
+                    </div>
+                  
+                    <Typography variant="h3" className="text-lg font-semibold mb-2 text-txt-primary">
+                      {feature.title}
+                    </Typography>
+                    <Typography variant="body2" className="text-txt-secondary mb-4">
+                      {feature.description}
+                    </Typography>
+
+                    {/* 기능 목록 */}
+                    <div className="space-y-2 mb-4">
+                      {feature.features.slice(0, 3).map((item, index) => (
+                        <div key={index} className="flex items-start gap-2">
+                          <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />
+                          <Typography variant="body2" className="text-txt-tertiary text-sm">
+                            {item}
+                          </Typography>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="flex items-center justify-end pt-4 border-t border-border-light">
+                      <div className="flex items-center gap-1 text-weave-primary group-hover:gap-2 transition-all">
+                        <Typography variant="body2" className="font-medium">
+                          시작하기
+                        </Typography>
+                        <ArrowRight className="w-4 h-4" />
+                      </div>
+                    </div>
+                  </div>
+                </Card>
+            ))}
+          </div>
+
+            {/* 하단 정보 섹션 */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* 최근 업데이트 */}
+              <div className="bg-white rounded-lg border border-border-light p-6">
+                <Typography variant="h4" className="mb-4 font-semibold">
+                  최근 업데이트
+                </Typography>
+              <div className="space-y-3">
+                {recentUpdates.map((update, index) => (
+                  <div key={index} className="flex items-start gap-3 pb-3 border-b border-border-light last:border-0 last:pb-0">
+                    <div className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${
+                      update.type === 'feature' ? 'bg-green-500' : 'bg-blue-500'
+                    }`} />
+                    <div className="flex-1">
+                      <Typography variant="body2" className="font-medium text-txt-primary">
+                        {update.title}
+                      </Typography>
+                      <Typography variant="body2" className="text-txt-tertiary text-sm">
+                        {update.date}
+                      </Typography>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              </div>
+
+              {/* 빠른 시작 가이드 */}
+              <div className="bg-white rounded-lg border border-border-light p-6">
+                <Typography variant="h4" className="mb-4 font-semibold">
+                  빠른 시작 가이드
+                </Typography>
+              <div className="space-y-3">
+                  <div className="flex items-start gap-3 pb-3 border-b border-border-light">
+                    <div className="flex-shrink-0 w-8 h-8 bg-yellow-100 text-yellow-600 rounded-full flex items-center justify-center text-sm font-semibold">
+                      1
+                    </div>
+                    <div className="flex-1">
+                      <Typography variant="body2" className="font-medium text-txt-primary mb-1">
+                        파일 업로드
+                      </Typography>
+                      <Typography variant="body2" className="text-txt-tertiary text-sm">
+                        PDF나 이미지를 드래그앤드롭으로 업로드
+                      </Typography>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3 pb-3 border-b border-border-light">
+                    <div className="flex-shrink-0 w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-semibold">
+                      2
+                    </div>
+                    <div className="flex-1">
+                      <Typography variant="body2" className="font-medium text-txt-primary mb-1">
+                        AI 처리
+                      </Typography>
+                      <Typography variant="body2" className="text-txt-tertiary text-sm">
+                        Gemini AI가 자동으로 데이터 추출 및 분석
+                      </Typography>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <div className="flex-shrink-0 w-8 h-8 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-sm font-semibold">
+                      3
+                    </div>
+                    <div className="flex-1">
+                      <Typography variant="body2" className="font-medium text-txt-primary mb-1">
+                        문서 생성
+                      </Typography>
+                      <Typography variant="body2" className="text-txt-tertiary text-sm">
+                        원하는 형식으로 문서 생성 및 내보내기
+                      </Typography>
+                    </div>
+                  </div>
+              </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </AppLayout>
   );
 }
