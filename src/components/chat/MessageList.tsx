@@ -9,9 +9,11 @@ import { Bot, MessageSquare } from 'lucide-react';
 interface MessageListProps {
   messages: ChatMessage[];
   isTyping?: boolean;
+  onExampleClick?: (text: string) => void;
+  onRegenerate?: (messageId: string) => void;
 }
 
-export default function MessageList({ messages, isTyping = false }: MessageListProps) {
+export default function MessageList({ messages, isTyping = false, onExampleClick, onRegenerate }: MessageListProps) {
   const bottomRef = useRef<HTMLDivElement>(null);
   
   // 새 메시지가 추가되면 스크롤
@@ -39,18 +41,27 @@ export default function MessageList({ messages, isTyping = false }: MessageListP
             예시 질문:
           </Typography>
           <div className="space-y-2">
-            <div className="bg-white border border-border-light rounded-lg p-3 cursor-pointer hover:bg-bg-secondary transition-colors">
-              <Typography variant="body2" className="text-txt-secondary">
+            <div 
+              className="bg-white border border-border-light rounded-lg p-3 cursor-pointer hover:bg-bg-secondary hover:border-weave-primary/30 transition-all group"
+              onClick={() => onExampleClick?.("React와 Vue의 차이점을 설명해주세요")}
+            >
+              <Typography variant="body2" className="text-txt-secondary group-hover:text-txt-primary">
                 &ldquo;React와 Vue의 차이점을 설명해주세요&rdquo;
               </Typography>
             </div>
-            <div className="bg-white border border-border-light rounded-lg p-3 cursor-pointer hover:bg-bg-secondary transition-colors">
-              <Typography variant="body2" className="text-txt-secondary">
+            <div 
+              className="bg-white border border-border-light rounded-lg p-3 cursor-pointer hover:bg-bg-secondary hover:border-weave-primary/30 transition-all group"
+              onClick={() => onExampleClick?.("Python으로 간단한 웹 서버 만드는 방법을 알려주세요")}
+            >
+              <Typography variant="body2" className="text-txt-secondary group-hover:text-txt-primary">
                 &ldquo;Python으로 간단한 웹 서버 만드는 방법&rdquo;
               </Typography>
             </div>
-            <div className="bg-white border border-border-light rounded-lg p-3 cursor-pointer hover:bg-bg-secondary transition-colors">
-              <Typography variant="body2" className="text-txt-secondary">
+            <div 
+              className="bg-white border border-border-light rounded-lg p-3 cursor-pointer hover:bg-bg-secondary hover:border-weave-primary/30 transition-all group"
+              onClick={() => onExampleClick?.("효과적인 프로젝트 관리 방법은 무엇인가요?")}
+            >
+              <Typography variant="body2" className="text-txt-secondary group-hover:text-txt-primary">
                 &ldquo;효과적인 프로젝트 관리 방법은?&rdquo;
               </Typography>
             </div>
@@ -63,8 +74,17 @@ export default function MessageList({ messages, isTyping = false }: MessageListP
   return (
     <div className="flex-1 overflow-y-auto p-4 space-y-4">
       {/* 메시지 목록 */}
-      {messages.map((message) => (
-        <MessageBubble key={message.id} message={message} />
+      {messages.map((message, index) => (
+        <MessageBubble 
+          key={message.id} 
+          message={message}
+          onRegenerate={
+            // 마지막 AI 메시지만 재생성 가능
+            message.role === 'assistant' && index === messages.length - 1
+              ? () => onRegenerate?.(message.id)
+              : undefined
+          }
+        />
       ))}
       
       {/* 타이핑 인디케이터 */}

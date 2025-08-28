@@ -1,18 +1,32 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card } from '@/components/ui/Card';
 import Typography from '@/components/ui/Typography';
-import { User, Bot } from 'lucide-react';
+import { User, Bot, Copy, Check, RotateCcw } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { ChatMessage } from '@/lib/services/chatService';
 
 interface MessageBubbleProps {
   message: ChatMessage;
+  onRegenerate?: () => void;
 }
 
-export default function MessageBubble({ message }: MessageBubbleProps) {
+export default function MessageBubble({ message, onRegenerate }: MessageBubbleProps) {
   const isUser = message.role === 'user';
+  const [isCopied, setIsCopied] = useState(false);
+  
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(message.content);
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy:', err);
+    }
+  };
   
   return (
     <div className={`flex gap-3 ${isUser ? 'flex-row-reverse' : 'flex-row'}`}>
@@ -51,13 +65,30 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
                   ul: ({children}) => <ul className="list-disc list-inside mb-2">{children}</ul>,
                   ol: ({children}) => <ol className="list-decimal list-inside mb-2">{children}</ol>,
                   li: ({children}) => <li className="mb-1">{children}</li>,
-                  code: ({inline, children}) => {
+                  code: ({inline, className, children, ...props}) => {
+                    const match = /language-(\w+)/.exec(className || '');
+                    if (!inline && match) {
+                      return (
+                        <SyntaxHighlighter
+                          style={vscDarkPlus}
+                          language={match[1]}
+                          PreTag="div"
+                          customStyle={{
+                            margin: '0.5rem 0',
+                            borderRadius: '0.375rem',
+                            fontSize: '0.875rem'
+                          }}
+                        >
+                          {String(children).replace(/\n$/, '')}
+                        </SyntaxHighlighter>
+                      );
+                    }
                     if (inline) {
-                      return <code className="bg-bg-secondary px-1 py-0.5 rounded text-sm">{children}</code>
+                      return <code className="bg-bg-secondary px-1 py-0.5 rounded text-sm font-mono">{children}</code>
                     }
                     return (
-                      <pre className="bg-bg-secondary p-2 rounded overflow-x-auto">
-                        <code className="text-sm">{children}</code>
+                      <pre className="bg-bg-tertiary p-3 rounded-lg overflow-x-auto my-2">
+                        <code className="text-sm font-mono text-txt-primary">{children}</code>
                       </pre>
                     )
                   },
@@ -80,16 +111,47 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
           )}
           
           {/* 타임스탬프 및 메타데이터 */}
-          <div className={`mt-2 flex items-center gap-2 text-xs ${
+          <div className={`mt-2 flex items-center justify-between ${
             isUser ? 'text-white/70' : 'text-txt-tertiary'
           }`}>
-            <span>{new Date(message.timestamp).toLocaleTimeString()}</span>
-            {message.metadata?.tokens && (
-              <span>• {message.metadata.tokens} 토큰</span>
-            )}
-            {message.metadata?.processingTime && (
-              <span>• {(message.metadata.processingTime / 1000).toFixed(1)}초</span>
-            )}
+            <div className="flex items-center gap-2 text-xs">
+              <span>{new Date(message.timestamp).toLocaleTimeString()}</span>
+              {message.metadata?.tokens && (
+                <span>• {message.metadata.tokens} 토큰</span>
+              )}
+              {message.metadata?.processingTime && (
+                <span>• {(message.metadata.processingTime / 1000).toFixed(1)}초</span>
+              )}
+            </div>
+            
+            {/* 액션 버튼들 */}
+            <div className="flex items-center gap-1">
+              <button
+                onClick={handleCopy}
+                className={`p-1 rounded transition-colors ${
+                  isUser 
+                    ? 'hover:bg-white/20' 
+                    : 'hover:bg-bg-secondary'
+                }`}
+                title="메시지 복사"
+              >
+                {isCopied ? (
+                  <Check className="w-3.5 h-3.5" />
+                ) : (
+                  <Copy className="w-3.5 h-3.5" />
+                )}
+              </button>
+              
+              {!isUser && onRegenerate && (
+                <button
+                  onClick={onRegenerate}
+                  className="p-1 rounded hover:bg-bg-secondary transition-colors"
+                  title="다시 생성"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
           </div>
         </Card>
       </div>

@@ -18,6 +18,7 @@ export default function ChatInterface() {
   const [abortController, setAbortController] = useState<AbortController | null>(null);
   const [showSidebar, setShowSidebar] = useState(false);
   const [sessions, setSessions] = useState<ChatSession[]>([]);
+  const [inputMessage, setInputMessage] = useState('');
   
   // 초기화
   useEffect(() => {
@@ -219,6 +220,32 @@ export default function ChatInterface() {
     }
   };
   
+  // 메시지 재생성
+  const regenerateMessage = async (messageId: string) => {
+    if (!session || isLoading) return;
+    
+    // 마지막 사용자 메시지 찾기
+    const lastUserMessage = [...messages].reverse().find(m => m.role === 'user');
+    if (!lastUserMessage) return;
+    
+    // AI 응답 제거
+    const messageIndex = messages.findIndex(m => m.id === messageId);
+    if (messageIndex >= 0) {
+      const newMessages = messages.slice(0, messageIndex);
+      setMessages(newMessages);
+      
+      // 세션 업데이트
+      const updatedSession = chatService.getSession(session.id);
+      if (updatedSession) {
+        updatedSession.messages = newMessages;
+        chatService.saveSession(updatedSession);
+      }
+      
+      // 다시 생성
+      await sendMessage(lastUserMessage.content);
+    }
+  };
+  
   // 대화 내보내기
   const exportChat = () => {
     if (!session) return;
@@ -404,14 +431,21 @@ export default function ChatInterface() {
             }] : [])
           ]}
           isTyping={isTyping && !currentResponse}
+          onExampleClick={(text) => setInputMessage(text)}
+          onRegenerate={regenerateMessage}
         />
         
         {/* 메시지 입력 */}
         <MessageInput
-          onSendMessage={sendMessage}
+          onSendMessage={(msg) => {
+            sendMessage(msg);
+            setInputMessage('');
+          }}
           onStopGeneration={stopGeneration}
           isLoading={isLoading}
           disabled={!session}
+          value={inputMessage}
+          onChange={setInputMessage}
         />
       </div>
     </div>

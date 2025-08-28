@@ -10,6 +10,8 @@ interface MessageInputProps {
   isLoading?: boolean;
   disabled?: boolean;
   placeholder?: string;
+  value?: string;
+  onChange?: (value: string) => void;
 }
 
 export default function MessageInput({ 
@@ -17,9 +19,13 @@ export default function MessageInput({
   onStopGeneration,
   isLoading = false,
   disabled = false,
-  placeholder = "메시지를 입력하세요..."
+  placeholder = "메시지를 입력하세요...",
+  value,
+  onChange
 }: MessageInputProps) {
-  const [message, setMessage] = useState('');
+  const [localMessage, setLocalMessage] = useState('');
+  const message = value !== undefined ? value : localMessage;
+  const setMessage = onChange || setLocalMessage;
   const [attachedFile, setAttachedFile] = useState<File | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
