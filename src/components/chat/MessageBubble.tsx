@@ -40,9 +40,8 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
               {message.content}
             </Typography>
           ) : (
-            <div className="prose prose-sm max-w-none">
+            <div className="prose prose-sm max-w-none text-txt-primary">
               <ReactMarkdown
-                className="text-txt-primary"
                 components={{
                   // 마크다운 스타일 커스터마이징
                   h1: ({children}) => <h1 className="text-xl font-bold mb-2">{children}</h1>,
