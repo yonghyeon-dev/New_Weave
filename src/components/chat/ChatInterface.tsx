@@ -6,8 +6,11 @@ import Button from '@/components/ui/Button';
 import Typography from '@/components/ui/Typography';
 import MessageList from './MessageList';
 import MessageInput from './MessageInput';
+import { SidebarSkeleton } from './MessageSkeleton';
+import { ToastContainer, useToast } from './Toast';
+import { useReactions } from './EmojiReaction';
 import { chatService, ChatMessage, ChatSession } from '@/lib/services/chatService';
-import { Trash2, Download, RefreshCw, Menu, X } from 'lucide-react';
+import { Trash2, Download, RefreshCw, Menu, X, Search, Keyboard } from 'lucide-react';
 
 export default function ChatInterface() {
   const [session, setSession] = useState<ChatSession | null>(null);
@@ -19,11 +22,64 @@ export default function ChatInterface() {
   const [showSidebar, setShowSidebar] = useState(false);
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [inputMessage, setInputMessage] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filteredSessions, setFilteredSessions] = useState<ChatSession[]>([]);
+  const [showShortcuts, setShowShortcuts] = useState(false);
+  const { toasts, addToast, removeToast } = useToast();
+  const { addReaction, getReactions } = useReactions();
   
   // 초기화
   useEffect(() => {
     initializeChat();
   }, []);
+  
+  // 키보드 단축키
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Cmd/Ctrl + K: 새 대화
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        startNewChat();
+      }
+      // Cmd/Ctrl + /: 사이드바 토글
+      else if ((e.metaKey || e.ctrlKey) && e.key === '/') {
+        e.preventDefault();
+        setShowSidebar(prev => !prev);
+      }
+      // Cmd/Ctrl + S: 대화 저장(내보내기)
+      else if ((e.metaKey || e.ctrlKey) && e.key === 's') {
+        e.preventDefault();
+        if (messages.length > 0) {
+          exportChat();
+        }
+      }
+      // Escape: 응답 중단
+      else if (e.key === 'Escape' && isLoading) {
+        stopGeneration();
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [messages.length, isLoading]);
+  
+  // 검색 필터링
+  useEffect(() => {
+    if (!searchQuery) {
+      setFilteredSessions(sessions);
+      return;
+    }
+    
+    const query = searchQuery.toLowerCase();
+    const filtered = sessions.filter(session => {
+      // 메시지 내용으로 검색
+      return session.messages.some(msg => 
+        msg.content.toLowerCase().includes(query)
+      );
+    });
+    
+    setFilteredSessions(filtered);
+  }, [searchQuery, sessions]);
   
   const initializeChat = () => {
     // 현재 세션 가져오기 또는 새로 생성
@@ -149,16 +205,32 @@ export default function ChatInterface() {
       if (error.name !== 'AbortError') {
         console.error('Chat error:', error);
         
+        // 에러 타입별 메시지
+        let errorMsg = '응답 생성 중 오류가 발생했습니다.';
+        if (error.message?.includes('API key')) {
+          errorMsg = 'API 키가 설정되지 않았습니다. 관리자에게 문의하세요.';
+        } else if (error.message?.includes('network')) {
+          errorMsg = '네트워크 연결을 확인해주세요.';
+        } else if (error.message?.includes('rate limit')) {
+          errorMsg = 'API 사용량 제한에 도달했습니다. 잠시 후 다시 시도해주세요.';
+        }
+        
+        // Toast 알림
+        addToast(errorMsg, 'error');
+        
         // 에러 메시지 추가
         const errorMessage = chatService.addMessage(session.id, {
           role: 'assistant',
-          content: '죄송합니다. 응답 생성 중 오류가 발생했습니다. 다시 시도해주세요.',
+          content: `죄송합니다. ${errorMsg} 다시 시도해주세요.`,
           metadata: {
             error: true
           }
         });
         
         setMessages(prev => [...prev, errorMessage]);
+      } else {
+        // 사용자가 중단한 경우
+        addToast('응답 생성이 중단되었습니다.', 'info');
       }
     } finally {
       setIsLoading(false);
@@ -217,7 +289,27 @@ export default function ChatInterface() {
     if (confirm('현재 대화를 삭제하시겠습니까?')) {
       chatService.deleteSession(session.id);
       initializeChat();
+      addToast('대화가 삭제되었습니다.', 'success');
     }
+  };
+  
+  // 이모지 반응 처리
+  const handleReaction = (messageId: string, emoji: string) => {
+    addReaction(messageId, emoji);
+    // LocalStorage에도 저장 (선택사항)
+    addToast(`${emoji} 반응을 추가했습니다`, 'success');
+  };
+  
+  // 메시지별 반응 가져오기
+  const getMessageReactions = () => {
+    const reactionsMap = new Map<string, any[]>();
+    messages.forEach(msg => {
+      const reactions = getReactions(msg.id);
+      if (reactions.length > 0) {
+        reactionsMap.set(msg.id, reactions);
+      }
+    });
+    return reactionsMap;
   };
   
   // 메시지 재생성
@@ -261,6 +353,8 @@ export default function ChatInterface() {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+    
+    addToast('대화 기록이 다운로드되었습니다.', 'success');
   };
   
   return (
@@ -290,12 +384,37 @@ export default function ChatInterface() {
         </div>
         
         <div className="overflow-y-auto p-4">
+          {/* 검색 바 */}
+          <div className="mb-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-txt-tertiary" />
+              <input
+                type="text"
+                placeholder="대화 검색..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 text-sm border border-border-light rounded-lg
+                         bg-white focus:outline-none focus:ring-2 focus:ring-weave-primary/50
+                         placeholder-txt-tertiary"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1
+                           hover:bg-bg-secondary rounded transition-colors"
+                >
+                  <X className="w-3.5 h-3.5 text-txt-tertiary" />
+                </button>
+              )}
+            </div>
+          </div>
+          
           <Typography variant="body2" className="text-txt-secondary font-semibold mb-3">
-            대화 목록
+            대화 목록 {searchQuery && `(${filteredSessions.length}개 찾음)`}
           </Typography>
           
           <div className="space-y-2">
-            {sessions.map(s => {
+            {filteredSessions.map(s => {
               const isActive = s.id === session?.id;
               const firstMessage = s.messages.find(m => m.role === 'user')?.content || '새 대화';
               const messageCount = s.messages.length;
@@ -340,7 +459,16 @@ export default function ChatInterface() {
               );
             })}
             
-            {sessions.length === 0 && (
+            {filteredSessions.length === 0 && searchQuery && (
+              <div className="text-center py-8">
+                <Search className="w-12 h-12 text-txt-tertiary mx-auto mb-3" />
+                <Typography variant="body2" className="text-txt-tertiary">
+                  "{searchQuery}"에 대한 검색 결과가 없습니다
+                </Typography>
+              </div>
+            )}
+            
+            {sessions.length === 0 && !searchQuery && (
               <div className="text-center py-8">
                 <Typography variant="body2" className="text-txt-tertiary">
                   아직 대화가 없습니다
@@ -389,6 +517,15 @@ export default function ChatInterface() {
             <div className="flex items-center gap-2">
               <Button
                 variant="outline"
+                onClick={() => setShowShortcuts(!showShortcuts)}
+                className="p-2"
+                title="키보드 단축키"
+              >
+                <Keyboard className="w-4 h-4" />
+              </Button>
+              
+              <Button
+                variant="outline"
                 onClick={exportChat}
                 disabled={!messages.length}
                 className="p-2"
@@ -433,6 +570,8 @@ export default function ChatInterface() {
           isTyping={isTyping && !currentResponse}
           onExampleClick={(text) => setInputMessage(text)}
           onRegenerate={regenerateMessage}
+          messageReactions={getMessageReactions()}
+          onReaction={handleReaction}
         />
         
         {/* 메시지 입력 */}
@@ -448,6 +587,73 @@ export default function ChatInterface() {
           onChange={setInputMessage}
         />
       </div>
+      
+      {/* 키보드 단축키 팝업 */}
+      {showShortcuts && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+             onClick={() => setShowShortcuts(false)}>
+          <div className="bg-white rounded-lg p-6 max-w-sm" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <Typography variant="h3" className="text-lg font-semibold">
+                키보드 단축키
+              </Typography>
+              <button
+                onClick={() => setShowShortcuts(false)}
+                className="p-1 hover:bg-bg-secondary rounded transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <div className="space-y-3">
+              <div className="flex justify-between">
+                <Typography variant="body2" className="text-txt-secondary">새 대화</Typography>
+                <Typography variant="body2" className="font-mono text-xs bg-bg-secondary px-2 py-1 rounded">
+                  {navigator.platform.includes('Mac') ? '⌘' : 'Ctrl'} + K
+                </Typography>
+              </div>
+              
+              <div className="flex justify-between">
+                <Typography variant="body2" className="text-txt-secondary">사이드바 토글</Typography>
+                <Typography variant="body2" className="font-mono text-xs bg-bg-secondary px-2 py-1 rounded">
+                  {navigator.platform.includes('Mac') ? '⌘' : 'Ctrl'} + /
+                </Typography>
+              </div>
+              
+              <div className="flex justify-between">
+                <Typography variant="body2" className="text-txt-secondary">대화 내보내기</Typography>
+                <Typography variant="body2" className="font-mono text-xs bg-bg-secondary px-2 py-1 rounded">
+                  {navigator.platform.includes('Mac') ? '⌘' : 'Ctrl'} + S
+                </Typography>
+              </div>
+              
+              <div className="flex justify-between">
+                <Typography variant="body2" className="text-txt-secondary">응답 중단</Typography>
+                <Typography variant="body2" className="font-mono text-xs bg-bg-secondary px-2 py-1 rounded">
+                  ESC
+                </Typography>
+              </div>
+              
+              <div className="flex justify-between">
+                <Typography variant="body2" className="text-txt-secondary">메시지 전송</Typography>
+                <Typography variant="body2" className="font-mono text-xs bg-bg-secondary px-2 py-1 rounded">
+                  Enter
+                </Typography>
+              </div>
+              
+              <div className="flex justify-between">
+                <Typography variant="body2" className="text-txt-secondary">줄바꿈</Typography>
+                <Typography variant="body2" className="font-mono text-xs bg-bg-secondary px-2 py-1 rounded">
+                  Shift + Enter
+                </Typography>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Toast 알림 */}
+      <ToastContainer toasts={toasts} removeToast={removeToast} />
     </div>
   );
 }

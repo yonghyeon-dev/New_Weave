@@ -11,9 +11,11 @@ interface MessageListProps {
   isTyping?: boolean;
   onExampleClick?: (text: string) => void;
   onRegenerate?: (messageId: string) => void;
+  messageReactions?: Map<string, any[]>;
+  onReaction?: (messageId: string, emoji: string) => void;
 }
 
-export default function MessageList({ messages, isTyping = false, onExampleClick, onRegenerate }: MessageListProps) {
+export default function MessageList({ messages, isTyping = false, onExampleClick, onRegenerate, messageReactions, onReaction }: MessageListProps) {
   const bottomRef = useRef<HTMLDivElement>(null);
   
   // 새 메시지가 추가되면 스크롤
@@ -84,6 +86,8 @@ export default function MessageList({ messages, isTyping = false, onExampleClick
               ? () => onRegenerate?.(message.id)
               : undefined
           }
+          reactions={messageReactions?.get(message.id)}
+          onReaction={onReaction}
         />
       ))}
       

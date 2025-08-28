@@ -228,6 +228,22 @@ html {
   color: #ffffff;
 }
 
+/* Animation keyframes */
+@keyframes slide-up {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-slide-up {
+  animation: slide-up 0.3s ease-out;
+}
+
 /* 히어로 섹션 Secondary 버튼 텍스트 색상 규칙 */
 [data-theme="white"] button.bg-transparent a {
   color: #111827;

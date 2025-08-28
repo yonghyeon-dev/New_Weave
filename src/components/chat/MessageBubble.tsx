@@ -8,13 +8,17 @@ import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { ChatMessage } from '@/lib/services/chatService';
+import LinkPreview, { extractUrlsFromText } from './LinkPreview';
+import EmojiReaction from './EmojiReaction';
 
 interface MessageBubbleProps {
   message: ChatMessage;
   onRegenerate?: () => void;
+  reactions?: any[];
+  onReaction?: (messageId: string, emoji: string) => void;
 }
 
-export default function MessageBubble({ message, onRegenerate }: MessageBubbleProps) {
+export default function MessageBubble({ message, onRegenerate, reactions, onReaction }: MessageBubbleProps) {
   const isUser = message.role === 'user';
   const [isCopied, setIsCopied] = useState(false);
   
@@ -27,6 +31,9 @@ export default function MessageBubble({ message, onRegenerate }: MessageBubblePr
       console.error('Failed to copy:', err);
     }
   };
+  
+  // URL 추출
+  const urls = extractUrlsFromText(message.content);
   
   return (
     <div className={`flex gap-3 ${isUser ? 'flex-row-reverse' : 'flex-row'}`}>
@@ -154,6 +161,26 @@ export default function MessageBubble({ message, onRegenerate }: MessageBubblePr
             </div>
           </div>
         </Card>
+        
+        {/* 이모지 반응 */}
+        {!isUser && onReaction && (
+          <div className="mt-2">
+            <EmojiReaction 
+              messageId={message.id} 
+              reactions={reactions}
+              onReaction={onReaction}
+            />
+          </div>
+        )}
+        
+        {/* 링크 미리보기 */}
+        {!isUser && urls.length > 0 && (
+          <div className="mt-2 space-y-2">
+            {urls.map((url, index) => (
+              <LinkPreview key={index} url={url} />
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
