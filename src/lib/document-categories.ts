@@ -27,33 +27,33 @@ export const documentCategories: DocumentCategory[] = [
     color: 'bg-blue-100 border-blue-300 text-blue-900',
     templates: [
       {
-        id: 'software-contract-detailed',
+        id: 'contract-001',
         name: '소프트웨어 개발 계약서',
         type: 'detailed',
         description: '소프트웨어 개발 프로젝트를 위한 상세 계약서',
         popular: true
       },
       {
-        id: 'software-contract-simple',
-        name: '소프트웨어 개발 계약서',
+        id: 'contract-001',
+        name: '소프트웨어 개발 계약서 (약식)',
         type: 'simple',
         description: '간단한 소프트웨어 개발을 위한 약식 계약서'
       },
       {
-        id: 'project-proposal',
+        id: 'proposal-001',
         name: '프로젝트 제안서',
         type: 'detailed',
         description: '개발 프로젝트 제안을 위한 상세 문서',
         popular: true
       },
       {
-        id: 'technical-specification',
+        id: 'spec-001',
         name: '기술 명세서',
         type: 'detailed',
         description: '소프트웨어 기능 및 기술 요구사항 명세서'
       },
       {
-        id: 'api-documentation',
+        id: 'spec-001',
         name: 'API 문서',
         type: 'detailed',
         description: 'REST API 명세 및 사용 가이드'
@@ -68,32 +68,32 @@ export const documentCategories: DocumentCategory[] = [
     color: 'bg-green-100 border-green-300 text-green-900',
     templates: [
       {
-        id: 'quotation',
+        id: 'quotation-001',
         name: '견적서',
         type: 'simple',
         description: '프로젝트 견적을 위한 표준 문서',
         popular: true
       },
       {
-        id: 'invoice',
+        id: 'quotation-001',
         name: '청구서/세금계산서',
         type: 'simple',
         description: '서비스 요금 청구를 위한 문서'
       },
       {
-        id: 'business-proposal',
+        id: 'proposal-001',
         name: '사업 제안서',
         type: 'detailed',
         description: '신규 사업 제안을 위한 상세 문서'
       },
       {
-        id: 'completion-report',
+        id: 'report-001',
         name: '프로젝트 완료 보고서',
         type: 'detailed',
         description: '프로젝트 완료 시 제출하는 최종 보고서'
       },
       {
-        id: 'meeting-minutes',
+        id: 'report-001',
         name: '회의록',
         type: 'simple',
         description: '회의 내용 기록 및 공유를 위한 문서'
@@ -108,26 +108,26 @@ export const documentCategories: DocumentCategory[] = [
     color: 'bg-purple-100 border-purple-300 text-purple-900',
     templates: [
       {
-        id: 'design-contract',
+        id: 'contract-001',
         name: '디자인 계약서',
         type: 'detailed',
         description: 'UI/UX, 그래픽 디자인 프로젝트 계약서',
         popular: true
       },
       {
-        id: 'content-brief',
+        id: 'proposal-001',
         name: '컨텐츠 브리프',
         type: 'simple',
         description: '컨텐츠 제작 요구사항 문서'
       },
       {
-        id: 'brand-guideline',
+        id: 'spec-001',
         name: '브랜드 가이드라인',
         type: 'detailed',
         description: '브랜드 아이덴티티 및 사용 지침서'
       },
       {
-        id: 'video-storyboard',
+        id: 'proposal-001',
         name: '영상 스토리보드',
         type: 'detailed',
         description: '영상 제작을 위한 스토리보드 문서'
@@ -142,26 +142,26 @@ export const documentCategories: DocumentCategory[] = [
     color: 'bg-red-100 border-red-300 text-red-900',
     templates: [
       {
-        id: 'nda',
+        id: 'contract-001',
         name: '비밀유지계약서 (NDA)',
         type: 'detailed',
         description: '비밀정보 보호를 위한 계약서',
         popular: true
       },
       {
-        id: 'service-agreement',
+        id: 'contract-001',
         name: '서비스 이용약관',
         type: 'detailed',
         description: '온라인 서비스 이용 약관'
       },
       {
-        id: 'privacy-policy',
+        id: 'contract-001',
         name: '개인정보처리방침',
         type: 'detailed',
         description: '개인정보 수집 및 처리 방침'
       },
       {
-        id: 'license-agreement',
+        id: 'contract-001',
         name: '라이선스 계약서',
         type: 'detailed',
         description: '소프트웨어 라이선스 사용 계약서'
@@ -176,26 +176,26 @@ export const documentCategories: DocumentCategory[] = [
     color: 'bg-yellow-100 border-yellow-300 text-yellow-900',
     templates: [
       {
-        id: 'marketing-proposal',
+        id: 'proposal-001',
         name: '마케팅 제안서',
         type: 'detailed',
         description: '마케팅 전략 및 캠페인 제안서'
       },
       {
-        id: 'press-release',
+        id: 'report-001',
         name: '보도자료',
         type: 'simple',
         description: '언론 배포용 보도자료'
       },
       {
-        id: 'influencer-contract',
+        id: 'contract-001',
         name: '인플루언서 계약서',
         type: 'detailed',
         description: 'SNS 인플루언서 협업 계약서',
         popular: true
       },
       {
-        id: 'campaign-report',
+        id: 'report-001',
         name: '캠페인 성과 보고서',
         type: 'detailed',
         description: '마케팅 캠페인 결과 분석 보고서'
@@ -210,25 +210,25 @@ export const documentCategories: DocumentCategory[] = [
     color: 'bg-gray-100 border-gray-300 text-gray-900',
     templates: [
       {
-        id: 'official-letter',
+        id: 'proposal-001',
         name: '공문',
         type: 'simple',
         description: '공식 업무 서신'
       },
       {
-        id: 'certificate',
+        id: 'report-001',
         name: '증명서',
         type: 'simple',
         description: '각종 증명서 양식'
       },
       {
-        id: 'application-form',
+        id: 'proposal-001',
         name: '신청서',
         type: 'simple',
         description: '각종 신청서 양식'
       },
       {
-        id: 'memorandum',
+        id: 'report-001',
         name: '업무 협조문',
         type: 'simple',
         description: '부서간 업무 협조 요청서'

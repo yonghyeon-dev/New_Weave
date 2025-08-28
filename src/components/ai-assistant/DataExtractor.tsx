@@ -193,6 +193,239 @@ export default function DataExtractor({
     }
   };
 
+  // 추출된 데이터를 사용자 친화적으로 렌더링
+  const renderExtractedDataUI = () => {
+    if (!extractedData) return null;
+    
+    const data = extractedData.extractedData || extractedData;
+    
+    // 영수증인 경우
+    if (data.documentType === '영수증' || data.vendor) {
+      return (
+        <div className="space-y-4">
+          {/* 기본 정보 */}
+          <div className="bg-bg-secondary rounded-lg p-4">
+            <Typography variant="h4" className="text-sm font-semibold mb-3 text-txt-secondary">
+              기본 정보
+            </Typography>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {data.vendor && (
+                <div className="flex justify-between">
+                  <span className="text-txt-secondary">매장명:</span>
+                  <span className="font-medium">{data.vendor}</span>
+                </div>
+              )}
+              {data.date && (
+                <div className="flex justify-between">
+                  <span className="text-txt-secondary">날짜:</span>
+                  <span className="font-medium">{data.date}</span>
+                </div>
+              )}
+              {data.totalAmount && (
+                <div className="flex justify-between">
+                  <span className="text-txt-secondary">총 금액:</span>
+                  <span className="font-bold text-weave-primary">
+                    ₩{data.totalAmount.toLocaleString()}
+                  </span>
+                </div>
+              )}
+              {data.taxAmount && (
+                <div className="flex justify-between">
+                  <span className="text-txt-secondary">부가세:</span>
+                  <span className="font-medium">₩{data.taxAmount.toLocaleString()}</span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* 구매 항목 */}
+          {data.items && data.items.length > 0 && (
+            <div className="bg-bg-secondary rounded-lg p-4">
+              <Typography variant="h4" className="text-sm font-semibold mb-3 text-txt-secondary">
+                구매 항목
+              </Typography>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-border-light">
+                      <th className="text-left py-2 px-2">품목</th>
+                      <th className="text-center py-2 px-2">수량</th>
+                      <th className="text-right py-2 px-2">단가</th>
+                      <th className="text-right py-2 px-2">금액</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {data.items.map((item: any, idx: number) => (
+                      <tr key={idx} className="border-b border-border-light">
+                        <td className="py-2 px-2">{item.name}</td>
+                        <td className="text-center py-2 px-2">{item.quantity}</td>
+                        <td className="text-right py-2 px-2">
+                          ₩{(item.price || 0).toLocaleString()}
+                        </td>
+                        <td className="text-right py-2 px-2">
+                          ₩{((item.price || 0) * (item.quantity || 1)).toLocaleString()}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    }
+    
+    // 사업자등록증인 경우
+    if (data.documentType === '사업자등록증' || data.businessNumber) {
+      return (
+        <div className="bg-bg-secondary rounded-lg p-4">
+          <Typography variant="h4" className="text-sm font-semibold mb-3 text-txt-secondary">
+            사업자 정보
+          </Typography>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {data.businessNumber && (
+              <div>
+                <span className="text-txt-secondary text-sm">사업자등록번호</span>
+                <p className="font-mono font-semibold text-lg">
+                  {data.businessNumber.replace(/(\d{3})(\d{2})(\d{5})/, '$1-$2-$3')}
+                </p>
+              </div>
+            )}
+            {data.companyName && (
+              <div>
+                <span className="text-txt-secondary text-sm">상호명</span>
+                <p className="font-semibold">{data.companyName}</p>
+              </div>
+            )}
+            {data.representativeName && (
+              <div>
+                <span className="text-txt-secondary text-sm">대표자명</span>
+                <p className="font-medium">{data.representativeName}</p>
+              </div>
+            )}
+            {data.businessAddress && (
+              <div>
+                <span className="text-txt-secondary text-sm">사업장 주소</span>
+                <p className="font-medium">{data.businessAddress}</p>
+              </div>
+            )}
+            {data.businessType && (
+              <div>
+                <span className="text-txt-secondary text-sm">업태</span>
+                <p className="font-medium">{data.businessType}</p>
+              </div>
+            )}
+            {data.businessItem && (
+              <div>
+                <span className="text-txt-secondary text-sm">업종</span>
+                <p className="font-medium">{data.businessItem}</p>
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    }
+    
+    // 테이블 데이터가 있는 경우
+    if (data.tables && data.tables.length > 0) {
+      return (
+        <div className="space-y-4">
+          {data.tables.map((table: any, tableIdx: number) => (
+            <div key={tableIdx} className="bg-bg-secondary rounded-lg p-4">
+              <Typography variant="h4" className="text-sm font-semibold mb-3 text-txt-secondary">
+                테이블 {tableIdx + 1}
+              </Typography>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  {table.headers && (
+                    <thead>
+                      <tr className="border-b border-border-light">
+                        {table.headers.map((header: string, idx: number) => (
+                          <th key={idx} className="text-left py-2 px-2 font-semibold">
+                            {header}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                  )}
+                  <tbody>
+                    {table.rows && table.rows.map((row: any[], rowIdx: number) => (
+                      <tr key={rowIdx} className="border-b border-border-light">
+                        {row.map((cell: any, cellIdx: number) => (
+                          <td key={cellIdx} className="py-2 px-2">
+                            {cell}
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          ))}
+        </div>
+      );
+    }
+    
+    // 폼 필드가 있는 경우
+    if (data.formFields && Object.keys(data.formFields).length > 0) {
+      return (
+        <div className="bg-bg-secondary rounded-lg p-4">
+          <Typography variant="h4" className="text-sm font-semibold mb-3 text-txt-secondary">
+            추출된 정보
+          </Typography>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {Object.entries(data.formFields).map(([key, value]: [string, any]) => (
+              <div key={key} className="flex justify-between items-start">
+                <span className="text-txt-secondary mr-2">{key}:</span>
+                <span className="font-medium text-right">{String(value)}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+    
+    // 기본 데이터 표시
+    if (data.data && typeof data.data === 'object') {
+      return (
+        <div className="bg-bg-secondary rounded-lg p-4">
+          <Typography variant="h4" className="text-sm font-semibold mb-3 text-txt-secondary">
+            추출된 정보
+          </Typography>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {Object.entries(data.data).map(([key, value]: [string, any]) => {
+              if (typeof value === 'object' && value !== null) {
+                return null; // 복잡한 객체는 별도 처리
+              }
+              return (
+                <div key={key} className="flex justify-between items-start">
+                  <span className="text-txt-secondary mr-2">{key}:</span>
+                  <span className="font-medium text-right">{String(value)}</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      );
+    }
+    
+    // 그 외의 경우 원본 JSON 표시 (접을 수 있는 형태로)
+    return (
+      <details className="bg-bg-secondary rounded-lg p-4">
+        <summary className="cursor-pointer text-sm font-semibold text-txt-secondary hover:text-txt-primary">
+          원본 데이터 보기 (JSON)
+        </summary>
+        <pre className="mt-3 overflow-x-auto text-xs">
+          <code className="text-txt-primary">
+            {JSON.stringify(data, null, 2)}
+          </code>
+        </pre>
+      </details>
+    );
+  };
+
   return (
     <div className="space-y-6">
       {/* 파일 업로드 영역 */}
@@ -233,6 +466,7 @@ export default function DataExtractor({
                   </Typography>
                   <Typography variant="body2" className="text-txt-secondary">
                     {(file.size / 1024).toFixed(1)} KB
+                    {file.type === 'application/pdf' && ' - PDF 지원'}
                   </Typography>
                 </div>
                 <Button
@@ -331,10 +565,29 @@ export default function DataExtractor({
       {/* 추출된 데이터 표시 */}
       {extractedData && (
         <Card className="bg-white rounded-lg border border-border-light p-6">
-          <div className="flex items-center justify-between mb-4">
-            <Typography variant="h3" className="text-lg font-semibold">
-              추출된 데이터
-            </Typography>
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <Typography variant="h3" className="text-lg font-semibold">
+                추출된 데이터
+              </Typography>
+              <div className="flex items-center gap-2 mt-2">
+                {extractedData.documentType && (
+                  <Badge variant="secondary">
+                    {extractedData.documentType}
+                  </Badge>
+                )}
+                {extractedData.confidence && (
+                  <Badge variant={extractedData.confidence > 0.8 ? 'success' : 'warning'}>
+                    신뢰도: {(extractedData.confidence * 100).toFixed(0)}%
+                  </Badge>
+                )}
+                {extractedData.language && (
+                  <Badge variant="secondary">
+                    {extractedData.language === 'ko' ? '한국어' : extractedData.language}
+                  </Badge>
+                )}
+              </div>
+            </div>
             <div className="flex space-x-2">
               <Button
                 variant="outline"
@@ -350,7 +603,7 @@ export default function DataExtractor({
                 ) : (
                   <>
                     <Copy className="w-4 h-4" />
-                    <span>복사</span>
+                    <span>JSON 복사</span>
                   </>
                 )}
               </Button>
@@ -366,39 +619,16 @@ export default function DataExtractor({
             </div>
           </div>
 
-          {/* 메타데이터 */}
-          <div className="mb-4 flex flex-wrap gap-2">
-            {extractedData.documentType && (
-              <Badge variant="secondary">
-                {extractedData.documentType}
-              </Badge>
-            )}
-            {extractedData.confidence && (
-              <Badge variant={extractedData.confidence > 0.8 ? 'success' : 'warning'}>
-                신뢰도: {(extractedData.confidence * 100).toFixed(0)}%
-              </Badge>
-            )}
-            {extractedData.language && (
-              <Badge variant="secondary">
-                {extractedData.language}
-              </Badge>
-            )}
-          </div>
-
-          {/* JSON 데이터 */}
-          <pre className="bg-bg-secondary p-4 rounded-lg overflow-x-auto max-h-96 text-sm">
-            <code className="text-txt-primary">
-              {JSON.stringify(extractedData.extractedData || extractedData, null, 2)}
-            </code>
-          </pre>
+          {/* 추출된 데이터의 시각적 표현 */}
+          {renderExtractedDataUI()}
 
           {/* 토큰 사용량 */}
           {extractedData.metadata?.tokenUsage && (
             <div className="mt-4 pt-4 border-t border-border-light">
               <Typography variant="body2" className="text-txt-secondary">
-                토큰 사용량: {extractedData.metadata.tokenUsage.total}
+                토큰 사용량: {extractedData.metadata.tokenUsage.total.toLocaleString()}
                 {extractedData.metadata.tokenUsage.cost && 
-                  ` (비용: $${extractedData.metadata.tokenUsage.cost.toFixed(4)})`
+                  ` (비용: ₩${(extractedData.metadata.tokenUsage.cost * 1300).toFixed(0)})`
                 }
               </Typography>
             </div>

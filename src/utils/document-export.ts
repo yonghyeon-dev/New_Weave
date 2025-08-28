@@ -1,479 +1,570 @@
-// 문서 내보내기 유틸리티
-import jsPDF from 'jspdf';
-import { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType, PageBreak } from 'docx';
+import { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType } from 'docx';
 import { saveAs } from 'file-saver';
-import { marked } from 'marked';
 
-// 한글 폰트 데이터 (Base64)
-// 실제 프로덕션에서는 폰트 파일을 별도로 로드
-const KOREAN_FONT_URL = '/fonts/NanumGothic-Regular.ttf';
+// 마크다운을 HTML로 변환 (간단한 변환기)
+const convertMarkdownToHtml = (markdown: string): string => {
+  let html = markdown;
+  
+  // 제목 변환
+  html = html.replace(/^### (.*$)/gim, '<h3>$1</h3>');
+  html = html.replace(/^## (.*$)/gim, '<h2>$1</h2>');
+  html = html.replace(/^# (.*$)/gim, '<h1>$1</h1>');
+  
+  // 굵은 글씨
+  html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  
+  // 기울임
+  html = html.replace(/\*(.+?)\*/g, '<em>$1</em>');
+  
+  // 리스트
+  html = html.replace(/^\* (.+)/gim, '<li>$1</li>');
+  html = html.replace(/^\- (.+)/gim, '<li>$1</li>');
+  
+  // 숫자 리스트
+  html = html.replace(/^\d+\. (.+)/gim, '<li>$1</li>');
+  
+  // 줄바꿈
+  html = html.replace(/\n\n/g, '</p><p>');
+  html = '<p>' + html + '</p>';
+  
+  // 테이블 (간단한 처리)
+  html = html.replace(/\|(.+)\|/g, (match, p1) => {
+    const cells = p1.split('|').map((cell: string) => `<td>${cell.trim()}</td>`).join('');
+    return `<tr>${cells}</tr>`;
+  });
+  
+  return html;
+};
 
-/**
- * 마크다운을 PDF로 변환
- */
-export async function exportToPDF(
-  markdown: string, 
-  filename: string = 'document.pdf',
-  options: {
-    fontSize?: number;
-    lineHeight?: number;
-    margin?: number;
-    pageSize?: 'a4' | 'letter' | 'legal';
-  } = {}
-): Promise<void> {
-  const {
-    fontSize = 12,
-    lineHeight = 1.5,
-    margin = 20,
-    pageSize = 'a4'
-  } = options;
-
+// 마크다운을 Word 문서로 변환 (클래식 양식 적용)
+export async function exportToWord(markdown: string, filename: string, title: string = '문서') {
   try {
-    // PDF 문서 생성
-    const pdf = new jsPDF({
-      orientation: 'portrait',
-      unit: 'mm',
-      format: pageSize
-    });
-
-    // 페이지 크기
-    const pageWidth = pdf.internal.pageSize.width;
-    const pageHeight = pdf.internal.pageSize.height;
-    const contentWidth = pageWidth - (margin * 2);
+    // html-docx-js-typescript 동적 import
+    const { asBlob } = await import('html-docx-js-typescript');
+    
+    // 문서 번호 생성
+    const docNumber = `WV-${new Date().getFullYear()}-${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`;
+    const today = new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' });
+    
+    // 문서 타입에 따른 헤더 생성
+    const getDocumentHeader = () => {
+      const docTypeMap: { [key: string]: string } = {
+        '견적서': 'QUOTATION',
+        '계약서': 'CONTRACT',
+        '제안서': 'PROPOSAL',
+        '보고서': 'REPORT',
+        '명세서': 'SPECIFICATION',
+        '청구서': 'INVOICE'
+      };
+      
+      return `
+        <div style="text-align: center; margin-bottom: 40px; padding-bottom: 25px; border-bottom: 2px solid #333;">
+          <div style="margin-bottom: 30px;">
+            <div style="font-size: 24px; font-weight: 900; color: #2563eb; letter-spacing: 3px; margin-bottom: 5px;">WEAVE</div>
+            <div style="font-size: 10pt; color: #666; letter-spacing: 0.5px;">AI 기반 비즈니스 문서 생성 플랫폼</div>
+          </div>
+          <h1 style="font-size: 28pt; font-weight: 700; margin: 20px 0 5px 0; color: #000; letter-spacing: 8px;">${title}</h1>
+          <div style="font-size: 14pt; color: #666; letter-spacing: 2px; margin-bottom: 20px;">${docTypeMap[title] || 'DOCUMENT'}</div>
+          <div style="font-size: 10pt; color: #555; text-align: center;">
+            <span style="margin-right: 30px;">문서번호: ${docNumber}</span>
+            <span>발행일: ${today}</span>
+          </div>
+        </div>
+      `;
+    };
     
     // 마크다운을 HTML로 변환
-    const html = await marked(markdown);
-    
-    // HTML을 텍스트로 정제 (임시 - 실제로는 HTML 파싱 필요)
-    const text = html
-      .replace(/<[^>]*>/g, '') // HTML 태그 제거
-      .replace(/&nbsp;/g, ' ')
-      .replace(/&lt;/g, '<')
-      .replace(/&gt;/g, '>')
-      .replace(/&amp;/g, '&')
-      .replace(/&quot;/g, '"')
-      .replace(/&#39;/g, "'");
-
-    // 텍스트를 줄 단위로 분리
-    const lines = text.split('\n');
-    
-    let yPosition = margin;
-    const lineHeightMm = fontSize * lineHeight * 0.3528; // pt to mm
-
-    // 각 줄을 PDF에 추가
-    for (const line of lines) {
-      // 페이지 넘김 확인
-      if (yPosition + lineHeightMm > pageHeight - margin) {
-        pdf.addPage();
-        yPosition = margin;
-      }
-
-      // 제목 처리 (간단한 구현)
-      let currentFontSize = fontSize;
-      if (line.startsWith('# ')) {
-        currentFontSize = fontSize * 1.5;
-        pdf.setFontSize(currentFontSize);
-        pdf.text(line.substring(2), margin, yPosition);
-      } else if (line.startsWith('## ')) {
-        currentFontSize = fontSize * 1.3;
-        pdf.setFontSize(currentFontSize);
-        pdf.text(line.substring(3), margin, yPosition);
-      } else if (line.startsWith('### ')) {
-        currentFontSize = fontSize * 1.1;
-        pdf.setFontSize(currentFontSize);
-        pdf.text(line.substring(4), margin, yPosition);
-      } else {
-        pdf.setFontSize(fontSize);
-        
-        // 긴 텍스트 줄바꿈 처리
-        const splitText = pdf.splitTextToSize(line, contentWidth);
-        if (Array.isArray(splitText)) {
-          for (const textLine of splitText) {
-            if (yPosition + lineHeightMm > pageHeight - margin) {
-              pdf.addPage();
-              yPosition = margin;
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="UTF-8">
+          <style>
+            @page {
+              size: A4;
+              margin: 25mm;
             }
-            pdf.text(textLine, margin, yPosition);
-            yPosition += lineHeightMm;
-          }
-          continue;
-        } else {
-          pdf.text(line, margin, yPosition);
+            
+            body { 
+              font-family: 'Malgun Gothic', 'Noto Sans KR', '맑은 고딕', sans-serif; 
+              font-size: 11pt;
+              line-height: 1.8;
+              color: #222;
+            }
+            
+            /* 제목 스타일 */
+            h1 { 
+              font-size: 18pt;
+              font-weight: 700;
+              margin: 30px 0 20px 0;
+              color: #000;
+              padding-bottom: 8px;
+              border-bottom: 2px solid #333;
+              page-break-after: avoid;
+            }
+            
+            h2 { 
+              font-size: 14pt;
+              font-weight: 600;
+              margin: 25px 0 15px 0;
+              padding-bottom: 5px;
+              border-bottom: 1px solid #666;
+              color: #222;
+              page-break-after: avoid;
+            }
+            
+            h3 { 
+              font-size: 12pt;
+              font-weight: 600;
+              margin: 20px 0 10px 0;
+              color: #333;
+              page-break-after: avoid;
+            }
+            
+            /* 본문 스타일 */
+            p { 
+              margin: 10px 0;
+              line-height: 1.8;
+              text-align: justify;
+            }
+            
+            /* 리스트 스타일 */
+            ul, ol { 
+              margin: 12px 0 12px 25px;
+            }
+            
+            li { 
+              margin: 6px 0;
+              line-height: 1.6;
+            }
+            
+            /* 테이블 스타일 */
+            table { 
+              border-collapse: collapse;
+              width: 100%;
+              margin: 25px 0;
+              font-size: 10pt;
+              border: 2px solid #333;
+              page-break-inside: avoid;
+            }
+            
+            th { 
+              background: #f0f0f0;
+              font-weight: 600;
+              text-align: left;
+              padding: 12px;
+              border: 1px solid #666;
+            }
+            
+            td { 
+              padding: 10px 12px;
+              border: 1px solid #999;
+              background: white;
+            }
+            
+            tr:nth-child(even) td {
+              background: #fafafa;
+            }
+            
+            /* 강조 텍스트 */
+            strong { 
+              font-weight: 600;
+              color: #000;
+            }
+            
+            em { 
+              font-style: italic;
+              color: #555;
+            }
+            
+            /* 구분선 */
+            hr {
+              margin: 25px 0;
+              border: none;
+              border-top: 1px solid #666;
+            }
+            
+            /* 서명 섹션 */
+            .signature-section {
+              margin-top: 60px;
+              padding-top: 40px;
+              border-top: 1px solid #666;
+              page-break-inside: avoid;
+            }
+            
+            .signature-box {
+              margin-bottom: 40px;
+            }
+            
+            .signature-label {
+              font-size: 11pt;
+              font-weight: 600;
+              margin-bottom: 30px;
+              color: #333;
+            }
+            
+            .signature-line {
+              width: 200px;
+              border-bottom: 1px solid #333;
+              margin: 20px 0 8px 0;
+            }
+            
+            /* 푸터 */
+            .doc-footer {
+              margin-top: 50px;
+              padding-top: 20px;
+              border-top: 1px solid #999;
+              text-align: center;
+              font-size: 9pt;
+              color: #666;
+              line-height: 1.6;
+              page-break-inside: avoid;
+            }
+          </style>
+        </head>
+        <body>
+          ${getDocumentHeader()}
+          <div class="document-content">
+            ${convertMarkdownToHtml(markdown)}
+          </div>
+          <div class="signature-section">
+            <table style="width: 100%; border: none;">
+              <tr>
+                <td style="width: 50%; border: none; padding: 0;">
+                  <div class="signature-box">
+                    <div class="signature-label">공급자</div>
+                    <div class="signature-line"></div>
+                    <div style="font-size: 9pt; color: #666;">(서명/날인)</div>
+                  </div>
+                </td>
+                <td style="width: 50%; border: none; padding: 0;">
+                  <div class="signature-box">
+                    <div class="signature-label">수신자</div>
+                    <div class="signature-line"></div>
+                    <div style="font-size: 9pt; color: #666;">(서명/날인)</div>
+                  </div>
+                </td>
+              </tr>
+            </table>
+          </div>
+          <div class="doc-footer">
+            <p><strong>WEAVE</strong> - AI Business Document Platform</p>
+            <p>www.weave.co.kr | support@weave.co.kr</p>
+          </div>
+        </body>
+      </html>
+    `;
+
+    // HTML을 Word 문서로 변환
+    const docxBlob = await asBlob(htmlContent, {
+      orientation: 'portrait',
+      margins: { top: 720, right: 720, bottom: 720, left: 720 }
+    });
+
+    // Buffer인 경우 Blob으로 변환
+    let blob: Blob;
+    if (docxBlob instanceof Blob) {
+      blob = docxBlob;
+    } else {
+      // Buffer를 Uint8Array로 변환 후 Blob 생성
+      const uint8Array = new Uint8Array(docxBlob as unknown as ArrayBuffer);
+      blob = new Blob([uint8Array], { 
+        type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' 
+      });
+    }
+
+    // 다운로드
+    saveAs(blob, `${filename}.docx`);
+    
+    return true;
+  } catch (error) {
+    console.error('Word 내보내기 실패:', error);
+    return false;
+  }
+}
+
+// 인쇄 기능 추가
+export function printDocument(markdown: string, title: string = '문서') {
+  // 문서 번호 생성
+  const docNumber = `WV-${new Date().getFullYear()}-${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`;
+  const today = new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' });
+  
+  // 문서 타입에 따른 헤더 생성
+  const getDocumentHeader = () => {
+    const docTypeMap: { [key: string]: string } = {
+      '견적서': 'QUOTATION',
+      '계약서': 'CONTRACT',
+      '제안서': 'PROPOSAL',
+      '보고서': 'REPORT',
+      '명세서': 'SPECIFICATION',
+      '청구서': 'INVOICE'
+    };
+    
+    return `
+      <div class="doc-header">
+        <div class="company-section">
+          <div class="company-logo">WEAVE</div>
+          <div class="company-subtitle">AI 기반 비즈니스 문서 생성 플랫폼</div>
+        </div>
+        <h1 class="doc-title">${title}</h1>
+        <div class="doc-title-en">${docTypeMap[title] || 'DOCUMENT'}</div>
+        <div class="doc-meta">
+          <div>문서번호: ${docNumber}</div>
+          <div>발행일: ${today}</div>
+        </div>
+      </div>
+    `;
+  };
+  
+  // A4 인쇄용 스타일
+  const printStyles = `
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap');
+      
+      /* 인쇄 설정 */
+      @media print {
+        @page {
+          size: A4;
+          margin: 15mm;
+        }
+        * {
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
+        }
+        body { 
+          margin: 0 !important; 
+          padding: 0 !important;
+        }
+        .document-wrapper { 
+          box-shadow: none !important;
+          margin: 0 !important;
         }
       }
       
-      yPosition += lineHeightMm * (currentFontSize / fontSize);
-    }
-
-    // PDF 저장
-    pdf.save(filename);
-  } catch (error) {
-    console.error('PDF 생성 오류:', error);
-    throw new Error('PDF 생성에 실패했습니다.');
-  }
-}
-
-/**
- * 마크다운을 Word 문서로 변환
- */
-export async function exportToWord(
-  markdown: string,
-  filename: string = 'document.docx',
-  options: {
-    fontSize?: number;
-    fontFamily?: string;
-    lineSpacing?: number;
-  } = {}
-): Promise<void> {
-  const {
-    fontSize = 11,
-    fontFamily = 'Malgun Gothic',
-    lineSpacing = 1.5
-  } = options;
-
-  try {
-    // 마크다운을 줄 단위로 분리
-    const lines = markdown.split('\n');
-    const children: Paragraph[] = [];
-
-    for (const line of lines) {
-      // 빈 줄 처리
-      if (line.trim() === '') {
-        children.push(new Paragraph({ text: '' }));
-        continue;
+      /* 기본 문서 스타일 */
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
       }
-
-      // 페이지 구분선 처리
-      if (line.trim() === '---') {
-        children.push(new Paragraph({
-          children: [new PageBreak()],
-        }));
-        continue;
+      
+      body {
+        font-family: 'Noto Sans KR', '맑은 고딕', 'Malgun Gothic', -apple-system, sans-serif;
+        font-size: 11pt;
+        line-height: 1.8;
+        color: #222;
+        background: white;
       }
-
-      // 제목 처리
-      if (line.startsWith('# ')) {
-        children.push(
-          new Paragraph({
-            heading: HeadingLevel.HEADING_1,
-            alignment: AlignmentType.LEFT,
-            spacing: { after: 200 },
-            children: [
-              new TextRun({
-                text: line.substring(2),
-                bold: true,
-                size: fontSize * 3,
-                font: fontFamily
-              })
-            ]
-          })
-        );
-      } else if (line.startsWith('## ')) {
-        children.push(
-          new Paragraph({
-            heading: HeadingLevel.HEADING_2,
-            alignment: AlignmentType.LEFT,
-            spacing: { after: 160 },
-            children: [
-              new TextRun({
-                text: line.substring(3),
-                bold: true,
-                size: fontSize * 2.5,
-                font: fontFamily
-              })
-            ]
-          })
-        );
-      } else if (line.startsWith('### ')) {
-        children.push(
-          new Paragraph({
-            heading: HeadingLevel.HEADING_3,
-            alignment: AlignmentType.LEFT,
-            spacing: { after: 120 },
-            children: [
-              new TextRun({
-                text: line.substring(4),
-                bold: true,
-                size: fontSize * 2.2,
-                font: fontFamily
-              })
-            ]
-          })
-        );
-      } else if (line.startsWith('- ') || line.startsWith('* ')) {
-        // 목록 항목
-        children.push(
-          new Paragraph({
-            bullet: {
-              level: 0
-            },
-            spacing: { after: 100, line: lineSpacing * 240 },
-            children: [
-              new TextRun({
-                text: line.substring(2),
-                size: fontSize * 2,
-                font: fontFamily
-              })
-            ]
-          })
-        );
-      } else if (line.match(/^\d+\. /)) {
-        // 번호 목록
-        const text = line.replace(/^\d+\. /, '');
-        children.push(
-          new Paragraph({
-            numbering: {
-              reference: 'default-numbering',
-              level: 0
-            },
-            spacing: { after: 100, line: lineSpacing * 240 },
-            children: [
-              new TextRun({
-                text: text,
-                size: fontSize * 2,
-                font: fontFamily
-              })
-            ]
-          })
-        );
-      } else if (line.startsWith('**') && line.endsWith('**')) {
-        // 굵은 텍스트
-        children.push(
-          new Paragraph({
-            spacing: { after: 100, line: lineSpacing * 240 },
-            children: [
-              new TextRun({
-                text: line.substring(2, line.length - 2),
-                bold: true,
-                size: fontSize * 2,
-                font: fontFamily
-              })
-            ]
-          })
-        );
-      } else {
-        // 일반 텍스트
-        // 인라인 스타일 처리
-        const textRuns: TextRun[] = [];
-        let currentText = line;
-        
-        // 굵은 텍스트 처리
-        const boldRegex = /\*\*(.*?)\*\*/g;
-        const parts = currentText.split(boldRegex);
-        
-        parts.forEach((part, index) => {
-          if (index % 2 === 0) {
-            // 일반 텍스트
-            if (part) {
-              textRuns.push(
-                new TextRun({
-                  text: part,
-                  size: fontSize * 2,
-                  font: fontFamily
-                })
-              );
-            }
-          } else {
-            // 굵은 텍스트
-            textRuns.push(
-              new TextRun({
-                text: part,
-                bold: true,
-                size: fontSize * 2,
-                font: fontFamily
-              })
-            );
-          }
-        });
-
-        if (textRuns.length > 0) {
-          children.push(
-            new Paragraph({
-              spacing: { after: 100, line: lineSpacing * 240 },
-              children: textRuns
-            })
-          );
-        } else {
-          children.push(
-            new Paragraph({
-              spacing: { after: 100, line: lineSpacing * 240 },
-              children: [
-                new TextRun({
-                  text: line,
-                  size: fontSize * 2,
-                  font: fontFamily
-                })
-              ]
-            })
-          );
-        }
+      
+      .document-wrapper {
+        width: 210mm;
+        min-height: 297mm;
+        margin: 0 auto;
+        background: white;
+        padding: 25mm;
       }
-    }
-
-    // Word 문서 생성
-    const doc = new Document({
-      sections: [{
-        properties: {},
-        children: children
-      }]
-    });
-
-    // 문서를 Blob으로 생성
-    const blob = await Packer.toBlob(doc);
-    
-    // 파일 저장
-    saveAs(blob, filename);
-  } catch (error) {
-    console.error('Word 문서 생성 오류:', error);
-    throw new Error('Word 문서 생성에 실패했습니다.');
+      
+      /* 문서 헤더 디자인 */
+      .doc-header {
+        text-align: center;
+        margin-bottom: 40px;
+        padding-bottom: 25px;
+        border-bottom: 2px solid #333;
+      }
+      
+      .company-section {
+        margin-bottom: 30px;
+      }
+      
+      .company-logo {
+        font-size: 24px;
+        font-weight: 900;
+        color: #2563eb;
+        letter-spacing: 3px;
+        margin-bottom: 5px;
+      }
+      
+      .company-subtitle {
+        font-size: 10pt;
+        color: #666;
+        letter-spacing: 0.5px;
+      }
+      
+      .doc-title {
+        font-size: 28pt;
+        font-weight: 700;
+        margin: 20px 0 5px 0;
+        color: #000;
+        letter-spacing: 8px;
+      }
+      
+      .doc-title-en {
+        font-size: 14pt;
+        color: #666;
+        letter-spacing: 2px;
+        margin-bottom: 20px;
+      }
+      
+      .doc-meta {
+        font-size: 10pt;
+        color: #555;
+        display: flex;
+        justify-content: center;
+        gap: 30px;
+      }
+      
+      /* 콘텐츠 스타일 */
+      h1 {
+        font-size: 18pt;
+        font-weight: 700;
+        margin: 30px 0 20px 0;
+        color: #000;
+        padding-bottom: 8px;
+        border-bottom: 2px solid #333;
+      }
+      
+      h2 {
+        font-size: 14pt;
+        font-weight: 600;
+        margin: 25px 0 15px 0;
+        padding-bottom: 5px;
+        border-bottom: 1px solid #666;
+        color: #222;
+      }
+      
+      h3 {
+        font-size: 12pt;
+        font-weight: 600;
+        margin: 20px 0 10px 0;
+        color: #333;
+      }
+      
+      p {
+        margin: 10px 0;
+        line-height: 1.8;
+        text-align: justify;
+      }
+      
+      ul, ol {
+        margin: 12px 0 12px 25px;
+      }
+      
+      li {
+        margin: 6px 0;
+        line-height: 1.6;
+      }
+      
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 25px 0;
+        font-size: 10pt;
+        border: 2px solid #333;
+      }
+      
+      th {
+        background: #f0f0f0;
+        font-weight: 600;
+        text-align: left;
+        padding: 12px;
+        border: 1px solid #666;
+      }
+      
+      td {
+        padding: 10px 12px;
+        border: 1px solid #999;
+        background: white;
+      }
+      
+      strong {
+        font-weight: 600;
+        color: #000;
+      }
+      
+      /* 서명 섹션 */
+      .signature-section {
+        margin-top: 60px;
+        display: flex;
+        justify-content: space-between;
+        padding-top: 40px;
+        border-top: 1px solid #666;
+      }
+      
+      .signature-box {
+        width: 200px;
+        text-align: center;
+      }
+      
+      .signature-label {
+        font-size: 11pt;
+        font-weight: 600;
+        margin-bottom: 60px;
+        color: #333;
+      }
+      
+      .signature-line {
+        border-bottom: 1px solid #333;
+        margin-bottom: 8px;
+        height: 1px;
+      }
+      
+      /* 푸터 */
+      .doc-footer {
+        margin-top: 50px;
+        padding-top: 20px;
+        border-top: 1px solid #999;
+        text-align: center;
+        font-size: 9pt;
+        color: #666;
+        line-height: 1.6;
+      }
+    </style>
+  `;
+  
+  // HTML 변환
+  const htmlContent = convertMarkdownToHtml(markdown);
+  
+  // 인쇄 창 열기
+  const printWindow = window.open('', '_blank');
+  if (printWindow) {
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8">
+          <title>${title}</title>
+          ${printStyles}
+        </head>
+        <body>
+          <div class="document-wrapper">
+            ${getDocumentHeader()}
+            <div class="document-content">
+              ${htmlContent}
+            </div>
+            <div class="signature-section">
+              <div class="signature-box">
+                <div class="signature-label">공급자</div>
+                <div class="signature-line"></div>
+                <div class="signature-date">(서명/날인)</div>
+              </div>
+              <div class="signature-box">
+                <div class="signature-label">수신자</div>
+                <div class="signature-line"></div>
+                <div class="signature-date">(서명/날인)</div>
+              </div>
+            </div>
+            <div class="doc-footer">
+              <p><strong>WEAVE</strong> - AI Business Document Platform</p>
+              <p>www.weave.co.kr | support@weave.co.kr</p>
+            </div>
+          </div>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+    setTimeout(() => {
+      printWindow.print();
+    }, 250);
   }
 }
 
-/**
- * 마크다운을 HTML로 변환
- */
-export async function exportToHTML(
-  markdown: string,
-  filename: string = 'document.html',
-  options: {
-    includeStyles?: boolean;
-    theme?: 'light' | 'dark';
-  } = {}
-): Promise<void> {
-  const {
-    includeStyles = true,
-    theme = 'light'
-  } = options;
-
-  try {
-    // 마크다운을 HTML로 변환
-    const content = await marked(markdown);
-
-    // 스타일 정의
-    const styles = includeStyles ? `
-      <style>
-        body {
-          font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif;
-          line-height: 1.6;
-          max-width: 800px;
-          margin: 0 auto;
-          padding: 40px 20px;
-          background-color: ${theme === 'dark' ? '#1a1a1a' : '#ffffff'};
-          color: ${theme === 'dark' ? '#e0e0e0' : '#333333'};
-        }
-        h1, h2, h3, h4, h5, h6 {
-          margin-top: 24px;
-          margin-bottom: 16px;
-          font-weight: 600;
-          line-height: 1.25;
-        }
-        h1 { 
-          font-size: 2em; 
-          border-bottom: 1px solid ${theme === 'dark' ? '#444' : '#eee'};
-          padding-bottom: 0.3em;
-        }
-        h2 { 
-          font-size: 1.5em; 
-          border-bottom: 1px solid ${theme === 'dark' ? '#444' : '#eee'};
-          padding-bottom: 0.3em;
-        }
-        h3 { font-size: 1.25em; }
-        p {
-          margin-bottom: 16px;
-        }
-        ul, ol {
-          padding-left: 2em;
-          margin-bottom: 16px;
-        }
-        li {
-          margin-bottom: 8px;
-        }
-        code {
-          background-color: ${theme === 'dark' ? '#2d2d2d' : '#f6f8fa'};
-          padding: 2px 6px;
-          border-radius: 3px;
-          font-size: 0.9em;
-        }
-        pre {
-          background-color: ${theme === 'dark' ? '#2d2d2d' : '#f6f8fa'};
-          padding: 16px;
-          border-radius: 6px;
-          overflow-x: auto;
-        }
-        pre code {
-          background-color: transparent;
-          padding: 0;
-        }
-        blockquote {
-          border-left: 4px solid ${theme === 'dark' ? '#4a4a4a' : '#dfe2e5'};
-          padding-left: 16px;
-          color: ${theme === 'dark' ? '#aaa' : '#6a737d'};
-          margin: 0 0 16px 0;
-        }
-        table {
-          width: 100%;
-          border-collapse: collapse;
-          margin-bottom: 16px;
-        }
-        th, td {
-          border: 1px solid ${theme === 'dark' ? '#444' : '#dfe2e5'};
-          padding: 8px 12px;
-          text-align: left;
-        }
-        th {
-          background-color: ${theme === 'dark' ? '#2d2d2d' : '#f6f8fa'};
-          font-weight: 600;
-        }
-        hr {
-          border: 0;
-          height: 1px;
-          background-color: ${theme === 'dark' ? '#444' : '#e1e4e8'};
-          margin: 24px 0;
-        }
-        strong {
-          font-weight: 600;
-        }
-        em {
-          font-style: italic;
-        }
-      </style>
-    ` : '';
-
-    // 완전한 HTML 문서 생성
-    const html = `<!DOCTYPE html>
-<html lang="ko">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${filename.replace('.html', '')}</title>
-  ${styles}
-</head>
-<body>
-  ${content}
-</body>
-</html>`;
-
-    // Blob 생성 및 저장
-    const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
-    saveAs(blob, filename);
-  } catch (error) {
-    console.error('HTML 생성 오류:', error);
-    throw new Error('HTML 생성에 실패했습니다.');
-  }
-}
-
-/**
- * 텍스트 파일로 내보내기
- */
-export function exportToText(
-  content: string,
-  filename: string = 'document.txt'
-): void {
-  try {
-    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
-    saveAs(blob, filename);
-  } catch (error) {
-    console.error('텍스트 파일 생성 오류:', error);
-    throw new Error('텍스트 파일 생성에 실패했습니다.');
-  }
-}

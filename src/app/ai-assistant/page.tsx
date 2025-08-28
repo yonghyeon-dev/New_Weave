@@ -49,6 +49,21 @@ export default function AIAssistant() {
   // 주요 기능 카드들
   const featureCards: FeatureCard[] = [
     {
+      id: 'chat',
+      title: 'AI 챗봇',
+      description: '실시간 대화형 AI 어시스턴트와 질문하고 답변받으세요',
+      icon: <Cpu className="w-6 h-6" />,
+      href: '/ai-assistant/chat',
+      color: 'bg-green-500',
+      badge: '새로운 기능',
+      features: [
+        '실시간 스트리밍 응답',
+        '대화 컨텍스트 유지',
+        '마크다운 지원',
+        '대화 내보내기 기능'
+      ]
+    },
+    {
       id: 'extract',
       title: '정보 추출',
       description: '이미지나 PDF에서 데이터를 자동으로 추출하고 구조화합니다',
@@ -124,6 +139,11 @@ export default function AIAssistant() {
   // 최근 업데이트 내용
   const recentUpdates = [
     {
+      date: '2025-08-28',
+      title: 'AI 챗봇 기능 출시',
+      type: 'feature'
+    },
+    {
       date: '2025-08-27',
       title: 'PDF/Word 내보내기 기능 추가',
       type: 'feature'
@@ -132,11 +152,6 @@ export default function AIAssistant() {
       date: '2025-08-27',
       title: '마크다운 에디터 통합',
       type: 'feature'
-    },
-    {
-      date: '2025-08-27',
-      title: '5종 문서 템플릿 추가',
-      type: 'enhancement'
     }
   ];
 
@@ -156,19 +171,19 @@ export default function AIAssistant() {
               <div className="flex space-x-3">
                 <Button 
                   variant="primary"
+                  onClick={() => router.push('/ai-assistant/chat')}
+                  className="flex items-center space-x-2"
+                >
+                  <Cpu className="w-4 h-4" />
+                  <span>AI 챗봇 시작</span>
+                </Button>
+                <Button 
+                  variant="secondary"
                   onClick={() => router.push('/ai-assistant/generate')}
                   className="flex items-center space-x-2"
                 >
                   <FileText className="w-4 h-4" />
-                  <span>새 문서 생성</span>
-                </Button>
-                <Button 
-                  variant="secondary"
-                  onClick={() => router.push('/ai-assistant/extract')}
-                  className="flex items-center space-x-2"
-                >
-                  <Upload className="w-4 h-4" />
-                  <span>데이터 추출</span>
+                  <span>문서 생성</span>
                 </Button>
               </div>
             </div>
@@ -176,7 +191,7 @@ export default function AIAssistant() {
             {/* 통계 카드 섹션 */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {statCards.map((stat, index) => (
-              <Card className="bg-white rounded-lg border border-border-light p-6">
+              <Card key={index} className="bg-white rounded-lg border border-border-light p-6">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-3">

@@ -32,18 +32,31 @@ async function extractFromImage(base64Data: string, mimeType: string): Promise<a
     throw new Error('Gemini API key가 설정되지 않았습니다.');
   }
 
-  const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+  // Gemini 2.5 Flash Lite 모델 사용 (멀티모달 지원)
+  const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash-lite' });
 
   const prompt = `당신은 문서 데이터 추출 전문가입니다. 이 이미지에서 모든 구조화된 정보를 추출하여 JSON으로 반환해주세요.
   
   요구사항:
   1. 모든 텍스트와 데이터를 추출
-  2. 문서 유형 식별 (영수증, 계약서, 보고서 등)
+  2. 문서 유형 식별 (영수증, 계약서, 보고서, 사업자등록증 등)
   3. 데이터를 논리적으로 구조화
   4. 날짜, 숫자, 이름, 주소 등 메타데이터 포함
   5. 데이터 요소 간 계층과 관계 유지
   6. 날짜는 YYYY-MM-DD 형식으로 통일
   7. 한국어 문서인 경우 한국어로 반환
+  8. 폼 필드가 있으면 필드명과 값을 매핑
+  9. 테이블 데이터가 있으면 구조 유지
+  
+  특별 처리:
+  - 사업자등록증인 경우:
+    * businessNumber: 사업자등록번호 (하이픈 제외 10자리)
+    * companyName: 상호명
+    * representativeName: 대표자명
+    * businessAddress: 사업장 주소
+    * businessType: 업태
+    * businessItem: 업종
+    * registrationDate: 개업일자
   
   JSON 형식:
   {
@@ -53,6 +66,12 @@ async function extractFromImage(base64Data: string, mimeType: string): Promise<a
     "data": {
       // 문서 유형에 따라 구조화된 데이터
     },
+    "formFields": {
+      // 폼 필드가 있는 경우 필드명: 값 매핑
+    },
+    "tables": [
+      // 테이블 데이터가 있는 경우
+    ],
     "rawText": "추출된 전체 텍스트"
   }`;
 
@@ -114,30 +133,101 @@ async function extractFromImage(base64Data: string, mimeType: string): Promise<a
   }
 }
 
-// PDF에서 텍스트 추출 (현재는 이미지로 변환 필요)
+// PDF에서 텍스트 추출 (Gemini 멀티모달 지원)
 async function extractFromPDF(base64Data: string): Promise<any> {
-  // PDF 처리를 위해서는 pdf-parse 또는 pdfjs-dist 라이브러리가 필요합니다
-  // 임시로 기본 응답 반환
+  if (!genAI) {
+    throw new Error('Gemini API key가 설정되지 않았습니다.');
+  }
+
+  // Gemini 2.5 Flash Lite는 PDF를 직접 처리 가능
+  const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash-lite' });
+
+  const prompt = `당신은 문서 데이터 추출 전문가입니다. 이 PDF 문서에서 모든 구조화된 정보를 추출하여 JSON으로 반환해주세요.
   
-  return {
-    documentType: 'pdf',
-    confidence: 0.75,
-    language: 'ko',
-    extractedData: {
-      message: 'PDF 처리는 추가 설정이 필요합니다',
-      recommendation: 'PDF를 이미지로 변환하거나 전문 PDF 라이브러리를 사용하세요'
+  요구사항:
+  1. 모든 텍스트와 데이터를 추출
+  2. 문서 유형 식별 (영수증, 계약서, 보고서, 사업자등록증 등)
+  3. 데이터를 논리적으로 구조화
+  4. 날짜, 숫자, 이름, 주소 등 메타데이터 포함
+  5. 데이터 요소 간 계층과 관계 유지
+  6. 날짜는 YYYY-MM-DD 형식으로 통일
+  7. 한국어 문서인 경우 한국어로 반환
+  8. 테이블 데이터가 있으면 구조 유지
+  9. 폼 필드가 있으면 필드명과 값을 매핑
+  
+  JSON 형식:
+  {
+    "documentType": "문서 유형",
+    "title": "문서 제목 (있는 경우)",
+    "date": "문서 날짜 (있는 경우)",
+    "data": {
+      // 문서 유형에 따라 구조화된 데이터
     },
-    metadata: {
-      pages: 1,
-      processingTime: 100,
-      tokenUsage: {
-        prompt: 0,
-        completion: 0,
-        total: 0,
-        cost: 0
+    "tables": [
+      // 테이블 데이터가 있는 경우
+    ],
+    "formFields": {
+      // 폼 필드가 있는 경우 필드명: 값 매핑
+    },
+    "rawText": "추출된 전체 텍스트"
+  }`;
+
+  try {
+    const startTime = Date.now();
+    
+    const result = await model.generateContent([
+      prompt,
+      {
+        inlineData: {
+          data: base64Data,
+          mimeType: 'application/pdf'
+        }
       }
+    ]);
+
+    const response = await result.response;
+    const text = response.text();
+    const processingTime = Date.now() - startTime;
+
+    // JSON 파싱 시도
+    let extractedData;
+    try {
+      // JSON 코드 블록 제거
+      const jsonMatch = text.match(/```json\n?([\s\S]*?)\n?```/) || text.match(/\{[\s\S]*\}/);
+      const jsonStr = jsonMatch ? (jsonMatch[1] || jsonMatch[0]) : text;
+      extractedData = JSON.parse(jsonStr);
+    } catch (parseError) {
+      // JSON 파싱 실패 시 원본 텍스트 반환
+      extractedData = {
+        documentType: 'pdf',
+        data: { rawText: text }
+      };
     }
-  };
+
+    // 토큰 사용량 계산 (추정치)
+    const promptTokens = Math.ceil(prompt.length / 4) + Math.ceil(base64Data.length * 0.75);
+    const completionTokens = Math.ceil(text.length / 4);
+    const totalTokens = promptTokens + completionTokens;
+
+    return {
+      documentType: extractedData.documentType || 'pdf',
+      confidence: 0.92,
+      language: 'ko',
+      extractedData: extractedData,
+      metadata: {
+        processingTime,
+        tokenUsage: {
+          prompt: promptTokens,
+          completion: completionTokens,
+          total: totalTokens,
+          cost: totalTokens * 0.000001 // 예시 비용 계산
+        }
+      }
+    };
+  } catch (error) {
+    console.error('PDF 처리 오류:', error);
+    throw new Error('PDF 처리 중 오류가 발생했습니다.');
+  }
 }
 
 // 문서 생성 AI 함수
@@ -146,7 +236,7 @@ async function generateDocumentWithAI(data: any): Promise<any> {
     throw new Error('Gemini API key가 설정되지 않았습니다.');
   }
 
-  const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+  const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
 
   const prompt = `당신은 전문적인 비즈니스 문서 작성자입니다. 다음 정보를 바탕으로 문서를 생성하거나 개선해주세요:
 
@@ -283,8 +373,81 @@ export async function POST(request: NextRequest) {
     } else if (contentType.includes('application/json')) {
       // JSON 요청 (문서 생성)
       const body = await request.json();
-      const { taskType, documentType, templateId, prompt, clientData, projectData } = body;
+      const { action, taskType, documentType, templateId, prompt, clientData, projectData, template, context } = body;
       
+      // 새로운 문서 생성 방식 (action === 'generate')
+      if (action === 'generate' && template && context) {
+        try {
+          // context 정보로 템플릿 변수 치환
+          let processedTemplate = template;
+          Object.entries(context).forEach(([key, value]) => {
+            const regex = new RegExp(`{{${key}}}`, 'g');
+            processedTemplate = processedTemplate.replace(regex, value as string || `[${key}]`);
+          });
+          
+          const generatePrompt = `다음 정보를 기반으로 전문적인 비즈니스 문서를 작성해주세요:
+        
+회사 정보:
+- 회사명: ${context.companyName}
+- 담당자: ${context.userName}
+- 이메일: ${context.userEmail}
+
+클라이언트 정보:
+- 회사명: ${context.clientCompany}
+- 담당자: ${context.clientName}
+- 연락처: ${context.clientPhone}
+- 이메일: ${context.clientEmail}
+
+프로젝트 정보:
+- 프로젝트명: ${context.projectName}
+- 설명: ${context.projectDescription}
+- 시작일: ${context.projectStartDate}
+- 종료일: ${context.projectEndDate}
+- 예산: ${context.projectBudget}
+
+템플릿:
+${processedTemplate}
+
+요구사항:
+1. 위 정보를 활용하여 템플릿을 완성해주세요
+2. 템플릿의 구조와 형식을 유지하면서 내용을 풍부하게 작성
+3. 빈 변수({{변수명}})가 있다면 문맥에 맞는 내용으로 채워주세요
+4. 전문적이고 명확한 비즈니스 톤 유지
+5. 마크다운 형식으로 작성
+6. 한국어로 작성
+7. 실제 비즈니스에서 사용 가능한 수준의 완성도`;
+
+          const result = await genAI?.getGenerativeModel({ model: 'gemini-1.5-flash' }).generateContent(generatePrompt);
+          const response = await result?.response;
+          const generatedContent = response?.text();
+          
+          return NextResponse.json({
+            success: true,
+            data: {
+              generated: generatedContent || processedTemplate
+            }
+          });
+        } catch (error) {
+          // AI 오류 시 기본 템플릿 반환
+          console.error('AI Generation error:', error);
+          
+          // 기본 변수만 치환한 템플릿 반환
+          let fallbackTemplate = template;
+          Object.entries(context).forEach(([key, value]) => {
+            const regex = new RegExp(`{{${key}}}`, 'g');
+            fallbackTemplate = fallbackTemplate.replace(regex, value as string || '');
+          });
+          
+          return NextResponse.json({
+            success: true,
+            data: {
+              generated: fallbackTemplate
+            }
+          });
+        }
+      }
+      
+      // 기존 방식 유지 (하위 호환성)
       if (taskType === 'generate') {
         try {
           // AI를 사용한 문서 생성
