@@ -3,6 +3,8 @@
 import React, { useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import AppLayout from '@/components/layout/AppLayout';
+import DocumentGenerator from '@/components/ai-assistant/DocumentGenerator';
+import { Typography, Button, Card } from '@/components/ui';
 import { 
   ArrowLeft,
   Calendar,
@@ -21,7 +23,10 @@ import {
   MessageSquare,
   Target,
   CreditCard,
-  Briefcase
+  Briefcase,
+  FileSpreadsheet,
+  Wand2,
+  X
 } from 'lucide-react';
 import type { Project } from '@/lib/types/project';
 
@@ -239,6 +244,8 @@ export default function ProjectDetailPage() {
   const params = useParams();
   const [activeTab, setActiveTab] = useState('overview');
   const [project] = useState<Project>(mockProject);
+  const [showDocumentGenerator, setShowDocumentGenerator] = useState(false);
+  const [documentType, setDocumentType] = useState<'contract' | 'proposal' | 'invoice' | 'report'>('contract');
 
   // 탭 메뉴
   const tabs = [
@@ -550,11 +557,34 @@ export default function ProjectDetailPage() {
                   <h3 className="text-lg font-semibold text-txt-primary mb-4">빠른 작업</h3>
                   <div className="space-y-2">
                     <button 
-                      onClick={() => router.push('/invoices/new')}
+                      onClick={() => {
+                        setDocumentType('invoice');
+                        setShowDocumentGenerator(true);
+                      }}
                       className="w-full flex items-center gap-3 px-3 py-2 text-sm text-txt-secondary hover:text-txt-primary hover:bg-bg-secondary rounded-lg transition-colors"
                     >
                       <FileText className="w-4 h-4" />
                       <span>인보이스 생성</span>
+                    </button>
+                    <button 
+                      onClick={() => {
+                        setDocumentType('contract');
+                        setShowDocumentGenerator(true);
+                      }}
+                      className="w-full flex items-center gap-3 px-3 py-2 text-sm text-txt-secondary hover:text-txt-primary hover:bg-bg-secondary rounded-lg transition-colors"
+                    >
+                      <FileSpreadsheet className="w-4 h-4" />
+                      <span>계약서 생성</span>
+                    </button>
+                    <button 
+                      onClick={() => {
+                        setDocumentType('proposal');
+                        setShowDocumentGenerator(true);
+                      }}
+                      className="w-full flex items-center gap-3 px-3 py-2 text-sm text-txt-secondary hover:text-txt-primary hover:bg-bg-secondary rounded-lg transition-colors"
+                    >
+                      <Wand2 className="w-4 h-4" />
+                      <span>제안서 생성</span>
                     </button>
                     <button className="w-full flex items-center gap-3 px-3 py-2 text-sm text-txt-secondary hover:text-txt-primary hover:bg-bg-secondary rounded-lg transition-colors">
                       <Upload className="w-4 h-4" />
@@ -662,6 +692,47 @@ export default function ProjectDetailPage() {
 
           {/* 다른 탭들도 필요에 따라 구현 */}
         </div>
+
+        {/* Document Generator Modal */}
+        {showDocumentGenerator && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <Card className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+              <div className="px-6 py-4 border-b border-border-light">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <Wand2 className="w-5 h-5 text-weave-primary" />
+                    <Typography variant="h3" className="text-txt-primary">
+                      AI 문서 생성
+                    </Typography>
+                  </div>
+                  <button
+                    onClick={() => setShowDocumentGenerator(false)}
+                    className="p-2 hover:bg-bg-secondary rounded-lg transition-colors"
+                  >
+                    <X className="w-4 h-4 text-txt-tertiary" />
+                  </button>
+                </div>
+              </div>
+              
+              <div className="flex-1 overflow-y-auto p-6">
+                <DocumentGenerator
+                  defaultType={documentType}
+                  projectContext={{
+                    projectId: project.id,
+                    projectName: project.name,
+                    clientId: project.clientId,
+                    clientName: project.clientName
+                  }}
+                  onGenerate={(doc) => {
+                    console.log('Generated document:', doc);
+                    setShowDocumentGenerator(false);
+                    // TODO: 문서를 프로젝트에 저장하는 로직 추가
+                  }}
+                />
+              </div>
+            </Card>
+          </div>
+        )}
       </div>
     </AppLayout>
   );

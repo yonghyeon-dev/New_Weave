@@ -8,7 +8,7 @@ import MessageList from './MessageList';
 import MessageInput from './MessageInput';
 import ChatHistory from '@/components/ai-assistant/ChatHistory';
 import { SidebarSkeleton } from './MessageSkeleton';
-import { ToastContainer, useToast } from './Toast';
+import { ToastContainer, useToast } from '@/components/ui/Toast';
 import { useReactions } from './EmojiReaction';
 import { chatService, ChatMessage, ChatSession } from '@/lib/services/chatService';
 import { Trash2, Download, RefreshCw, Menu, X, Search, Keyboard, History } from 'lucide-react';

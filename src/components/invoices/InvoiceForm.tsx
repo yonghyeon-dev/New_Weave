@@ -1,13 +1,14 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Plus, Trash2, Calendar } from 'lucide-react';
+import { Plus, Trash2, Calendar, FileText, Upload } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import { Invoice, InvoiceItem, InvoiceStatus } from '@/lib/types/invoice';
 import { Client } from '@/lib/types/client';
 import { cn } from '@/lib/utils';
+import DataExtractor from '@/components/ai-assistant/DataExtractor';
 
 interface InvoiceFormProps {
   invoice?: Invoice;
@@ -68,6 +69,7 @@ export default function InvoiceForm({
   onCancel, 
   isLoading = false 
 }: InvoiceFormProps) {
+  const [showDataExtractor, setShowDataExtractor] = useState(false);
   const [formData, setFormData] = useState<Partial<Invoice>>({
     invoiceNumber: '',
     tenantId: 'tenant-1',
@@ -213,12 +215,59 @@ export default function InvoiceForm({
     return date.toISOString().split('T')[0];
   };
 
+  const handleExtractedData = (data: any) => {
+    // 추출된 데이터를 폼에 자동 입력
+    if (data.invoiceNumber) {
+      setFormData(prev => ({ ...prev, invoiceNumber: data.invoiceNumber }));
+    }
+    
+    if (data.items && Array.isArray(data.items)) {
+      const extractedItems = data.items.map((item: any, index: number) => ({
+        id: Date.now().toString() + index,
+        description: item.description || '',
+        quantity: item.quantity || 1,
+        unitPrice: item.unitPrice || 0,
+        amount: (item.quantity || 1) * (item.unitPrice || 0)
+      }));
+      
+      const totals = calculateTotals(extractedItems);
+      setFormData(prev => ({
+        ...prev,
+        items: extractedItems,
+        ...totals
+      }));
+    }
+    
+    if (data.clientName) {
+      // 클라이언트 이름으로 매칭
+      const matchedClient = clients.find(c => 
+        c.name.toLowerCase().includes(data.clientName.toLowerCase())
+      );
+      if (matchedClient) {
+        setFormData(prev => ({ ...prev, clientId: matchedClient.id }));
+      }
+    }
+    
+    setShowDataExtractor(false);
+  };
+
   return (
     <div className="bg-white rounded-lg border border-border-light overflow-hidden">
       <div className="px-6 py-4 border-b border-border-light">
-        <h2 className="text-lg font-semibold text-txt-primary">
-          {invoice ? '인보이스 수정' : '새 인보이스 생성'}
-        </h2>
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-txt-primary">
+            {invoice ? '인보이스 수정' : '새 인보이스 생성'}
+          </h2>
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={() => setShowDataExtractor(true)}
+            className="flex items-center gap-2"
+          >
+            <FileText className="w-4 h-4" />
+            AI로 데이터 추출
+          </Button>
+        </div>
       </div>
 
       <form onSubmit={(e) => handleSubmit(e, 'draft')} className="p-6 space-y-6">
@@ -431,6 +480,30 @@ export default function InvoiceForm({
           </div>
         </div>
       </form>
+
+      {/* Data Extractor Modal */}
+      {showDataExtractor && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-semibold text-txt-primary">
+                AI 데이터 추출
+              </h3>
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => setShowDataExtractor(false)}
+              >
+                <Trash2 className="w-4 h-4" />
+              </Button>
+            </div>
+            <DataExtractor
+              onExtract={handleExtractedData}
+              extractType="invoice"
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -12,8 +12,12 @@ import {
   Zap,
   FolderPlus,
   LayoutDashboard,
-  Settings
+  Settings,
+  MessageCircle,
+  Send
 } from 'lucide-react';
+import ChatInterface from '@/components/chat/ChatInterface';
+import { Typography } from '@/components/ui';
 
 interface QuickMenuItem {
   id: string;
@@ -30,6 +34,7 @@ export default function FloatingQuickMenu() {
   const [isMinimized, setIsMinimized] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
+  const [isChatOpen, setIsChatOpen] = useState(false);
 
   // 스크롤에 따른 가시성 제어
   useEffect(() => {
@@ -55,6 +60,14 @@ export default function FloatingQuickMenu() {
 
   const menuItems: QuickMenuItem[] = [
     {
+      id: 'ai-chat',
+      icon: <MessageCircle className="w-5 h-5" />,
+      title: 'AI 업무비서',
+      description: 'AI와 대화하며 업무를 처리하세요',
+      action: () => setIsChatOpen(true),
+      color: 'bg-gradient-to-r from-blue-500 to-purple-600'
+    },
+    {
       id: 'project',
       icon: <FolderPlus className="w-5 h-5" />,
       title: '새 프로젝트',
@@ -67,7 +80,7 @@ export default function FloatingQuickMenu() {
       icon: <FileText className="w-5 h-5" />,
       title: '문서 생성',
       description: 'AI로 견적서, 계약서, 청구서를 빠르게 생성하세요',
-      action: () => router.push('/ai-assistant?tab=document'),
+      action: () => router.push('/documents'),
       color: 'bg-purple-500'
     },
     {
@@ -88,24 +101,68 @@ export default function FloatingQuickMenu() {
           isVisible ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'
         }`}
       >
-        {!isOpen && (
-          <button
-            onClick={() => setIsOpen(true)}
-            className="group relative bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-full p-4 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
-            aria-label="빠른 메뉴 열기"
-          >
-            <Zap className="w-6 h-6" />
-            
-            {/* 툴팁 */}
-            <div className="absolute right-full mr-3 top-1/2 -translate-y-1/2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap">
-              빠른 시작
-            </div>
-            
-            {/* 펄스 애니메이션 */}
-            <div className="absolute inset-0 rounded-full bg-blue-400 animate-ping opacity-25"></div>
-          </button>
+        {!isOpen && !isChatOpen && (
+          <div className="flex flex-col gap-3">
+            {/* AI 챗봇 버튼 */}
+            <button
+              onClick={() => setIsChatOpen(true)}
+              className="group relative bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-full p-4 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
+              aria-label="AI 챗봇 열기"
+            >
+              <MessageCircle className="w-6 h-6" />
+              
+              {/* 툴팁 */}
+              <div className="absolute right-full mr-3 top-1/2 -translate-y-1/2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap">
+                AI 업무비서
+              </div>
+              
+              {/* 펄스 애니메이션 */}
+              <div className="absolute inset-0 rounded-full bg-blue-400 animate-ping opacity-25"></div>
+            </button>
+
+            {/* 빠른 메뉴 버튼 */}
+            <button
+              onClick={() => setIsOpen(true)}
+              className="group relative bg-white border-2 border-gray-200 text-gray-700 rounded-full p-4 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
+              aria-label="빠른 메뉴 열기"
+            >
+              <Zap className="w-6 h-6" />
+              
+              {/* 툴팁 */}
+              <div className="absolute right-full mr-3 top-1/2 -translate-y-1/2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap">
+                빠른 시작
+              </div>
+            </button>
+          </div>
         )}
       </div>
+
+      {/* AI 챗봇 패널 */}
+      {isChatOpen && (
+        <div className="fixed right-6 bottom-6 z-50 w-96 h-[600px] bg-bg-secondary rounded-2xl shadow-2xl border border-border-light overflow-hidden flex flex-col">
+          {/* 챗봇 헤더 */}
+          <div className="flex items-center justify-between p-4 border-b border-border-light bg-gradient-to-r from-blue-500 to-purple-600 text-white">
+            <div className="flex items-center gap-3">
+              <MessageCircle className="w-5 h-5" />
+              <Typography variant="h3" className="text-white">
+                AI 업무비서
+              </Typography>
+            </div>
+            <button
+              onClick={() => setIsChatOpen(false)}
+              className="p-1.5 hover:bg-white/20 rounded-lg transition-colors"
+              aria-label="닫기"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+
+          {/* 챗봇 인터페이스 */}
+          <div className="flex-1 overflow-hidden">
+            <ChatInterface />
+          </div>
+        </div>
+      )}
 
       {/* 플로팅 메뉴 패널 */}
       {isOpen && (

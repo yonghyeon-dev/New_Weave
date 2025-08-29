@@ -1,35 +1,16 @@
 {
-  "name": "@weave/ui-components",
-  "version": "1.0.0",
-  "description": "Weave UI Component Library with customizable theme system",
-  "type": "module",
-  "main": "src/index.ts",
-  "files": [
-    "src"
-  ],
+  "name": "weave-app",
+  "version": "1.3.0",
+  "description": "Weave - 업무 관리 통합 플랫폼",
+  "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
-    "link": "npm link",
-    "unlink": "npm unlink"
-  },
-  "keywords": [
-    "react",
-    "ui",
-    "components",
-    "theme",
-    "tailwind",
-    "typescript"
-  ],
-  "author": "Your Name",
-  "license": "MIT",
-  "peerDependencies": {
-    "react": "^18.0.0",
-    "react-dom": "^18.0.0"
+    "lint": "next lint"
   },
   "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.12",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
@@ -46,7 +27,9 @@
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
     "@langchain/community": "^0.3.53",
-    "@supabase/supabase-js": "^2.56.0",
+    "@supabase/auth-helpers-nextjs": "^0.10.0",
+    "@supabase/ssr": "^0.7.0",
+    "@supabase/supabase-js": "^2.56.1",
     "@types/file-saver": "^2.0.7",
     "@types/marked": "^5.0.2",
     "@types/react-syntax-highlighter": "^15.5.13",
