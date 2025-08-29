@@ -350,7 +350,7 @@ export default function DocumentGeneratorV2({
                 </Badge>
               )}
               {!isGenerating && generatedDocument && (
-                <Badge variant="success" className="flex items-center gap-1">
+                <Badge variant="positive" className="flex items-center gap-1">
                   <Check className="w-3 h-3" />
                   생성 완료
                 </Badge>

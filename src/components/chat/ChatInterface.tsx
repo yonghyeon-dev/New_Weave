@@ -6,11 +6,12 @@ import Button from '@/components/ui/Button';
 import Typography from '@/components/ui/Typography';
 import MessageList from './MessageList';
 import MessageInput from './MessageInput';
+import ChatHistory from '@/components/ai-assistant/ChatHistory';
 import { SidebarSkeleton } from './MessageSkeleton';
 import { ToastContainer, useToast } from './Toast';
 import { useReactions } from './EmojiReaction';
 import { chatService, ChatMessage, ChatSession } from '@/lib/services/chatService';
-import { Trash2, Download, RefreshCw, Menu, X, Search, Keyboard } from 'lucide-react';
+import { Trash2, Download, RefreshCw, Menu, X, Search, Keyboard, History } from 'lucide-react';
 
 export default function ChatInterface() {
   const [session, setSession] = useState<ChatSession | null>(null);
@@ -20,18 +21,48 @@ export default function ChatInterface() {
   const [currentResponse, setCurrentResponse] = useState('');
   const [abortController, setAbortController] = useState<AbortController | null>(null);
   const [showSidebar, setShowSidebar] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [inputMessage, setInputMessage] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredSessions, setFilteredSessions] = useState<ChatSession[]>([]);
   const [showShortcuts, setShowShortcuts] = useState(false);
+  const [dbSessionId, setDbSessionId] = useState<string | null>(null);
+  const [chatType, setChatType] = useState<'general' | 'tax' | 'rag'>('general');
   const { toasts, addToast, removeToast } = useToast();
   const { addReaction, getReactions } = useReactions();
   
   // 초기화
   useEffect(() => {
     initializeChat();
+    createDatabaseSession();
   }, []);
+  
+  // 데이터베이스 세션 생성
+  const createDatabaseSession = async () => {
+    try {
+      const response = await fetch('/api/chat/history', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          createSession: true,
+          type: chatType,
+          title: null,
+          metadata: {
+            userAgent: navigator.userAgent,
+            timestamp: new Date().toISOString()
+          }
+        })
+      });
+      
+      const data = await response.json();
+      if (data.success && data.data) {
+        setDbSessionId(data.data.id);
+      }
+    } catch (error) {
+      console.error('세션 생성 오류:', error);
+    }
+  };
   
   // 키보드 단축키
   useEffect(() => {
@@ -45,6 +76,11 @@ export default function ChatInterface() {
       else if ((e.metaKey || e.ctrlKey) && e.key === '/') {
         e.preventDefault();
         setShowSidebar(prev => !prev);
+      }
+      // Cmd/Ctrl + H: 히스토리 토글
+      else if ((e.metaKey || e.ctrlKey) && e.key === 'h') {
+        e.preventDefault();
+        setShowHistory(prev => !prev);
       }
       // Cmd/Ctrl + S: 대화 저장(내보내기)
       else if ((e.metaKey || e.ctrlKey) && e.key === 's') {
@@ -108,6 +144,15 @@ export default function ChatInterface() {
     });
     
     setMessages(prev => [...prev, userMessage]);
+    
+    // 데이터베이스에 메시지 저장
+    if (dbSessionId) {
+      saveMessageToDatabase(dbSessionId, {
+        role: 'user',
+        content,
+        metadata: {}
+      });
+    }
     setIsLoading(true);
     setIsTyping(true);
     setCurrentResponse('');
@@ -193,6 +238,16 @@ export default function ChatInterface() {
         
         setMessages(prev => [...prev, aiMessage]);
         
+        // 데이터베이스에 메시지 저장
+        if (dbSessionId) {
+          saveMessageToDatabase(dbSessionId, {
+            role: 'assistant',
+            content: accumulatedContent,
+            metadata: metadata || {},
+            model: 'gemini-2.5-flash-lite'
+          });
+        }
+        
         // 세션 업데이트
         const updatedSession = chatService.getSession(session.id);
         if (updatedSession) {
@@ -222,9 +277,7 @@ export default function ChatInterface() {
         const errorMessage = chatService.addMessage(session.id, {
           role: 'assistant',
           content: `죄송합니다. ${errorMsg} 다시 시도해주세요.`,
-          metadata: {
-            error: true
-          }
+          metadata: {} as any
         });
         
         setMessages(prev => [...prev, errorMessage]);
@@ -252,9 +305,7 @@ export default function ChatInterface() {
         const aiMessage = chatService.addMessage(session!.id, {
           role: 'assistant',
           content: currentResponse + '\n\n*(응답이 중단되었습니다)*',
-          metadata: {
-            interrupted: true
-          }
+          metadata: {} as any
         });
         
         setMessages(prev => [...prev, aiMessage]);
@@ -270,6 +321,50 @@ export default function ChatInterface() {
     setMessages([]);
     setSessions(chatService.getAllSessions());
     setShowSidebar(false);
+    setShowHistory(false);
+    createDatabaseSession(); // 새 DB 세션 생성
+  };
+  
+  // 데이터베이스에 메시지 저장
+  const saveMessageToDatabase = async (sessionId: string, message: any) => {
+    try {
+      await fetch('/api/chat/history', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sessionId,
+          message
+        })
+      });
+    } catch (error) {
+      console.error('메시지 저장 오류:', error);
+    }
+  };
+  
+  // 세션 로드 (히스토리에서 선택 시)
+  const loadSession = async (sessionId: string) => {
+    try {
+      const response = await fetch(`/api/chat/history?sessionId=${sessionId}`);
+      const data = await response.json();
+      
+      if (data.success && data.data) {
+        // 메시지 로드
+        const loadedMessages = data.data.map((msg: any) => ({
+          id: msg.id,
+          role: msg.role,
+          content: msg.content,
+          timestamp: new Date(msg.createdAt),
+          metadata: msg.metadata
+        }));
+        
+        setMessages(loadedMessages);
+        setDbSessionId(sessionId);
+        setShowHistory(false);
+      }
+    } catch (error) {
+      console.error('세션 로드 오류:', error);
+      addToast('대화를 불러올 수 없습니다.', 'error');
+    }
   };
   
   // 세션 전환
@@ -359,6 +454,17 @@ export default function ChatInterface() {
   
   return (
     <div className="flex h-full">
+      {/* 히스토리 패널 */}
+      {showHistory && (
+        <div className="w-80 border-r border-border-light bg-bg-secondary">
+          <ChatHistory
+            onSessionSelect={loadSession}
+            currentSessionId={dbSessionId || undefined}
+            onNewChat={startNewChat}
+          />
+        </div>
+      )}
+      
       {/* 사이드바 - 대화 목록 (모바일에서는 오버레이) */}
       <div className={`
         fixed lg:relative inset-y-0 left-0 z-40 w-72 bg-gradient-to-b from-bg-secondary to-white border-r border-border-light
@@ -463,7 +569,7 @@ export default function ChatInterface() {
               <div className="text-center py-8">
                 <Search className="w-12 h-12 text-txt-tertiary mx-auto mb-3" />
                 <Typography variant="body2" className="text-txt-tertiary">
-                  "{searchQuery}"에 대한 검색 결과가 없습니다
+                  &ldquo;{searchQuery}&rdquo;에 대한 검색 결과가 없습니다
                 </Typography>
               </div>
             )}
@@ -552,6 +658,15 @@ export default function ChatInterface() {
               >
                 <RefreshCw className="w-4 h-4" />
               </Button>
+              
+              <Button
+                variant="outline"
+                onClick={() => setShowHistory(!showHistory)}
+                className="p-2"
+                title="대화 히스토리"
+              >
+                <History className="w-4 h-4" />
+              </Button>
             </div>
           </div>
         </div>
@@ -617,6 +732,13 @@ export default function ChatInterface() {
                 <Typography variant="body2" className="text-txt-secondary">사이드바 토글</Typography>
                 <Typography variant="body2" className="font-mono text-xs bg-bg-secondary px-2 py-1 rounded">
                   {navigator.platform.includes('Mac') ? '⌘' : 'Ctrl'} + /
+                </Typography>
+              </div>
+              
+              <div className="flex justify-between">
+                <Typography variant="body2" className="text-txt-secondary">히스토리 토글</Typography>
+                <Typography variant="body2" className="font-mono text-xs bg-bg-secondary px-2 py-1 rounded">
+                  {navigator.platform.includes('Mac') ? '⌘' : 'Ctrl'} + H
                 </Typography>
               </div>
               

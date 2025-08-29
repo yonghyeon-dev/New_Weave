@@ -197,7 +197,7 @@ export default function DataExtractor({
   const renderExtractedDataUI = () => {
     if (!extractedData) return null;
     
-    const data = extractedData.extractedData || extractedData;
+    const data = (extractedData as any).extractedData || extractedData;
     
     // 영수증인 경우
     if (data.documentType === '영수증' || data.vendor) {
@@ -577,13 +577,13 @@ export default function DataExtractor({
                   </Badge>
                 )}
                 {extractedData.confidence && (
-                  <Badge variant={extractedData.confidence > 0.8 ? 'success' : 'warning'}>
+                  <Badge variant={extractedData.confidence > 0.8 ? 'positive' : 'notice'}>
                     신뢰도: {(extractedData.confidence * 100).toFixed(0)}%
                   </Badge>
                 )}
-                {extractedData.language && (
+                {(extractedData as any).language && (
                   <Badge variant="secondary">
-                    {extractedData.language === 'ko' ? '한국어' : extractedData.language}
+                    {(extractedData as any).language === 'ko' ? '한국어' : (extractedData as any).language}
                   </Badge>
                 )}
               </div>
@@ -623,12 +623,12 @@ export default function DataExtractor({
           {renderExtractedDataUI()}
 
           {/* 토큰 사용량 */}
-          {extractedData.metadata?.tokenUsage && (
+          {(extractedData.metadata as any)?.tokenUsage && (
             <div className="mt-4 pt-4 border-t border-border-light">
               <Typography variant="body2" className="text-txt-secondary">
-                토큰 사용량: {extractedData.metadata.tokenUsage.total.toLocaleString()}
-                {extractedData.metadata.tokenUsage.cost && 
-                  ` (비용: ₩${(extractedData.metadata.tokenUsage.cost * 1300).toFixed(0)})`
+                토큰 사용량: {(extractedData.metadata as any).tokenUsage.total.toLocaleString()}
+                {(extractedData.metadata as any).tokenUsage.cost && 
+                  ` (비용: ₩${((extractedData.metadata as any).tokenUsage.cost * 1300).toFixed(0)})`
                 }
               </Typography>
             </div>
