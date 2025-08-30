@@ -17,7 +17,6 @@ export async function middleware(request: NextRequest) {
   // 보호된 경로 (인증 필요)
   const protectedPaths = [
     '/dashboard',
-    '/clients',
     '/projects',
     '/invoices',
     '/documents',
@@ -25,15 +24,17 @@ export async function middleware(request: NextRequest) {
     '/tax',
     '/chat',
     '/settings',
+    '/ai-assistant',
+    '/business-lookup',
   ];
 
-  // 레거시 리다이렉트 매핑
+  // 레거시 리다이렉트 매핑 - /clients를 /projects?tab=clients로 리다이렉트
   const redirectMap: Record<string, string> = {
-    '/business-lookup': '/clients', // 사업자 조회는 클라이언트 관리로 통합
+    '/clients': '/projects?tab=clients', // 클라이언트 관리는 프로젝트 탭으로 통합
     '/reminders': '/reminder', // 리마인더 경로 정리
-    '/ai-assistant': '/chat', // AI 기능은 chat으로
     '/document-requests': '/documents', // 문서 요청은 문서 관리로 통합
     '/templates': '/documents', // 템플릿은 문서 관리로 통합
+    '/projects/settings': '/projects?tab=settings', // 프로젝트 설정도 탭으로 통합
   };
 
   // 레거시 경로 리다이렉트 처리
@@ -45,8 +46,13 @@ export async function middleware(request: NextRequest) {
   const response = await updateSession(request);
   
   // 세션 확인을 위해 쿠키에서 Supabase 토큰 확인
+  // auth-token이 있고 실제 값이 있는 경우만 세션이 있다고 판단
   const hasSession = request.cookies.getAll().some(cookie => 
-    cookie.name.includes('sb-') && cookie.name.includes('auth-token')
+    cookie.name.includes('sb-') && 
+    cookie.name.includes('auth-token') && 
+    cookie.value && 
+    cookie.value !== 'null' && 
+    cookie.value !== 'undefined'
   );
 
   // 보호된 경로에 인증 없이 접근 시 로그인 페이지로 리다이렉트

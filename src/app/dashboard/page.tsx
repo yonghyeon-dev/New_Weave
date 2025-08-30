@@ -52,16 +52,29 @@ export default function Dashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [supabaseClient] = useState(() => createClient());
   const [realtimeChannel, setRealtimeChannel] = useState<RealtimeChannel | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
 
   // Supabase에서 실시간 데이터 로딩
   useEffect(() => {
-    const fetchDashboardData = async () => {
+    const checkAuthAndFetchData = async () => {
       setIsLoading(true);
       
+      // 사용자 인증 확인 - getSession 사용
+      const { data: { session }, error } = await supabaseClient.auth.getSession();
+      
+      if (error || !session || !session.user) {
+        console.log('No valid session in dashboard, redirecting to login');
+        router.push('/login');
+        return;
+      }
+      
+      setUserId(session.user.id);
+      fetchDashboardData(session.user.id);
+    };
+    
+    const fetchDashboardData = async (userId: string) => {
       try {
         // 실제 Supabase 데이터 가져오기
-        // TODO: 실제 사용자 ID로 교체 필요
-        const userId = 'system';
         const [projects, clients, invoices, reminders] = await Promise.all([
           projectsService.getProjects(userId),
           clientService.getClients(userId),
@@ -286,10 +299,10 @@ export default function Dashboard() {
       }
     };
 
-    fetchDashboardData();
+    checkAuthAndFetchData();
     
     // 실시간 구독 설정
-    const setupRealtimeSubscription = () => {
+    const setupRealtimeSubscription = (currentUserId: string) => {
       const channel = supabaseClient
         .channel('dashboard-updates')
         .on(
@@ -297,7 +310,7 @@ export default function Dashboard() {
           { event: '*', schema: 'public', table: 'projects' },
           (payload) => {
             console.log('Project change received:', payload);
-            fetchDashboardData(); // 데이터 다시 로드
+            fetchDashboardData(currentUserId); // userId 전달
           }
         )
         .on(
@@ -305,7 +318,7 @@ export default function Dashboard() {
           { event: '*', schema: 'public', table: 'clients' },
           (payload) => {
             console.log('Client change received:', payload);
-            fetchDashboardData(); // 데이터 다시 로드
+            fetchDashboardData(currentUserId); // userId 전달
           }
         )
         .on(
@@ -313,7 +326,7 @@ export default function Dashboard() {
           { event: '*', schema: 'public', table: 'invoices' },
           (payload) => {
             console.log('Invoice change received:', payload);
-            fetchDashboardData(); // 데이터 다시 로드
+            fetchDashboardData(currentUserId); // userId 전달
           }
         )
         .on(
@@ -321,7 +334,7 @@ export default function Dashboard() {
           { event: '*', schema: 'public', table: 'reminders' },
           (payload) => {
             console.log('Reminder change received:', payload);
-            fetchDashboardData(); // 데이터 다시 로드
+            fetchDashboardData(currentUserId); // userId 전달
           }
         )
         .subscribe((status) => {
@@ -333,7 +346,9 @@ export default function Dashboard() {
       setRealtimeChannel(channel);
     };
     
-    setupRealtimeSubscription();
+    if (userId) {
+      setupRealtimeSubscription(userId);
+    }
     
     // Cleanup 함수
     return () => {
@@ -342,7 +357,7 @@ export default function Dashboard() {
         supabaseClient.removeChannel(realtimeChannel);
       }
     };
-  }, [supabaseClient]);
+  }, [supabaseClient, router, userId, realtimeChannel]);
 
   // 빠른 실행 버튼들
   const quickActions: QuickAction[] = [

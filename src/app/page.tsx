@@ -34,6 +34,8 @@ export default function LandingPage() {
 
   useEffect(() => {
     setIsMounted(true);
+    // 랜딩 페이지는 그대로 보여주고, 로그인은 사용자가 선택하도록
+    // router.push('/login'); // 제거 - 자동 리다이렉트 하지 않음
   }, []);
 
   const navigateToPage = (path: string) => {

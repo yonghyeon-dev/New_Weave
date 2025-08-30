@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import {
   LayoutDashboard,
@@ -19,6 +19,8 @@ import {
 } from 'lucide-react';
 import { Typography } from '@/components/ui';
 import ProfileDropdown from './ProfileDropdown';
+import { createClient } from '@/lib/supabase/client';
+import type { User } from '@supabase/supabase-js';
 
 interface MenuItem {
   label: string;
@@ -53,9 +55,12 @@ const navStructure: NavSection[] = [
 
 export default function HeaderNavigation() {
   const pathname = usePathname();
+  const router = useRouter();
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [dropdownTimeout, setDropdownTimeout] = useState<NodeJS.Timeout | null>(null);
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   const isActive = (href: string) => {
     if (href === '/') return pathname === href;
@@ -78,6 +83,56 @@ export default function HeaderNavigation() {
     }, 300);
     setDropdownTimeout(timeout);
   };
+
+  // 사용자 정보 가져오기
+  useEffect(() => {
+    const supabase = createClient();
+    
+    const getUser = async () => {
+      setIsLoading(true);
+      
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('Session error:', error);
+          router.push('/login');
+          return;
+        }
+        
+        if (!session || !session.user) {
+          // 로그인되지 않은 경우 로그인 페이지로 리다이렉트
+          console.log('No session found, redirecting to login');
+          router.push('/login');
+          return;
+        }
+        
+        setUser(session.user);
+        setIsLoading(false);
+      } catch (err) {
+        console.error('Auth check error:', err);
+        router.push('/login');
+      }
+    };
+    
+    getUser();
+    
+    // Auth 상태 변경 리스너
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('Auth state changed:', event, session?.user?.email);
+      
+      if (event === 'SIGNED_OUT' || !session) {
+        setUser(null);
+        router.push('/login');
+      } else if (session?.user) {
+        setUser(session.user);
+      }
+    });
+    
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [router]);
 
   // 컴포넌트 언마운트 시 타임아웃 정리
   useEffect(() => {
@@ -175,8 +230,8 @@ export default function HeaderNavigation() {
           {/* Profile Section */}
           <div className="flex items-center gap-4">
             <ProfileDropdown 
-              userName="홍길동"
-              userEmail="hong@example.com"
+              userName={user?.user_metadata?.full_name || user?.email?.split('@')[0] || "사용자"}
+              userEmail={user?.email || ""}
             />
 
             {/* Mobile Menu Toggle */}

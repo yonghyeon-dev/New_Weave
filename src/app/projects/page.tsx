@@ -579,26 +579,9 @@ function ProjectsContent() {
   );
 }
 
+// 새로운 워크플로우 기반 페이지를 기본으로 사용
+import ProjectWorkflowPage from './ProjectWorkflowPage';
+
 export default function ProjectsPage() {
-  return (
-    <Suspense fallback={
-      <AppLayout>
-        <DataPageContainer>
-          <div className="animate-pulse">
-            <div className="h-8 bg-gray-200 rounded w-1/4 mb-4"></div>
-            <div className="h-4 bg-gray-200 rounded w-1/2 mb-8"></div>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-              <div className="h-20 bg-gray-200 rounded-lg"></div>
-              <div className="h-20 bg-gray-200 rounded-lg"></div>
-              <div className="h-20 bg-gray-200 rounded-lg"></div>
-              <div className="h-20 bg-gray-200 rounded-lg"></div>
-            </div>
-            <div className="h-96 bg-gray-200 rounded-lg"></div>
-          </div>
-        </DataPageContainer>
-      </AppLayout>
-    }>
-      <ProjectsContent />
-    </Suspense>
-  );
+  return <ProjectWorkflowPage />;
 }

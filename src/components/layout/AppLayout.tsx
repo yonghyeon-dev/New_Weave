@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import HeaderNavigation from '@/components/navigation/HeaderNavigation';
+import SimpleHeaderNavigation from '@/components/navigation/SimpleHeaderNavigation';
 import FloatingQuickMenu from '@/components/FloatingQuickMenu';
 
 interface AppLayoutProps {
@@ -12,10 +12,10 @@ export default function AppLayout({ children }: AppLayoutProps) {
   return (
     <div className="min-h-screen bg-bg-primary">
       {/* Header Navigation */}
-      <HeaderNavigation />
+      <SimpleHeaderNavigation />
       
-      {/* Main Content with Top Padding for Fixed Header */}
-      <main className="pt-16 min-h-screen">
+      {/* Main Content with Top Padding for Fixed Header - 모바일과 데스크톱 패딩 조정 */}
+      <main className="pt-14 sm:pt-16 min-h-screen">
         <div className="w-full h-full">
           {children}
         </div>

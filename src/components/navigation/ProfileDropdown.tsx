@@ -10,6 +10,7 @@ import {
   ChevronDown
 } from 'lucide-react';
 import { Typography, Avatar } from '@/components/ui';
+import { createClient } from '@/lib/supabase/client';
 
 interface ProfileMenuItem {
   label: string;
@@ -62,10 +63,27 @@ export default function ProfileDropdown({
     {
       label: '로그아웃',
       icon: <LogOut className="w-4 h-4" />,
-      action: () => {
-        // TODO: Implement logout logic
-        console.log('Logout');
-        setIsOpen(false);
+      action: async () => {
+        const supabase = createClient();
+        const { error } = await supabase.auth.signOut();
+        
+        if (error) {
+          console.error('Logout error:', error);
+        }
+        
+        // 모든 쿠키 삭제 (브라우저 쿠키도 강제 삭제)
+        document.cookie.split(";").forEach((c) => {
+          document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+        });
+        
+        // 로컬 스토리지도 클리어
+        if (typeof window !== 'undefined') {
+          localStorage.clear();
+          sessionStorage.clear();
+        }
+        
+        // 페이지 새로고침으로 완전히 초기화
+        window.location.href = '/login';
       }
     }
   ];
