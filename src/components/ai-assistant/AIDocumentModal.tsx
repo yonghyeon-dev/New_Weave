@@ -193,20 +193,22 @@ export default function AIDocumentModal({
             </div>
           </div>
 
-          {/* DocumentGeneratorV2 컴포넌트 임베드 */}
-          <div className="border border-border-light rounded-lg p-4">
-            <DocumentGeneratorV2
-              preselectedTemplate={selectedTemplate}
-              projectContext={projectData}
-              clientContext={clientData}
-              onGenerated={(doc) => {
-                if (onDocumentGenerated) {
-                  onDocumentGenerated(doc);
-                }
-                onClose();
-              }}
-            />
-          </div>
+          {/* DocumentGeneratorV2 컴포넌트 임베드 - 템플릿이 선택된 경우에만 표시 */}
+          {selectedTemplate && (
+            <div className="border border-border-light rounded-lg p-4">
+              <DocumentGeneratorV2
+                preselectedTemplate={selectedTemplate}
+                projectContext={projectData}
+                clientContext={clientData}
+                onGenerated={(doc) => {
+                  if (onDocumentGenerated) {
+                    onDocumentGenerated(doc);
+                  }
+                  onClose();
+                }}
+              />
+            </div>
+          )}
         </div>
 
         {/* 푸터 */}
