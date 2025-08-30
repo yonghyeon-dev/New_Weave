@@ -224,18 +224,21 @@ export default function DocumentGeneratorV2({
 
   // 컴포넌트 마운트시 자동 생성
   useEffect(() => {
+    const client = workflow?.client || clientContext;
+    const project = workflow?.project || projectContext;
+    
     console.log('useEffect triggered:', {
       selectedTemplate: !!selectedTemplate,
-      client: !!workflow.client,
-      project: !!workflow.project,
+      client: !!client,
+      project: !!project,
       generatedDocument: !!generatedDocument
     });
     
-    if (selectedTemplate && workflow.client && workflow.project && !generatedDocument) {
+    if (selectedTemplate && client && project && !generatedDocument) {
       console.log('Calling generateDocumentWithAI from useEffect');
       generateDocumentWithAI();
     }
-  }, [selectedTemplate?.id, workflow.client?.id, workflow.project?.id]); // ID로 의존성 체크
+  }, [selectedTemplate?.id, workflow?.client?.id, workflow?.project?.id, clientContext?.id, projectContext?.id]); // ID로 의존성 체크
 
   // 문서 복사
   const copyToClipboard = async () => {
@@ -331,15 +334,21 @@ export default function DocumentGeneratorV2({
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <Typography variant="body2" className="text-txt-tertiary">클라이언트</Typography>
-                <Typography variant="body1" className="font-medium">{workflow.client?.companyName || '선택되지 않음'}</Typography>
+                <Typography variant="body1" className="font-medium">
+                  {workflow?.client?.companyName || clientContext?.company || clientContext?.name || '선택되지 않음'}
+                </Typography>
               </div>
               <div>
                 <Typography variant="body2" className="text-txt-tertiary">프로젝트</Typography>
-                <Typography variant="body1" className="font-medium">{workflow.project?.name || '선택되지 않음'}</Typography>
+                <Typography variant="body1" className="font-medium">
+                  {workflow?.project?.name || projectContext?.name || '선택되지 않음'}
+                </Typography>
               </div>
               <div>
                 <Typography variant="body2" className="text-txt-tertiary">문서 종류</Typography>
-                <Typography variant="body1" className="font-medium">{workflow.documentType?.name || '선택되지 않음'}</Typography>
+                <Typography variant="body1" className="font-medium">
+                  {workflow?.documentType?.name || '문서'}
+                </Typography>
               </div>
             </div>
           </div>
