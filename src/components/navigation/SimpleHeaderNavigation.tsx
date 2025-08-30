@@ -10,6 +10,7 @@ import {
   BrainCircuit,
   Bell,
   Search,
+  Calculator,
   Menu,
   X
 } from 'lucide-react';
@@ -37,19 +38,9 @@ const mainNavItems: NavItem[] = [
     icon: <Briefcase className="w-4 h-4 sm:w-5 sm:h-5" /> 
   },
   { 
-    label: 'AI 비서', 
-    href: '/ai-assistant', 
-    icon: <BrainCircuit className="w-4 h-4 sm:w-5 sm:h-5" /> 
-  },
-  { 
-    label: '리마인더', 
-    href: '/reminder', 
-    icon: <Bell className="w-4 h-4 sm:w-5 sm:h-5" /> 
-  },
-  { 
-    label: '사업자조회', 
-    href: '/business-lookup', 
-    icon: <Search className="w-4 h-4 sm:w-5 sm:h-5" /> 
+    label: '세무 관리', 
+    href: '/tax-management', 
+    icon: <Calculator className="w-4 h-4 sm:w-5 sm:h-5" /> 
   },
 ];
 
@@ -134,7 +125,7 @@ export default function SimpleHeaderNavigation() {
           <div className="flex items-center justify-between h-14 sm:h-16">
             {/* Logo - 모바일에서 크기 조정 */}
             <div className="flex items-center">
-              <Link href="/dashboard" className="flex items-center gap-2 sm:gap-3">
+              <Link href="/home" className="flex items-center gap-2 sm:gap-3">
                 <Image 
                   src="/logo.png" 
                   alt="Weave" 

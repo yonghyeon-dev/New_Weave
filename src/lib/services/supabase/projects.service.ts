@@ -1,9 +1,9 @@
 import { getSupabaseClient } from '@/lib/supabase/client'
 import type { Database } from '@/lib/supabase/database.types'
 
-type Project = Database['public']['Tables']['projects']['Row']
-type ProjectInsert = Database['public']['Tables']['projects']['Insert']
-type ProjectUpdate = Database['public']['Tables']['projects']['Update']
+export type Project = Database['public']['Tables']['projects']['Row']
+export type ProjectInsert = Database['public']['Tables']['projects']['Insert']
+export type ProjectUpdate = Database['public']['Tables']['projects']['Update']
 
 export class ProjectsService {
   private supabase = getSupabaseClient()
@@ -50,9 +50,10 @@ export class ProjectsService {
 
   // 프로젝트 생성
   async createProject(project: Omit<ProjectInsert, 'id' | 'created_at' | 'updated_at'>) {
+    const insertData: any = project;
     const { data, error } = await this.supabase
       .from('projects')
-      .insert(project)
+      .insert(insertData)
       .select()
       .single()
 
@@ -62,8 +63,8 @@ export class ProjectsService {
 
   // 프로젝트 업데이트
   async updateProject(id: string, updates: ProjectUpdate) {
-    const { data, error } = await this.supabase
-      .from('projects')
+    const { data, error } = await (this.supabase
+      .from('projects') as any)
       .update(updates)
       .eq('id', id)
       .select()
@@ -127,7 +128,7 @@ export class ProjectsService {
     }
 
     if (data) {
-      data.forEach(project => {
+      data.forEach((project: any) => {
         // 상태별 카운트
         stats.byStatus[project.status] = (stats.byStatus[project.status] || 0) + 1
         
@@ -194,8 +195,8 @@ export class ProjectsService {
       throw new Error('Progress must be between 0 and 100')
     }
 
-    const { data, error } = await this.supabase
-      .from('projects')
+    const { data, error } = await (this.supabase
+      .from('projects') as any)
       .update({ progress })
       .eq('id', id)
       .select()

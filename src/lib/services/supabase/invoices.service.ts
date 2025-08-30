@@ -10,9 +10,10 @@ export class InvoicesService {
 
   // 인보이스 생성
   async createInvoice(invoice: Omit<InvoiceInsert, 'id' | 'created_at' | 'updated_at'>) {
+    const insertData: any = invoice;
     const { data, error } = await this.supabase
       .from('invoices')
-      .insert(invoice)
+      .insert(insertData)
       .select()
       .single()
 
@@ -94,8 +95,8 @@ export class InvoicesService {
 
   // 인보이스 업데이트
   async updateInvoice(id: string, updates: InvoiceUpdate) {
-    const { data, error } = await this.supabase
-      .from('invoices')
+    const { data, error } = await (this.supabase
+      .from('invoices') as any)
       .update(updates)
       .eq('id', id)
       .select()
@@ -115,8 +116,8 @@ export class InvoicesService {
       updates.paid_date = paidDate
     }
 
-    const { data, error } = await this.supabase
-      .from('invoices')
+    const { data, error } = await (this.supabase
+      .from('invoices') as any)
       .update(updates)
       .eq('id', id)
       .select()
@@ -226,7 +227,7 @@ export class InvoicesService {
 
     const today = new Date()
 
-    data?.forEach(invoice => {
+    data?.forEach((invoice: any) => {
       // 총액
       stats.totalAmount += invoice.total || 0
 
@@ -243,7 +244,7 @@ export class InvoicesService {
           stats.byStatus.sent++
         }
       } else {
-        stats.byStatus[invoice.status]++
+        (stats.byStatus as any)[invoice.status]++
       }
     })
 
@@ -271,7 +272,7 @@ export class InvoicesService {
 
     let nextNumber = 1
     if (data && data.length > 0) {
-      const lastNumber = data[0].invoice_number
+      const lastNumber = (data[0] as any).invoice_number
       const match = lastNumber.match(/INV-\d{4}-(\d+)/)
       if (match) {
         nextNumber = parseInt(match[1]) + 1
@@ -318,7 +319,7 @@ export class InvoicesService {
     // 월별로 그룹화
     const monthlyData: Record<string, number> = {}
 
-    data?.forEach(invoice => {
+    data?.forEach((invoice: any) => {
       const month = invoice.issue_date.substring(0, 7) // YYYY-MM
       monthlyData[month] = (monthlyData[month] || 0) + (invoice.total || 0)
     })

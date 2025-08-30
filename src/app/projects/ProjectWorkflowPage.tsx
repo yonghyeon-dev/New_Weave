@@ -28,7 +28,7 @@ import {
   Sparkles
 } from 'lucide-react';
 import { projectsService } from '@/lib/services/supabase/projects.service';
-import { clientService } from '@/lib/services/supabase/clients.service';
+import { clientService, type Client } from '@/lib/services/supabase/clients.service';
 import { invoicesService } from '@/lib/services/supabase/invoices.service';
 import type { Database } from '@/lib/supabase/database.types';
 import AIDocumentModal from '@/components/ai-assistant/AIDocumentModal';
@@ -61,7 +61,6 @@ enum ProjectStage {
 
 // 타입 정의
 type Project = Database['public']['Tables']['projects']['Row'];
-type Client = Database['public']['Tables']['clients']['Row'];
 type Invoice = Database['public']['Tables']['invoices']['Row'];
 
 export default function ProjectWorkflowPage() {
@@ -375,7 +374,6 @@ export default function ProjectWorkflowPage() {
           clientData={selectedClient ? {
             id: selectedClient.id,
             company: selectedClient.company,
-            contact_person: selectedClient.contact_person || undefined,
             email: selectedClient.email || undefined,
             phone: selectedClient.phone || undefined
           } : undefined}
@@ -394,7 +392,7 @@ function ClientsTab({ clients, projects, searchQuery }: { clients: Client[], pro
   const router = useRouter();
   const filteredClients = clients.filter(client => 
     client.company?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    client.contact_person?.toLowerCase().includes(searchQuery.toLowerCase())
+    client.name?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   // 각 클라이언트별 프로젝트 수 계산
@@ -435,7 +433,7 @@ function ClientsTab({ clients, projects, searchQuery }: { clients: Client[], pro
             {filteredClients.map((client) => (
               <tr key={client.id} className="hover:bg-bg-secondary cursor-pointer">
                 <td className="px-4 py-3 text-sm text-txt-primary">{client.company}</td>
-                <td className="px-4 py-3 text-sm text-txt-secondary">{client.contact_person || '-'}</td>
+                <td className="px-4 py-3 text-sm text-txt-secondary">{client.name || '-'}</td>
                 <td className="px-4 py-3 text-sm text-txt-secondary">{client.phone || '-'}</td>
                 <td className="px-4 py-3 text-sm text-txt-primary">{getProjectCount(client.id)}</td>
                 <td className="px-4 py-3">
@@ -459,7 +457,7 @@ function ClientsTab({ clients, projects, searchQuery }: { clients: Client[], pro
                   {client.company}
                 </Typography>
                 <Typography variant="caption" className="text-txt-secondary">
-                  {client.contact_person || '담당자 없음'}
+                  {client.name || '담당자 없음'}
                 </Typography>
               </div>
               <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">

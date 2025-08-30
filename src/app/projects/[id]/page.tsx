@@ -29,10 +29,10 @@ import {
   Wand2,
   X
 } from 'lucide-react';
-import type { Project } from '@/lib/types/project';
+import type { ProjectDetail } from '@/lib/types/project';
 
 // Mock 프로젝트 상세 데이터
-const mockProject: Project = {
+const mockProject: ProjectDetail = {
   id: '1',
   name: '웹사이트 리뉴얼 프로젝트',
   description: '회사 웹사이트를 최신 기술 스택으로 전면 리뉴얼하는 프로젝트입니다. 반응형 디자인, 성능 최적화, SEO 개선이 주요 목표입니다.',
@@ -244,7 +244,7 @@ export default function ProjectDetailPage() {
   const router = useRouter();
   const params = useParams();
   const [activeTab, setActiveTab] = useState('overview');
-  const [project] = useState<Project>(mockProject);
+  const [project] = useState<ProjectDetail>(mockProject);
   const [showAIModal, setShowAIModal] = useState(false);
   const [documentType, setDocumentType] = useState<'quotation' | 'contract' | 'invoice' | 'report'>('quotation');
   const [clientDetails, setClientDetails] = useState<any>(null);

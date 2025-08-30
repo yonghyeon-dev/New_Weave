@@ -10,9 +10,10 @@ export class RemindersService {
 
   // 리마인더 생성
   async createReminder(reminder: Omit<ReminderInsert, 'id' | 'created_at' | 'updated_at'>) {
+    const insertData: any = reminder;
     const { data, error } = await this.supabase
       .from('reminders')
-      .insert(reminder)
+      .insert(insertData)
       .select()
       .single()
 
@@ -64,8 +65,8 @@ export class RemindersService {
 
   // 리마인더 업데이트
   async updateReminder(id: string, updates: ReminderUpdate) {
-    const { data, error } = await this.supabase
-      .from('reminders')
+    const { data, error } = await (this.supabase
+      .from('reminders') as any)
       .update(updates)
       .eq('id', id)
       .select()
@@ -77,8 +78,8 @@ export class RemindersService {
 
   // 리마인더 상태 업데이트
   async updateReminderStatus(id: string, status: Reminder['status']) {
-    const { data, error } = await this.supabase
-      .from('reminders')
+    const { data, error } = await (this.supabase
+      .from('reminders') as any)
       .update({ status })
       .eq('id', id)
       .select()
@@ -233,7 +234,7 @@ export class RemindersService {
     const weekLater = new Date(today)
     weekLater.setDate(weekLater.getDate() + 7)
 
-    data?.forEach(reminder => {
+    data?.forEach((reminder: any) => {
       // 상태별
       if (reminder.status === 'pending') {
         stats.pending++
@@ -255,7 +256,7 @@ export class RemindersService {
 
         // 우선순위별
         if (reminder.priority) {
-          stats.byPriority[reminder.priority]++
+          (stats.byPriority as any)[reminder.priority]++
         }
       } else if (reminder.status === 'completed') {
         stats.completed++
@@ -285,9 +286,10 @@ export class RemindersService {
       currentDate.setDate(currentDate.getDate() + intervalDays)
     }
 
+    const insertData: any = reminders;
     const { data, error } = await this.supabase
       .from('reminders')
-      .insert(reminders)
+      .insert(insertData)
       .select()
 
     if (error) throw error

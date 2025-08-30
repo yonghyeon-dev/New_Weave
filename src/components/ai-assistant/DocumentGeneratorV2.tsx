@@ -259,8 +259,8 @@ export default function DocumentGeneratorV2({
     const documentToExport = isEditing ? editedDocument : generatedDocument;
     if (!documentToExport) return;
 
-    const filename = `${workflow.project?.name || 'document'}_${Date.now()}`;
-    const documentTitle = workflow.documentType?.name || '문서';
+    const filename = `${workflow?.project?.name || 'document'}_${Date.now()}`;
+    const documentTitle = workflow?.documentType?.name || '문서';
 
     try {
       if (format === 'markdown') {

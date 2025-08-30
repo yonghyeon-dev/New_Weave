@@ -9,8 +9,7 @@ import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import Typography from '@/components/ui/Typography';
 import { projectsService } from '@/lib/services/supabase/projects.service';
-import { clientService } from '@/lib/services/supabase/clients.service';
-import type { Database } from '@/lib/supabase/database.types';
+import { clientService, type Client } from '@/lib/services/supabase/clients.service';
 import { 
   FolderPlus,
   Save,
@@ -22,8 +21,6 @@ import {
   AlertCircle
 } from 'lucide-react';
 
-type Client = Database['public']['Tables']['clients']['Row'];
-
 export default function NewProjectPage() {
   const router = useRouter();
   const [clients, setClients] = useState<Client[]>([]);
@@ -34,8 +31,8 @@ export default function NewProjectPage() {
     name: '',
     description: '',
     client_id: '',
-    status: 'planning' as Database['public']['Tables']['projects']['Row']['status'],
-    priority: 'medium' as Database['public']['Tables']['projects']['Row']['priority'],
+    status: 'planning' as 'planning' | 'in_progress' | 'review' | 'completed' | 'on_hold' | 'cancelled',
+    priority: 'medium' as 'low' | 'medium' | 'high' | 'urgent',
     budget: 0,
     start_date: new Date().toISOString().split('T')[0],
     end_date: '',

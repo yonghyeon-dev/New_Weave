@@ -29,18 +29,19 @@ export class DocumentsService {
       .getPublicUrl(fileName)
 
     // 3. 문서 메타데이터 저장
+    const insertData: any = {
+      user_id: userId,
+      project_id: projectId,
+      name: file.name,
+      type: file.type || 'application/octet-stream',
+      file_url: urlData.publicUrl,
+      file_size: file.size,
+      mime_type: file.type,
+      metadata
+    };
     const { data, error } = await this.supabase
       .from('documents')
-      .insert({
-        user_id: userId,
-        project_id: projectId,
-        name: file.name,
-        type: file.type || 'application/octet-stream',
-        file_url: urlData.publicUrl,
-        file_size: file.size,
-        mime_type: file.type,
-        metadata
-      })
+      .insert(insertData)
       .select()
       .single()
 
@@ -93,8 +94,8 @@ export class DocumentsService {
       updates.embeddings = embeddings
     }
 
-    const { data, error } = await this.supabase
-      .from('documents')
+    const { data, error } = await (this.supabase
+      .from('documents') as any)
       .update(updates)
       .eq('id', id)
       .select()
@@ -116,8 +117,8 @@ export class DocumentsService {
     if (fetchError) throw fetchError
 
     // 2. Storage에서 파일 삭제
-    if (doc?.file_url) {
-      const path = doc.file_url.split('/').slice(-2).join('/')
+    if ((doc as any)?.file_url) {
+      const path = (doc as any).file_url.split('/').slice(-2).join('/')
       await this.supabase.storage.from('documents').remove([path])
     }
 
@@ -137,7 +138,7 @@ export class DocumentsService {
     matchThreshold: number = 0.7,
     matchCount: number = 10
   ) {
-    const { data, error } = await this.supabase
+    const { data, error } = await (this.supabase as any)
       .rpc('search_documents', {
         query_embedding: queryEmbedding,
         match_threshold: matchThreshold,
@@ -178,7 +179,7 @@ export class DocumentsService {
       byProject: {} as Record<string, number>
     }
 
-    data?.forEach(doc => {
+    data?.forEach((doc: any) => {
       // 총 크기
       stats.totalSize += doc.file_size || 0
 
@@ -206,15 +207,15 @@ export class DocumentsService {
   async processDocument(documentId: string) {
     const doc = await this.getDocumentById(documentId)
     
-    if (!doc.content) {
+    if (!(doc as any)?.content) {
       throw new Error('Document has no content to process')
     }
 
     // 임베딩 생성
-    const embeddings = await this.generateEmbeddings(doc.content)
+    const embeddings = await this.generateEmbeddings((doc as any).content)
 
     // 임베딩 저장
-    return await this.updateDocumentContent(documentId, doc.content, embeddings)
+    return await this.updateDocumentContent(documentId, (doc as any).content, embeddings)
   }
 
   // 실시간 구독 설정

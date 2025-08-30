@@ -10,9 +10,10 @@ export class TaxService {
 
   // 세무 기록 생성
   async createTaxRecord(record: Omit<TaxRecordInsert, 'id' | 'created_at' | 'updated_at'>) {
+    const insertData: any = record;
     const { data, error } = await this.supabase
       .from('tax_records')
-      .insert(record)
+      .insert(insertData)
       .select()
       .single()
 
@@ -74,8 +75,8 @@ export class TaxService {
 
   // 세무 기록 업데이트
   async updateTaxRecord(id: string, updates: TaxRecordUpdate) {
-    const { data, error } = await this.supabase
-      .from('tax_records')
+    const { data, error } = await (this.supabase
+      .from('tax_records') as any)
       .update(updates)
       .eq('id', id)
       .select()
@@ -172,7 +173,7 @@ export class TaxService {
       byTaxType: {} as Record<string, { count: number; amount: number }>
     }
 
-    data?.forEach(record => {
+    data?.forEach((record: any) => {
       // 총액
       stats.totalAmount += record.amount || 0
 
@@ -226,8 +227,8 @@ export class TaxService {
       filed_date: filedDate
     }
 
-    const { data, error } = await this.supabase
-      .from('tax_records')
+    const { data, error } = await (this.supabase
+      .from('tax_records') as any)
       .update(updates)
       .eq('id', id)
       .select()

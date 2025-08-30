@@ -5,8 +5,8 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import AppLayout from '@/components/layout/AppLayout';
 import { DataPageContainer } from '@/components/layout/PageContainer';
 import { ProjectTabContent, ClientTabContent, InvoiceTabContent, PaymentTabContent } from '@/components/projects/ProjectTabs';
-import { projectsService } from '@/lib/services/supabase/projects.service';
-import { clientService } from '@/lib/services/supabase/clients.service';
+import { projectsService, type Project } from '@/lib/services/supabase/projects.service';
+import { clientService, type Client } from '@/lib/services/supabase/clients.service';
 import { invoicesService } from '@/lib/services/supabase/invoices.service';
 import type { Database } from '@/lib/supabase/database.types';
 import { 
@@ -33,9 +33,8 @@ import Typography from '@/components/ui/Typography';
 import type { ProjectSummary, ProjectStatistics } from '@/lib/types/project';
 
 // Supabase 프로젝트 타입
-type Project = Database['public']['Tables']['projects']['Row'];
 type ProjectWithClient = Project & {
-  client?: Database['public']['Tables']['clients']['Row'];
+  client?: Client | null;
   taskCount?: {
     total: number;
     completed: number;
@@ -106,7 +105,7 @@ function ProjectsContent() {
           
           return {
             ...project,
-            client,
+            client: client || undefined,
             taskCount
           };
         })

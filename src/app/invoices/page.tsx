@@ -9,20 +9,18 @@ import Table from '@/components/ui/Table';
 import Select from '@/components/ui/Select';
 import Typography from '@/components/ui/Typography';
 import { invoicesService } from '@/lib/services/supabase/invoices.service';
-import { clientService } from '@/lib/services/supabase/clients.service';
-import { projectsService } from '@/lib/services/supabase/projects.service';
+import { clientService, type Client } from '@/lib/services/supabase/clients.service';
+import { projectsService, type Project } from '@/lib/services/supabase/projects.service';
 import type { Database } from '@/lib/supabase/database.types';
 import { cn } from '@/lib/utils';
 
 // Supabase 타입
 type Invoice = Database['public']['Tables']['invoices']['Row'];
-type Client = Database['public']['Tables']['clients']['Row'];
-type Project = Database['public']['Tables']['projects']['Row'];
 type InvoiceStatus = Database['public']['Tables']['invoices']['Row']['status'];
 
 type InvoiceWithRelations = Invoice & {
-  client?: Client;
-  project?: Project;
+  client?: Client | null;
+  project?: Project | null;
 };
 
 
@@ -122,8 +120,8 @@ export default function InvoicesPage() {
           
           return {
             ...invoice,
-            client,
-            project
+            client: client || undefined,
+            project: project || undefined
           };
         })
       );

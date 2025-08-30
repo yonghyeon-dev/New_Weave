@@ -57,10 +57,11 @@ export class ClientService {
   }
 
   // 클라이언트 생성
-  async createClient(client: Omit<ClientInsert, 'id' | 'created_at' | 'updated_at'>): Promise<Client | null> {
+  async createClient(clientData: Omit<Client, 'id' | 'created_at' | 'updated_at'>): Promise<Client | null> {
+    const insertData: any = clientData;
     const { data, error } = await this.supabase
       .from('clients')
-      .insert([client])
+      .insert(insertData)
       .select()
       .single()
 
@@ -74,8 +75,8 @@ export class ClientService {
 
   // 클라이언트 업데이트
   async updateClient(id: string, updates: ClientUpdate): Promise<Client | null> {
-    const { data, error } = await this.supabase
-      .from('clients')
+    const { data, error } = await (this.supabase
+      .from('clients') as any)
       .update(updates)
       .eq('id', id)
       .select()
@@ -127,7 +128,7 @@ export class ClientService {
       .from('clients')
       .select('*')
       .eq('user_id', userId)
-      .eq('status', 'active')
+      .eq('is_active', true)
       .order('created_at', { ascending: false })
 
     if (error) {

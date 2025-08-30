@@ -9,9 +9,8 @@ import Input from '@/components/ui/Input';
 import Typography from '@/components/ui/Typography';
 import BusinessInfoLookup from '@/components/tax/BusinessInfoLookup';
 import { BusinessInfo } from '@/lib/types/business';
-import { clientService } from '@/lib/services/supabase/clients.service';
+import { clientService, type Client } from '@/lib/services/supabase/clients.service';
 import { projectsService } from '@/lib/services/supabase/projects.service';
-import type { Database } from '@/lib/supabase/database.types';
 import { 
   Users, 
   Plus, 
@@ -30,8 +29,7 @@ import {
   AlertCircle
 } from 'lucide-react';
 
-// Supabase 클라이언트 타입
-type Client = Database['public']['Tables']['clients']['Row'];
+// 클라이언트 타입 with 통계
 type ClientWithStats = Client & {
   totalProjects: number;
   totalRevenue: number;
@@ -47,14 +45,13 @@ export default function ClientsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-  const [formData, setFormData] = useState<Partial<Client>>({
+  const [formData, setFormData] = useState<Partial<Client & { status?: 'active' | 'inactive' }>>({
     name: '',
     company: '',
     business_number: '',
     email: '',
     phone: '',
     address: '',
-    contact_person: '',
     status: 'active',
     tax_type: ''
   });
@@ -113,11 +110,11 @@ export default function ClientsPage() {
   const filteredClients = clients.filter(client =>
     client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     client.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    client.email.toLowerCase().includes(searchTerm.toLowerCase())
+    (client.email && client.email.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
-  const getStatusBadge = (status: string) => {
-    return status === 'active' ? 
+  const getStatusBadge = (isActive?: boolean) => {
+    return isActive !== false ? 
       <span className="px-2 py-1 text-xs bg-green-100 text-green-800 rounded-full">활성</span> :
       <span className="px-2 py-1 text-xs bg-gray-100 text-gray-800 rounded-full">비활성</span>;
   };
@@ -149,18 +146,21 @@ export default function ClientsPage() {
         email: formData.email || '',
         phone: formData.phone,
         address: formData.address,
-        contact_person: formData.contact_person,
-        status: formData.status as 'active' | 'inactive' || 'active',
+        is_active: formData.status === 'active' || formData.status === undefined,
         tax_type: formData.tax_type
       });
 
-      const clientWithStats: ClientWithStats = {
-        ...newClient,
-        totalProjects: 0,
-        totalRevenue: 0
-      };
+      if (newClient) {
+        const clientWithStats: ClientWithStats = {
+          ...newClient,
+          totalProjects: 0,
+          totalRevenue: 0
+        };
 
-      setClients(prev => [clientWithStats, ...prev]);
+        setClients(prev => [clientWithStats, ...prev]);
+      } else {
+        throw new Error('Failed to create client');
+      }
       setShowAddModal(false);
       setFormData({
         name: '',
@@ -169,7 +169,6 @@ export default function ClientsPage() {
         email: '',
         phone: '',
         address: '',
-        contact_person: '',
         status: 'active',
         tax_type: ''
       });
@@ -193,25 +192,28 @@ export default function ClientsPage() {
         email: formData.email,
         phone: formData.phone,
         address: formData.address,
-        contact_person: formData.contact_person,
-        status: formData.status as 'active' | 'inactive',
+        is_active: formData.status === 'active' || formData.status === undefined,
         tax_type: formData.tax_type
       });
 
-      const clientWithStats: ClientWithStats = {
-        ...updatedClient,
-        totalProjects: selectedClient.totalProjects,
-        totalRevenue: selectedClient.totalRevenue
-      };
+      if (updatedClient) {
+        const clientWithStats: ClientWithStats = {
+          ...updatedClient,
+          totalProjects: selectedClient.totalProjects,
+          totalRevenue: selectedClient.totalRevenue
+        };
 
-      setClients(prev => prev.map(client => 
-        client.id === selectedClient.id 
-          ? clientWithStats
-          : client
-      ));
+        setClients(prev => prev.map(client => 
+          client.id === selectedClient.id 
+            ? clientWithStats
+            : client
+        ));
 
-      setSelectedClient(clientWithStats);
-      setShowEditModal(false);
+        setSelectedClient(clientWithStats);
+        setShowEditModal(false);
+      } else {
+        throw new Error('Failed to update client');
+      }
     } catch (err) {
       console.error('Failed to update client:', err);
       alert('클라이언트 수정에 실패했습니다.');
@@ -242,11 +244,10 @@ export default function ClientsPage() {
       name: selectedClient.name,
       company: selectedClient.company,
       business_number: selectedClient.business_number,
-      email: selectedClient.email,
+      email: selectedClient.email || '',
       phone: selectedClient.phone,
       address: selectedClient.address,
-      contact_person: selectedClient.contact_person,
-      status: selectedClient.status,
+      status: selectedClient.is_active !== false ? 'active' : 'inactive',
       tax_type: selectedClient.tax_type
     });
     setShowEditModal(true);
@@ -350,21 +351,25 @@ export default function ClientsPage() {
                           <div>
                             <div className="flex items-center gap-2 mb-1">
                               <Typography variant="h4">{client.name}</Typography>
-                              {getStatusBadge(client.status)}
+                              {getStatusBadge(client.is_active)}
                             </div>
                             <div className="space-y-1 text-sm text-txt-secondary">
                               <div className="flex items-center gap-2">
                                 <Building className="w-4 h-4" />
                                 {client.company}
                               </div>
-                              <div className="flex items-center gap-2">
-                                <Mail className="w-4 h-4" />
-                                {client.email}
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <Phone className="w-4 h-4" />
-                                {client.phone}
-                              </div>
+                              {client.email && (
+                                <div className="flex items-center gap-2">
+                                  <Mail className="w-4 h-4" />
+                                  {client.email}
+                                </div>
+                              )}
+                              {client.phone && (
+                                <div className="flex items-center gap-2">
+                                  <Phone className="w-4 h-4" />
+                                  {client.phone}
+                                </div>
+                              )}
                             </div>
                           </div>
                         </div>
@@ -418,14 +423,18 @@ export default function ClientsPage() {
                     </div>
 
                     <div className="space-y-3">
-                      <div>
-                        <Typography variant="body2" className="text-txt-tertiary">이메일</Typography>
-                        <Typography variant="body1">{selectedClient.email}</Typography>
-                      </div>
-                      <div>
-                        <Typography variant="body2" className="text-txt-tertiary">전화번호</Typography>
-                        <Typography variant="body1">{selectedClient.phone}</Typography>
-                      </div>
+                      {selectedClient.email && (
+                        <div>
+                          <Typography variant="body2" className="text-txt-tertiary">이메일</Typography>
+                          <Typography variant="body1">{selectedClient.email}</Typography>
+                        </div>
+                      )}
+                      {selectedClient.phone && (
+                        <div>
+                          <Typography variant="body2" className="text-txt-tertiary">전화번호</Typography>
+                          <Typography variant="body1">{selectedClient.phone}</Typography>
+                        </div>
+                      )}
                       {selectedClient.business_number && (
                         <div>
                           <Typography variant="body2" className="text-txt-tertiary">사업자번호</Typography>
@@ -446,7 +455,7 @@ export default function ClientsPage() {
                       )}
                       <div>
                         <Typography variant="body2" className="text-txt-tertiary">상태</Typography>
-                        {getStatusBadge(selectedClient.status)}
+                        {getStatusBadge(selectedClient.is_active)}
                       </div>
                       <div>
                         <Typography variant="body2" className="text-txt-tertiary">등록일</Typography>
@@ -517,7 +526,6 @@ export default function ClientsPage() {
                       email: '',
                       phone: '',
                       address: '',
-                      contact_person: '',
                       status: 'active',
                       tax_type: ''
                     });
@@ -628,17 +636,6 @@ export default function ClientsPage() {
                   
                   <div>
                     <label className="block text-sm font-medium text-txt-secondary mb-2">
-                      담당자
-                    </label>
-                    <Input
-                      value={formData.contact_person || ''}
-                      onChange={(e) => setFormData(prev => ({ ...prev, contact_person: e.target.value }))}
-                      placeholder="담당자 이름"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-txt-secondary mb-2">
                       상태
                     </label>
                     <select
@@ -664,7 +661,6 @@ export default function ClientsPage() {
                         email: '',
                         phone: '',
                         address: '',
-                        contact_person: '',
                         status: 'active',
                         tax_type: ''
                       });
@@ -795,17 +791,6 @@ export default function ClientsPage() {
                     value={formData.address || ''}
                     onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
                     placeholder="서울시 강남구 테헤란로 123"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-txt-secondary mb-2">
-                    담당자
-                  </label>
-                  <Input
-                    value={formData.contact_person || ''}
-                    onChange={(e) => setFormData(prev => ({ ...prev, contact_person: e.target.value }))}
-                    placeholder="담당자 이름"
                   />
                 </div>
                 
