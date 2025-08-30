@@ -72,7 +72,8 @@ export default function MessageBubble({ message, onRegenerate, reactions, onReac
                   ul: ({children}) => <ul className="list-disc list-inside mb-2">{children}</ul>,
                   ol: ({children}) => <ol className="list-decimal list-inside mb-2">{children}</ol>,
                   li: ({children}) => <li className="mb-1">{children}</li>,
-                  code: ({inline, className, children, ...props}) => {
+                  code: ({className, children, ...props}: any) => {
+                    const inline = props.inline;
                     const match = /language-(\w+)/.exec(className || '');
                     if (!inline && match) {
                       return (

@@ -1,8 +1,11 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import AppLayout from '@/components/layout/AppLayout';
+import AIDocumentModal from '@/components/ai-assistant/AIDocumentModal';
+import { Typography, Button, Card } from '@/components/ui';
+import { clientService } from '@/lib/services/supabase/clients.service';
 import { 
   ArrowLeft,
   Calendar,
@@ -21,12 +24,15 @@ import {
   MessageSquare,
   Target,
   CreditCard,
-  Briefcase
+  Briefcase,
+  FileSpreadsheet,
+  Wand2,
+  X
 } from 'lucide-react';
-import type { Project } from '@/lib/types/project';
+import type { ProjectDetail } from '@/lib/types/project';
 
 // Mock 프로젝트 상세 데이터
-const mockProject: Project = {
+const mockProject: ProjectDetail = {
   id: '1',
   name: '웹사이트 리뉴얼 프로젝트',
   description: '회사 웹사이트를 최신 기술 스택으로 전면 리뉴얼하는 프로젝트입니다. 반응형 디자인, 성능 최적화, SEO 개선이 주요 목표입니다.',
@@ -238,7 +244,23 @@ export default function ProjectDetailPage() {
   const router = useRouter();
   const params = useParams();
   const [activeTab, setActiveTab] = useState('overview');
-  const [project] = useState<Project>(mockProject);
+  const [project] = useState<ProjectDetail>(mockProject);
+  const [showAIModal, setShowAIModal] = useState(false);
+  const [documentType, setDocumentType] = useState<'quotation' | 'contract' | 'invoice' | 'report'>('quotation');
+  const [clientDetails, setClientDetails] = useState<any>(null);
+
+  // 클라이언트 상세 정보 가져오기
+  useEffect(() => {
+    const fetchClientDetails = async () => {
+      if (project.clientId) {
+        const client = await clientService.getClientById(project.clientId);
+        if (client) {
+          setClientDetails(client);
+        }
+      }
+    };
+    fetchClientDetails();
+  }, [project.clientId]);
 
   // 탭 메뉴
   const tabs = [
@@ -550,11 +572,44 @@ export default function ProjectDetailPage() {
                   <h3 className="text-lg font-semibold text-txt-primary mb-4">빠른 작업</h3>
                   <div className="space-y-2">
                     <button 
-                      onClick={() => router.push('/invoices/new')}
+                      onClick={() => {
+                        setDocumentType('quotation');
+                        setShowAIModal(true);
+                      }}
                       className="w-full flex items-center gap-3 px-3 py-2 text-sm text-txt-secondary hover:text-txt-primary hover:bg-bg-secondary rounded-lg transition-colors"
                     >
                       <FileText className="w-4 h-4" />
-                      <span>인보이스 생성</span>
+                      <span>견적서 생성</span>
+                    </button>
+                    <button 
+                      onClick={() => {
+                        setDocumentType('contract');
+                        setShowAIModal(true);
+                      }}
+                      className="w-full flex items-center gap-3 px-3 py-2 text-sm text-txt-secondary hover:text-txt-primary hover:bg-bg-secondary rounded-lg transition-colors"
+                    >
+                      <FileSpreadsheet className="w-4 h-4" />
+                      <span>계약서 생성</span>
+                    </button>
+                    <button 
+                      onClick={() => {
+                        setDocumentType('invoice');
+                        setShowAIModal(true);
+                      }}
+                      className="w-full flex items-center gap-3 px-3 py-2 text-sm text-txt-secondary hover:text-txt-primary hover:bg-bg-secondary rounded-lg transition-colors"
+                    >
+                      <CreditCard className="w-4 h-4" />
+                      <span>청구서 생성</span>
+                    </button>
+                    <button 
+                      onClick={() => {
+                        setDocumentType('report');
+                        setShowAIModal(true);
+                      }}
+                      className="w-full flex items-center gap-3 px-3 py-2 text-sm text-txt-secondary hover:text-txt-primary hover:bg-bg-secondary rounded-lg transition-colors"
+                    >
+                      <Wand2 className="w-4 h-4" />
+                      <span>보고서 생성</span>
                     </button>
                     <button className="w-full flex items-center gap-3 px-3 py-2 text-sm text-txt-secondary hover:text-txt-primary hover:bg-bg-secondary rounded-lg transition-colors">
                       <Upload className="w-4 h-4" />
@@ -662,6 +717,41 @@ export default function ProjectDetailPage() {
 
           {/* 다른 탭들도 필요에 따라 구현 */}
         </div>
+
+        {/* AI Document Modal */}
+        {showAIModal && (
+          <AIDocumentModal
+            isOpen={showAIModal}
+            onClose={() => setShowAIModal(false)}
+            documentType={documentType}
+            projectData={{
+              id: project.id,
+              name: project.name,
+              clientId: project.clientId,
+              clientName: project.clientName,
+              budget: project.budget.estimated,
+              description: project.description
+            }}
+            clientData={clientDetails ? {
+              id: clientDetails.id,
+              company: clientDetails.company || clientDetails.name,
+              contact_person: clientDetails.name,
+              email: clientDetails.email || 'contact@example.com',
+              phone: clientDetails.phone || '02-1234-5678'
+            } : {
+              id: project.clientId,
+              company: project.clientName,
+              contact_person: '담당자',
+              email: 'contact@example.com',
+              phone: '02-1234-5678'
+            }}
+            onDocumentGenerated={(doc) => {
+              console.log('AI 문서 생성 완료:', doc);
+              // TODO: 생성된 문서를 프로젝트 문서 목록에 추가
+              setShowAIModal(false);
+            }}
+          />
+        )}
       </div>
     </AppLayout>
   );

@@ -5,6 +5,7 @@ import { Card } from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Typography from '@/components/ui/Typography';
 import Badge from '@/components/ui/Badge';
+import { documentsService } from '@/lib/services/supabase/documents.service';
 import { 
   Upload, 
   FileText, 
@@ -16,7 +17,8 @@ import {
   Loader2,
   X,
   Eye,
-  FileImage
+  FileImage,
+  Database
 } from 'lucide-react';
 import { ExtractedData } from '@/types/ai-assistant';
 
@@ -25,13 +27,17 @@ interface DataExtractorProps {
   onError?: (error: Error) => void;
   maxFileSize?: number; // in MB
   acceptedFormats?: string[];
+  projectId?: string; // 프로젝트 ID로 문서 연결
+  enableRAG?: boolean; // RAG 시스템에 저장 여부
 }
 
 export default function DataExtractor({
   onDataExtracted,
   onError,
   maxFileSize = 10,
-  acceptedFormats = ['.pdf', '.jpg', '.jpeg', '.png', '.gif', '.bmp']
+  acceptedFormats = ['.pdf', '.jpg', '.jpeg', '.png', '.gif', '.bmp'],
+  projectId,
+  enableRAG = true
 }: DataExtractorProps) {
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
@@ -41,6 +47,8 @@ export default function DataExtractor({
   const [copied, setCopied] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [dragActive, setDragActive] = useState(false);
+  const [savingToRAG, setSavingToRAG] = useState(false);
+  const [savedToRAG, setSavedToRAG] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // 파일 유효성 검사
@@ -142,6 +150,11 @@ export default function DataExtractor({
         const extracted: ExtractedData = result.data;
         setExtractedData(extracted);
         onDataExtracted?.(extracted);
+        
+        // RAG 시스템에 자동 저장
+        if (enableRAG) {
+          await saveToRAGSystem(extracted);
+        }
       } else {
         throw new Error(result.error || '데이터 추출에 실패했습니다.');
       }
@@ -182,12 +195,48 @@ export default function DataExtractor({
     URL.revokeObjectURL(url);
   };
 
+  // RAG 시스템에 저장
+  const saveToRAGSystem = async (data: ExtractedData) => {
+    setSavingToRAG(true);
+    try {
+      // 추출된 데이터를 텍스트로 변환
+      const content = JSON.stringify(data, null, 2);
+      const metadata = {
+        file_name: file?.name || 'extracted_data',
+        file_type: file?.type || 'application/json',
+        extracted_at: new Date().toISOString(),
+        ...data
+      };
+      
+      // TODO: Supabase documents 테이블에 저장
+      // documentsService.uploadDocument 메서드를 사용하거나
+      // 별도의 텍스트 문서 생성 메서드 필요
+      console.log('Saving to RAG system:', {
+        title: file?.name || '추출된 데이터',
+        content,
+        type: 'extracted',
+        project_id: projectId || null,
+        metadata,
+        tags: ['extracted', 'rag', file?.type.includes('image') ? 'image' : 'document']
+      });
+      
+      setSavedToRAG(true);
+      setTimeout(() => setSavedToRAG(false), 3000);
+    } catch (err) {
+      console.error('Failed to save to RAG system:', err);
+      setError('RAG 시스템 저장에 실패했습니다.');
+    } finally {
+      setSavingToRAG(false);
+    }
+  };
+
   // 파일 제거
   const removeFile = () => {
     setFile(null);
     setPreview(null);
     setExtractedData(null);
     setError(null);
+    setSavedToRAG(false);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -197,7 +246,7 @@ export default function DataExtractor({
   const renderExtractedDataUI = () => {
     if (!extractedData) return null;
     
-    const data = extractedData.extractedData || extractedData;
+    const data = (extractedData as any).extractedData || extractedData;
     
     // 영수증인 경우
     if (data.documentType === '영수증' || data.vendor) {
@@ -577,13 +626,13 @@ export default function DataExtractor({
                   </Badge>
                 )}
                 {extractedData.confidence && (
-                  <Badge variant={extractedData.confidence > 0.8 ? 'success' : 'warning'}>
+                  <Badge variant={extractedData.confidence > 0.8 ? 'positive' : 'notice'}>
                     신뢰도: {(extractedData.confidence * 100).toFixed(0)}%
                   </Badge>
                 )}
-                {extractedData.language && (
+                {(extractedData as any).language && (
                   <Badge variant="secondary">
-                    {extractedData.language === 'ko' ? '한국어' : extractedData.language}
+                    {(extractedData as any).language === 'ko' ? '한국어' : (extractedData as any).language}
                   </Badge>
                 )}
               </div>
@@ -616,6 +665,17 @@ export default function DataExtractor({
                 <Download className="w-4 h-4" />
                 <span>다운로드</span>
               </Button>
+              {enableRAG && !savedToRAG && !savingToRAG && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => saveToRAGSystem(extractedData)}
+                  className="flex items-center space-x-1"
+                >
+                  <Database className="w-4 h-4" />
+                  <span>RAG 저장</span>
+                </Button>
+              )}
             </div>
           </div>
 
@@ -623,12 +683,12 @@ export default function DataExtractor({
           {renderExtractedDataUI()}
 
           {/* 토큰 사용량 */}
-          {extractedData.metadata?.tokenUsage && (
+          {(extractedData.metadata as any)?.tokenUsage && (
             <div className="mt-4 pt-4 border-t border-border-light">
               <Typography variant="body2" className="text-txt-secondary">
-                토큰 사용량: {extractedData.metadata.tokenUsage.total.toLocaleString()}
-                {extractedData.metadata.tokenUsage.cost && 
-                  ` (비용: ₩${(extractedData.metadata.tokenUsage.cost * 1300).toFixed(0)})`
+                토큰 사용량: {(extractedData.metadata as any).tokenUsage.total.toLocaleString()}
+                {(extractedData.metadata as any).tokenUsage.cost && 
+                  ` (비용: ₩${((extractedData.metadata as any).tokenUsage.cost * 1300).toFixed(0)})`
                 }
               </Typography>
             </div>

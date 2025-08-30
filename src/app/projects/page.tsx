@@ -5,6 +5,10 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import AppLayout from '@/components/layout/AppLayout';
 import { DataPageContainer } from '@/components/layout/PageContainer';
 import { ProjectTabContent, ClientTabContent, InvoiceTabContent, PaymentTabContent } from '@/components/projects/ProjectTabs';
+import { projectsService, type Project } from '@/lib/services/supabase/projects.service';
+import { clientService, type Client } from '@/lib/services/supabase/clients.service';
+import { invoicesService } from '@/lib/services/supabase/invoices.service';
+import type { Database } from '@/lib/supabase/database.types';
 import { 
   Plus, 
   Search, 
@@ -21,115 +25,20 @@ import {
   XCircle,
   PauseCircle,
   BarChart3,
-  Briefcase
+  Briefcase,
+  Loader2
 } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import Typography from '@/components/ui/Typography';
 import type { ProjectSummary, ProjectStatistics } from '@/lib/types/project';
 
-// Mock 데이터
-const mockProjects: ProjectSummary[] = [
-  {
-    id: '1',
-    name: '웹사이트 리뉴얼 프로젝트',
-    clientName: '㈜테크스타트',
-    status: 'in_progress',
-    priority: 'high',
-    progress: 65,
-    dueDate: '2025-09-01',
-    budget: {
-      estimated: 15000000,
-      spent: 9750000
-    },
-    teamSize: 4,
-    taskCount: {
-      total: 24,
-      completed: 16
-    }
-  },
-  {
-    id: '2',
-    name: '모바일 앱 개발',
-    clientName: '디자인컴퍼니',
-    status: 'in_progress',
-    priority: 'medium',
-    progress: 40,
-    dueDate: '2025-09-15',
-    budget: {
-      estimated: 25000000,
-      spent: 10000000
-    },
-    teamSize: 6,
-    taskCount: {
-      total: 36,
-      completed: 14
-    }
-  },
-  {
-    id: '3',
-    name: 'ERP 시스템 구축',
-    clientName: '이커머스플러스',
-    status: 'planning',
-    priority: 'low',
-    progress: 10,
-    dueDate: '2025-10-30',
-    budget: {
-      estimated: 50000000,
-      spent: 5000000
-    },
-    teamSize: 8,
-    taskCount: {
-      total: 48,
-      completed: 5
-    }
-  },
-  {
-    id: '4',
-    name: '브랜드 리뉴얼',
-    clientName: '㈜크리에이티브',
-    status: 'completed',
-    priority: 'medium',
-    progress: 100,
-    dueDate: '2025-07-31',
-    budget: {
-      estimated: 8000000,
-      spent: 7500000
-    },
-    teamSize: 3,
-    taskCount: {
-      total: 15,
-      completed: 15
-    }
-  },
-  {
-    id: '5',
-    name: '마케팅 캠페인',
-    clientName: '마케팅플러스',
-    status: 'review',
-    priority: 'high',
-    progress: 90,
-    dueDate: '2025-08-31',
-    budget: {
-      estimated: 12000000,
-      spent: 10800000
-    },
-    teamSize: 5,
-    taskCount: {
-      total: 20,
-      completed: 18
-    }
-  }
-];
-
-const mockStatistics: ProjectStatistics = {
-  totalProjects: 12,
-  activeProjects: 5,
-  completedProjects: 6,
-  totalRevenue: 185000000,
-  averageProgress: 61,
-  upcomingDeadlines: 3,
-  overdueProjects: 1,
-  teamUtilization: 78
+// Supabase 프로젝트 타입
+type ProjectWithClient = Project & {
+  client?: Client | null;
+  taskCount?: {
+    total: number;
+    completed: number;
+  };
 };
 
 function ProjectsContent() {
@@ -137,9 +46,112 @@ function ProjectsContent() {
   const searchParams = useSearchParams();
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState<string>('all');
-  const [projects] = useState<ProjectSummary[]>(mockProjects);
-  const [statistics] = useState<ProjectStatistics>(mockStatistics);
+  const [projects, setProjects] = useState<ProjectWithClient[]>([]);
+  const [statistics, setStatistics] = useState<ProjectStatistics>({
+    totalProjects: 0,
+    activeProjects: 0,
+    completedProjects: 0,
+    totalRevenue: 0,
+    averageProgress: 0,
+    upcomingDeadlines: 0,
+    overdueProjects: 0,
+    teamUtilization: 0
+  });
   const [activeTab, setActiveTab] = useState<'project' | 'clients' | 'invoices' | 'payments'>('project');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // 프로젝트 데이터 불러오기
+  useEffect(() => {
+    loadProjects();
+  }, []);
+
+  const loadProjects = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      // Supabase에서 현재 사용자 가져오기
+      const { createClient } = await import('@/lib/supabase/client');
+      const supabase = createClient();
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      
+      if (authError || !user) {
+        console.error('Auth error:', authError);
+        setError('로그인이 필요합니다.');
+        return;
+      }
+      
+      const userId = user.id;
+      const projectsData = await projectsService.getProjects(userId);
+      
+      // 각 프로젝트에 클라이언트 정보 추가
+      const projectsWithClients = await Promise.all(
+        projectsData.map(async (project) => {
+          let client = undefined;
+          if (project.client_id) {
+            try {
+              client = await clientService.getClientById(project.client_id);
+            } catch (err) {
+              console.error(`Failed to load client for project ${project.id}:`, err);
+            }
+          }
+          
+          // 작업 통계 (현재는 더미 데이터)
+          const taskCount = {
+            total: Math.floor(Math.random() * 50) + 10,
+            completed: Math.floor(Math.random() * 30) + 5
+          };
+          
+          return {
+            ...project,
+            client: client || undefined,
+            taskCount
+          };
+        })
+      );
+      
+      setProjects(projectsWithClients);
+      
+      // 통계 계산
+      const activeProjects = projectsWithClients.filter(p => p.status === 'in_progress').length;
+      const completedProjects = projectsWithClients.filter(p => p.status === 'completed').length;
+      const totalRevenue = projectsWithClients.reduce((sum, p) => sum + (p.budget_estimated || 0), 0);
+      const progressSum = projectsWithClients.reduce((sum, p) => sum + (p.progress || 0), 0);
+      const averageProgress = projectsWithClients.length > 0 ? Math.round(progressSum / projectsWithClients.length) : 0;
+      
+      // 마감일 계산
+      const today = new Date();
+      const upcomingDeadlines = projectsWithClients.filter(p => {
+        if (!p.due_date) return false;
+        const endDate = new Date(p.due_date);
+        const daysUntilDeadline = Math.ceil((endDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+        return daysUntilDeadline > 0 && daysUntilDeadline <= 7;
+      }).length;
+      
+      const overdueProjects = projectsWithClients.filter(p => {
+        if (!p.due_date || p.status === 'completed') return false;
+        const endDate = new Date(p.due_date);
+        return endDate < today;
+      }).length;
+      
+      setStatistics({
+        totalProjects: projectsWithClients.length,
+        activeProjects,
+        completedProjects,
+        totalRevenue,
+        averageProgress,
+        upcomingDeadlines,
+        overdueProjects,
+        teamUtilization: Math.floor(Math.random() * 30) + 60 // 더미 데이터
+      });
+    } catch (err) {
+      console.error('Failed to load projects:', err);
+      setError('프로젝트 목록을 불러오는데 실패했습니다.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // URL 파라미터로 탭 상태 초기화
   useEffect(() => {
@@ -197,7 +209,7 @@ function ProjectsContent() {
   // 필터링된 프로젝트
   const filteredProjects = projects.filter(project => {
     const matchesSearch = project.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          project.clientName.toLowerCase().includes(searchQuery.toLowerCase());
+                          (project.client?.company || '').toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = filterStatus === 'all' || project.status === filterStatus;
     return matchesSearch && matchesStatus;
   });
@@ -250,7 +262,7 @@ function ProjectsContent() {
                       ? 'bg-weave-primary-light text-weave-primary'
                       : 'bg-bg-secondary text-txt-tertiary'
                   }`}>
-                    1
+                    {projects.length}
                   </span>
                 </button>
                 
@@ -401,6 +413,28 @@ function ProjectsContent() {
 
           {/* 프로젝트 목록 */}
           <div className="bg-white rounded-lg border border-border-light overflow-hidden">
+            {loading ? (
+              <div className="p-12 text-center">
+                <Loader2 className="w-8 h-8 animate-spin text-weave-primary mx-auto mb-4" />
+                <Typography variant="body1" className="text-txt-secondary">
+                  프로젝트 목록을 불러오는 중...
+                </Typography>
+              </div>
+            ) : error ? (
+              <div className="p-12 text-center">
+                <AlertCircle className="w-8 h-8 text-red-500 mx-auto mb-4" />
+                <Typography variant="body1" className="text-red-500">
+                  {error}
+                </Typography>
+                <Button
+                  variant="outline"
+                  onClick={loadProjects}
+                  className="mt-4"
+                >
+                  다시 시도
+                </Button>
+              </div>
+            ) : (
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead className="bg-bg-secondary border-b border-border-light">
@@ -438,19 +472,19 @@ function ProjectsContent() {
                     >
                       <td className="px-6 py-4">
                         <div className="flex items-center">
-                          <div className={`w-2 h-2 rounded-full mr-3 ${getPriorityColor(project.priority)}`} />
+                          <div className={`w-2 h-2 rounded-full mr-3 ${getPriorityColor(project.priority || 'medium')}`} />
                           <div>
                             <div className="text-sm font-medium text-txt-primary">
                               {project.name}
                             </div>
                             <div className="text-xs text-txt-tertiary">
-                              {project.taskCount.completed}/{project.taskCount.total} 작업 완료
+                              {project.taskCount?.completed || 0}/{project.taskCount?.total || 0} 작업 완료
                             </div>
                           </div>
                         </div>
                       </td>
                       <td className="px-6 py-4">
-                        <div className="text-sm text-txt-primary">{project.clientName}</div>
+                        <div className="text-sm text-txt-primary">{project.client?.company || '-'}</div>
                       </td>
                       <td className="px-6 py-4">
                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(project.status)}`}>
@@ -463,33 +497,33 @@ function ProjectsContent() {
                             <div className="h-2 bg-bg-secondary rounded-full overflow-hidden">
                               <div 
                                 className="h-full bg-weave-primary transition-all duration-300"
-                                style={{ width: `${project.progress}%` }}
+                                style={{ width: `${project.progress || 0}%` }}
                               />
                             </div>
                           </div>
-                          <span className="text-sm text-txt-secondary">{project.progress}%</span>
+                          <span className="text-sm text-txt-secondary">{project.progress || 0}%</span>
                         </div>
                       </td>
                       <td className="px-6 py-4">
                         <div className="text-sm">
                           <div className="text-txt-primary">
-                            {(project.budget.spent / 10000).toLocaleString()}만원
+                            {((project.budget_spent || 0) / 10000).toLocaleString()}만원
                           </div>
                           <div className="text-xs text-txt-tertiary">
-                            / {(project.budget.estimated / 10000).toLocaleString()}만원
+                            / {((project.budget_estimated || 0) / 10000).toLocaleString()}만원
                           </div>
                         </div>
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center text-sm text-txt-primary">
                           <Calendar className="w-4 h-4 mr-1 text-txt-tertiary" />
-                          {new Date(project.dueDate).toLocaleDateString('ko-KR')}
+                          {project.due_date ? new Date(project.due_date).toLocaleDateString('ko-KR') : '-'}
                         </div>
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center">
                           <Users className="w-4 h-4 mr-1 text-txt-tertiary" />
-                          <span className="text-sm text-txt-primary">{project.teamSize}</span>
+                          <span className="text-sm text-txt-primary">0</span>
                         </div>
                       </td>
                       <td className="px-6 py-4 text-right">
@@ -508,8 +542,9 @@ function ProjectsContent() {
                 </tbody>
               </table>
             </div>
+            )}
             
-            {filteredProjects.length === 0 && (
+            {!loading && !error && filteredProjects.length === 0 && (
               <div className="text-center py-12">
                 <FolderOpen className="w-12 h-12 text-txt-tertiary mx-auto mb-4" />
                 <p className="text-txt-secondary">프로젝트가 없습니다</p>
@@ -552,26 +587,9 @@ function ProjectsContent() {
   );
 }
 
+// 새로운 워크플로우 기반 페이지를 기본으로 사용
+import ProjectWorkflowPage from './ProjectWorkflowPage';
+
 export default function ProjectsPage() {
-  return (
-    <Suspense fallback={
-      <AppLayout>
-        <DataPageContainer>
-          <div className="animate-pulse">
-            <div className="h-8 bg-gray-200 rounded w-1/4 mb-4"></div>
-            <div className="h-4 bg-gray-200 rounded w-1/2 mb-8"></div>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-              <div className="h-20 bg-gray-200 rounded-lg"></div>
-              <div className="h-20 bg-gray-200 rounded-lg"></div>
-              <div className="h-20 bg-gray-200 rounded-lg"></div>
-              <div className="h-20 bg-gray-200 rounded-lg"></div>
-            </div>
-            <div className="h-96 bg-gray-200 rounded-lg"></div>
-          </div>
-        </DataPageContainer>
-      </AppLayout>
-    }>
-      <ProjectsContent />
-    </Suspense>
-  );
+  return <ProjectWorkflowPage />;
 }

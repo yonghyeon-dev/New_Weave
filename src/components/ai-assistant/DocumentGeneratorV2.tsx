@@ -27,7 +27,11 @@ import { documentTemplates, DocumentTemplate } from '@/templates/document-templa
 import { exportToWord, printDocument } from '@/utils/document-export';
 
 interface DocumentGeneratorV2Props {
-  workflow: DocumentWorkflow;
+  workflow?: DocumentWorkflow;
+  preselectedTemplate?: string | null;
+  projectContext?: any;
+  clientContext?: any;
+  onGenerated?: (doc: any) => void;
   onBack?: () => void;
   onExport?: (document: string, format: string) => void;
   onError?: (error: Error) => void;
@@ -35,6 +39,10 @@ interface DocumentGeneratorV2Props {
 
 export default function DocumentGeneratorV2({
   workflow,
+  preselectedTemplate,
+  projectContext,
+  clientContext,
+  onGenerated,
   onBack,
   onExport,
   onError
@@ -51,30 +59,34 @@ export default function DocumentGeneratorV2({
 
   // 템플릿 가져오기
   useEffect(() => {
-    console.log('Looking for template with ID:', workflow.templateId);
+    const templateId = workflow?.templateId || preselectedTemplate;
+    console.log('Looking for template with ID:', templateId);
     console.log('Available templates:', documentTemplates.map(t => t.id));
     
-    if (workflow.templateId) {
-      const template = documentTemplates.find(t => t.id === workflow.templateId);
+    if (templateId) {
+      const template = documentTemplates.find(t => t.id === templateId);
       console.log('Found template:', template);
       if (template) {
         setSelectedTemplate(template);
       } else {
-        console.error('Template not found for ID:', workflow.templateId);
+        console.error('Template not found for ID:', templateId);
       }
     }
-  }, [workflow.templateId]);
+  }, [workflow?.templateId, preselectedTemplate]);
 
   // AI로 문서 생성
   const generateDocumentWithAI = async () => {
+    const client = workflow?.client || clientContext;
+    const project = workflow?.project || projectContext;
+    
     console.log('generateDocumentWithAI called', {
       selectedTemplate,
-      client: workflow.client,
-      project: workflow.project
+      client,
+      project
     });
     
-    if (!selectedTemplate || !workflow.client || !workflow.project) {
-      const errorMsg = `필요한 정보가 누락되었습니다. Template: ${!!selectedTemplate}, Client: ${!!workflow.client}, Project: ${!!workflow.project}`;
+    if (!selectedTemplate || !client || !project) {
+      const errorMsg = `필요한 정보가 누락되었습니다. Template: ${!!selectedTemplate}, Client: ${!!client}, Project: ${!!project}`;
       console.error(errorMsg);
       onError?.(new Error(errorMsg));
       return;
@@ -96,11 +108,12 @@ export default function DocumentGeneratorV2({
 
     try {
       // 컨텍스트 정보 준비
+      const user = workflow?.user || { name: '사용자', company: '회사명', email: 'user@example.com' };
       const context = {
-        user: workflow.user,
-        client: workflow.client,
-        project: workflow.project,
-        documentType: workflow.documentType,
+        user,
+        client,
+        project,
+        documentType: workflow?.documentType || 'contract',
         template: selectedTemplate.template,
         date: new Date().toLocaleDateString('ko-KR'),
       };
@@ -117,18 +130,18 @@ export default function DocumentGeneratorV2({
           action: 'generate',
           template: selectedTemplate.template,
           context: {
-            companyName: workflow.user?.company,
-            userName: workflow.user?.name,
-            userEmail: workflow.user?.email,
-            clientCompany: workflow.client.companyName,
-            clientName: workflow.client.contactPerson,
-            clientPhone: workflow.client.phone,
-            clientEmail: workflow.client.email,
-            projectName: workflow.project.name,
-            projectDescription: workflow.project.description,
-            projectStartDate: workflow.project.startDate,
-            projectEndDate: workflow.project.endDate,
-            projectBudget: workflow.project.budget,
+            companyName: user?.company,
+            userName: user?.name,
+            userEmail: user?.email,
+            clientCompany: client.companyName || client.company || client.name,
+            clientName: client.contactPerson || client.contact_person || client.name,
+            clientPhone: client.phone,
+            clientEmail: client.email,
+            projectName: project.name,
+            projectDescription: project.description,
+            projectStartDate: project.startDate,
+            projectEndDate: project.endDate || project.dueDate,
+            projectBudget: project.budget,
             date: context.date
           }
         }),
@@ -145,6 +158,15 @@ export default function DocumentGeneratorV2({
         console.log('Document generated successfully');
         setGeneratedDocument(data.data.generated);
         setEditedDocument(data.data.generated);
+        // 생성 완료 콜백 호출
+        if (onGenerated) {
+          onGenerated({
+            content: data.data.generated,
+            template: selectedTemplate,
+            client,
+            project
+          });
+        }
       } else {
         console.error('Generation failed:', data.error);
         throw new Error(data.error || '문서 생성에 실패했습니다.');
@@ -164,27 +186,31 @@ export default function DocumentGeneratorV2({
 
   // 폴백 문서 생성 (AI 실패시)
   const generateFallbackDocument = () => {
-    if (!selectedTemplate || !workflow.client || !workflow.project) return;
+    const client = workflow?.client || clientContext;
+    const project = workflow?.project || projectContext;
+    const user = workflow?.user || { name: '사용자', company: '회사명', email: 'user@example.com' };
+    
+    if (!selectedTemplate || !client || !project) return;
     
     let document = selectedTemplate.template;
     
     // 기본 변수 치환
     const replacements: { [key: string]: string } = {
-      '{{companyName}}': workflow.user?.company || '',
-      '{{userName}}': workflow.user?.name || '',
-      '{{userEmail}}': workflow.user?.email || '',
-      '{{clientCompany}}': workflow.client.companyName,
-      '{{clientName}}': workflow.client.contactPerson || '',
-      '{{clientPhone}}': workflow.client.phone || '',
-      '{{clientEmail}}': workflow.client.email || '',
-      '{{projectName}}': workflow.project.name,
-      '{{projectDescription}}': workflow.project.description || '',
-      '{{projectStartDate}}': workflow.project.startDate || '',
-      '{{projectEndDate}}': workflow.project.endDate || '',
-      '{{projectBudget}}': workflow.project.budget?.toLocaleString() || '',
+      '{{companyName}}': user?.company || '',
+      '{{userName}}': user?.name || '',
+      '{{userEmail}}': user?.email || '',
+      '{{clientCompany}}': client.companyName || client.company || client.name,
+      '{{clientName}}': client.contactPerson || client.contact_person || client.name || '',
+      '{{clientPhone}}': client.phone || '',
+      '{{clientEmail}}': client.email || '',
+      '{{projectName}}': project.name,
+      '{{projectDescription}}': project.description || '',
+      '{{projectStartDate}}': project.startDate || '',
+      '{{projectEndDate}}': project.endDate || project.dueDate || '',
+      '{{projectBudget}}': project.budget?.toLocaleString() || '',
       '{{date}}': new Date().toLocaleDateString('ko-KR'),
       '{{invoiceNumber}}': `INV-${Date.now()}`,
-      '{{amount}}': workflow.project.budget?.toLocaleString() || '',
+      '{{amount}}': project.budget?.toLocaleString() || '',
       '{{dueDate}}': new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString('ko-KR'),
     };
 
@@ -198,18 +224,21 @@ export default function DocumentGeneratorV2({
 
   // 컴포넌트 마운트시 자동 생성
   useEffect(() => {
+    const client = workflow?.client || clientContext;
+    const project = workflow?.project || projectContext;
+    
     console.log('useEffect triggered:', {
       selectedTemplate: !!selectedTemplate,
-      client: !!workflow.client,
-      project: !!workflow.project,
+      client: !!client,
+      project: !!project,
       generatedDocument: !!generatedDocument
     });
     
-    if (selectedTemplate && workflow.client && workflow.project && !generatedDocument) {
+    if (selectedTemplate && client && project && !generatedDocument) {
       console.log('Calling generateDocumentWithAI from useEffect');
       generateDocumentWithAI();
     }
-  }, [selectedTemplate?.id, workflow.client?.id, workflow.project?.id]); // ID로 의존성 체크
+  }, [selectedTemplate?.id, workflow?.client?.id, workflow?.project?.id, clientContext?.id, projectContext?.id]); // ID로 의존성 체크
 
   // 문서 복사
   const copyToClipboard = async () => {
@@ -230,8 +259,8 @@ export default function DocumentGeneratorV2({
     const documentToExport = isEditing ? editedDocument : generatedDocument;
     if (!documentToExport) return;
 
-    const filename = `${workflow.project?.name || 'document'}_${Date.now()}`;
-    const documentTitle = workflow.documentType?.name || '문서';
+    const filename = `${workflow?.project?.name || 'document'}_${Date.now()}`;
+    const documentTitle = workflow?.documentType?.name || '문서';
 
     try {
       if (format === 'markdown') {
@@ -305,15 +334,21 @@ export default function DocumentGeneratorV2({
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <Typography variant="body2" className="text-txt-tertiary">클라이언트</Typography>
-                <Typography variant="body1" className="font-medium">{workflow.client?.companyName || '선택되지 않음'}</Typography>
+                <Typography variant="body1" className="font-medium">
+                  {workflow?.client?.companyName || clientContext?.company || clientContext?.name || '선택되지 않음'}
+                </Typography>
               </div>
               <div>
                 <Typography variant="body2" className="text-txt-tertiary">프로젝트</Typography>
-                <Typography variant="body1" className="font-medium">{workflow.project?.name || '선택되지 않음'}</Typography>
+                <Typography variant="body1" className="font-medium">
+                  {workflow?.project?.name || projectContext?.name || '선택되지 않음'}
+                </Typography>
               </div>
               <div>
                 <Typography variant="body2" className="text-txt-tertiary">문서 종류</Typography>
-                <Typography variant="body1" className="font-medium">{workflow.documentType?.name || '선택되지 않음'}</Typography>
+                <Typography variant="body1" className="font-medium">
+                  {workflow?.documentType?.name || '문서'}
+                </Typography>
               </div>
             </div>
           </div>
@@ -350,7 +385,7 @@ export default function DocumentGeneratorV2({
                 </Badge>
               )}
               {!isGenerating && generatedDocument && (
-                <Badge variant="success" className="flex items-center gap-1">
+                <Badge variant="positive" className="flex items-center gap-1">
                   <Check className="w-3 h-3" />
                   생성 완료
                 </Badge>
@@ -365,7 +400,7 @@ export default function DocumentGeneratorV2({
                     variant="outline"
                     size="sm"
                     onClick={() => {
-                      const documentTitle = workflow.documentType?.name || '문서';
+                      const documentTitle = workflow?.documentType?.name || '문서';
                       printDocument(isEditing ? editedDocument : generatedDocument, documentTitle);
                     }}
                   >

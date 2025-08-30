@@ -203,7 +203,7 @@ export default function AIAssistant() {
             {/* 통계 카드 섹션 */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {statCards.map((stat, index) => (
-              <Card className="bg-white rounded-lg border border-border-light p-6">
+              <Card key={index} className="bg-white rounded-lg border border-border-light p-6">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-3">

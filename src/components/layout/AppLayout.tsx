@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
-import MainNavigation from '@/components/navigation/MainNavigation';
+import React from 'react';
+import SimpleHeaderNavigation from '@/components/navigation/SimpleHeaderNavigation';
 import FloatingQuickMenu from '@/components/FloatingQuickMenu';
 
 interface AppLayoutProps {
@@ -9,50 +9,20 @@ interface AppLayoutProps {
 }
 
 export default function AppLayout({ children }: AppLayoutProps) {
-  const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
-
   return (
     <div className="min-h-screen bg-bg-primary">
-      {/* Mobile-First Responsive Layout */}
+      {/* Header Navigation */}
+      <SimpleHeaderNavigation />
       
-      {/* Desktop Layout: lg 이상 */}
-      <div className="hidden lg:flex lg:h-screen lg:overflow-hidden">
-        {/* Desktop Sidebar */}
-        <div className="w-64 flex-shrink-0 h-full overflow-y-auto border-r border-border-light bg-white">
-          <MainNavigation 
-            className="h-full" 
-            isMobile={false}
-            onMobileMenuToggle={() => {}} 
-          />
-        </div>
-
-        {/* Desktop Main Content */}
-        <div className="flex-1 h-full overflow-y-auto">
-          <main className="w-full h-full">
-            {children}
-          </main>
-        </div>
-      </div>
-
-      {/* Mobile Layout: lg 미만 */}
-      <div className="lg:hidden min-h-screen">
-        {/* Mobile Navigation Header */}
-        <MainNavigation 
-          isMobile={true}
-          isOpen={isMobileNavOpen}
-          onMobileMenuToggle={setIsMobileNavOpen}
-        />
-
-        {/* Mobile Main Content */}
-        <main className="w-full">
+      {/* Main Content with Top Padding for Fixed Header - 모바일과 데스크톱 패딩 조정 */}
+      <main className="pt-14 sm:pt-16 min-h-screen">
+        <div className="w-full h-full">
           {children}
-        </main>
-      </div>
+        </div>
+      </main>
       
-      {/* 플로팅 퀵메뉴 - 데스크톱 전용 */}
-      <div className="hidden lg:block">
-        <FloatingQuickMenu />
-      </div>
+      {/* Floating Quick Menu with AI Chatbot */}
+      <FloatingQuickMenu />
     </div>
   );
 }

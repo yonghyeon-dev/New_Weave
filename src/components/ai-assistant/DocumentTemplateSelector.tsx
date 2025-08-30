@@ -292,7 +292,7 @@ export default function DocumentTemplateSelector({
             {searchQuery && (
               <div className="mb-4">
                 <Typography variant="h4" className="text-lg font-semibold text-txt-primary">
-                  "{searchQuery}" 검색 결과
+                  &ldquo;{searchQuery}&rdquo; 검색 결과
                 </Typography>
                 <Typography variant="body2" className="text-txt-tertiary mt-1">
                   {displayTemplates.length}개의 템플릿을 찾았습니다

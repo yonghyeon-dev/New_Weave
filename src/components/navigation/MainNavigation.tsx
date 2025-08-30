@@ -25,15 +25,8 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-// 계층적 메뉴 구조 - 홈과 대시보드를 독립적으로 분리
+// 계층적 메뉴 구조 - 대시보드, 프로젝트, 세무 관리
 const navigation = [
-  {
-    name: '홈',
-    href: '/home',
-    icon: LayoutDashboard,
-    description: '메인 콘텐츠 및 빠른 시작',
-    isMain: true
-  },
   {
     name: '대시보드',
     href: '/dashboard',
@@ -48,23 +41,10 @@ const navigation = [
     badge: 'New'
   },
   {
-    name: 'AI 업무비서',
-    href: '/ai-assistant',
-    icon: BrainCircuit,
-    description: '통합 AI 기반 업무 자동화 허브',
-    badge: 'AI'
-  },
-  {
-    name: '리마인더',
-    href: '/reminders',
-    icon: Bell,
-    description: '자동 결제 알림 설정'
-  },
-  {
-    name: '사업자 조회',
-    href: '/business-lookup',
-    icon: Search,
-    description: '사업자등록번호 조회 및 검증 (공공 API)'
+    name: '세무 관리',
+    href: '/tax-management',
+    icon: Calculator,
+    description: '세금 계산 및 세무 관리'
   },
   {
     name: '설정',
@@ -92,9 +72,6 @@ export default function MainNavigation({
   const pathname = usePathname();
 
   const isActivePath = (href: string): boolean => {
-    if (href === '/home') {
-      return pathname === '/home';
-    }
     if (href === '/dashboard') {
       return pathname === '/dashboard';
     }

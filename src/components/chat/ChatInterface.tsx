@@ -6,11 +6,13 @@ import Button from '@/components/ui/Button';
 import Typography from '@/components/ui/Typography';
 import MessageList from './MessageList';
 import MessageInput from './MessageInput';
+import ChatHistory from '@/components/ai-assistant/ChatHistory';
 import { SidebarSkeleton } from './MessageSkeleton';
-import { ToastContainer, useToast } from './Toast';
+import { ToastContainer, useToast } from '@/components/ui/Toast';
 import { useReactions } from './EmojiReaction';
 import { chatService, ChatMessage, ChatSession } from '@/lib/services/chatService';
-import { Trash2, Download, RefreshCw, Menu, X, Search, Keyboard } from 'lucide-react';
+import { chatService as chatSessionsService } from '@/lib/services/supabase/chat.service';
+import { Trash2, Download, RefreshCw, Menu, X, Search, Keyboard, History } from 'lucide-react';
 
 export default function ChatInterface() {
   const [session, setSession] = useState<ChatSession | null>(null);
@@ -20,18 +22,42 @@ export default function ChatInterface() {
   const [currentResponse, setCurrentResponse] = useState('');
   const [abortController, setAbortController] = useState<AbortController | null>(null);
   const [showSidebar, setShowSidebar] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [inputMessage, setInputMessage] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredSessions, setFilteredSessions] = useState<ChatSession[]>([]);
   const [showShortcuts, setShowShortcuts] = useState(false);
-  const { toasts, addToast, removeToast } = useToast();
+  const [dbSessionId, setDbSessionId] = useState<string | null>(null);
+  const [chatType, setChatType] = useState<'general' | 'tax' | 'rag'>('general');
+  const { toasts, addToast, hideToast } = useToast();
   const { addReaction, getReactions } = useReactions();
   
   // 초기화
   useEffect(() => {
     initializeChat();
-  }, []);
+    createSupabaseSession();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  
+  // Supabase 세션 생성
+  const createSupabaseSession = async () => {
+    try {
+      // TODO: 실제 사용자 ID로 교체 필요
+      const userId = 'system';
+      const newSession = await chatSessionsService.createSession(
+        userId,
+        chatType,
+        undefined
+      );
+      
+      if (newSession) {
+        setDbSessionId(newSession.id);
+        // 세션이 생성되었습니다
+      }
+    } catch (error) {
+      console.error('Supabase 세션 생성 오류:', error);
+    }
+  };
   
   // 키보드 단축키
   useEffect(() => {
@@ -45,6 +71,11 @@ export default function ChatInterface() {
       else if ((e.metaKey || e.ctrlKey) && e.key === '/') {
         e.preventDefault();
         setShowSidebar(prev => !prev);
+      }
+      // Cmd/Ctrl + H: 히스토리 토글
+      else if ((e.metaKey || e.ctrlKey) && e.key === 'h') {
+        e.preventDefault();
+        setShowHistory(prev => !prev);
       }
       // Cmd/Ctrl + S: 대화 저장(내보내기)
       else if ((e.metaKey || e.ctrlKey) && e.key === 's') {
@@ -108,6 +139,15 @@ export default function ChatInterface() {
     });
     
     setMessages(prev => [...prev, userMessage]);
+    
+    // Supabase에 메시지 저장
+    if (dbSessionId) {
+      saveMessageToSupabase(dbSessionId, {
+        role: 'user',
+        content,
+        metadata: {}
+      });
+    }
     setIsLoading(true);
     setIsTyping(true);
     setCurrentResponse('');
@@ -193,6 +233,16 @@ export default function ChatInterface() {
         
         setMessages(prev => [...prev, aiMessage]);
         
+        // Supabase에 메시지 저장
+        if (dbSessionId) {
+          saveMessageToSupabase(dbSessionId, {
+            role: 'assistant',
+            content: accumulatedContent,
+            metadata: metadata || {},
+            model: 'gemini-2.5-flash-lite'
+          });
+        }
+        
         // 세션 업데이트
         const updatedSession = chatService.getSession(session.id);
         if (updatedSession) {
@@ -222,9 +272,7 @@ export default function ChatInterface() {
         const errorMessage = chatService.addMessage(session.id, {
           role: 'assistant',
           content: `죄송합니다. ${errorMsg} 다시 시도해주세요.`,
-          metadata: {
-            error: true
-          }
+          metadata: {} as any
         });
         
         setMessages(prev => [...prev, errorMessage]);
@@ -252,9 +300,7 @@ export default function ChatInterface() {
         const aiMessage = chatService.addMessage(session!.id, {
           role: 'assistant',
           content: currentResponse + '\n\n*(응답이 중단되었습니다)*',
-          metadata: {
-            interrupted: true
-          }
+          metadata: {} as any
         });
         
         setMessages(prev => [...prev, aiMessage]);
@@ -270,6 +316,60 @@ export default function ChatInterface() {
     setMessages([]);
     setSessions(chatService.getAllSessions());
     setShowSidebar(false);
+    setShowHistory(false);
+    createSupabaseSession(); // 새 Supabase 세션 생성
+  };
+  
+  // Supabase에 메시지 저장
+  const saveMessageToSupabase = async (sessionId: string, message: any) => {
+    try {
+      await chatSessionsService.addMessage(sessionId, {
+        role: message.role as 'user' | 'assistant' | 'system',
+        content: message.content,
+        metadata: {
+          ...(message.metadata || {}),
+          model: message.model
+        }
+      });
+      
+      // addMessage는 자동으로 세션 업데이트 시간을 갱신합니다
+    } catch (error) {
+      console.error('메시지 저장 오류:', error);
+    }
+  };
+  
+  // Supabase에서 세션 로드 (히스토리에서 선택 시)
+  const loadSession = async (sessionId: string) => {
+    try {
+      // 세션 정보 가져오기
+      const sessionData = await chatSessionsService.getSessionById(sessionId);
+      
+      if (sessionData) {
+        // 메시지 가져오기
+        const messagesData = await chatSessionsService.getMessages(sessionId);
+        
+        // 메시지 형식 변환
+        const loadedMessages = messagesData.map((msg: any) => ({
+          id: msg.id,
+          role: msg.role,
+          content: msg.content,
+          timestamp: new Date(msg.created_at),
+          metadata: msg.metadata
+        }));
+        
+        setMessages(loadedMessages);
+        setDbSessionId(sessionId);
+        setShowHistory(false);
+        
+        // 세션 타입 업데이트
+        if (sessionData.type) {
+          setChatType(sessionData.type as 'general' | 'tax' | 'rag');
+        }
+      }
+    } catch (error) {
+      console.error('세션 로드 오류:', error);
+      addToast('대화를 불러올 수 없습니다.', 'error');
+    }
   };
   
   // 세션 전환
@@ -338,27 +438,59 @@ export default function ChatInterface() {
     }
   };
   
-  // 대화 내보내기
-  const exportChat = () => {
+  // 대화 내보내기 (Supabase 데이터 포함)
+  const exportChat = async () => {
     if (!session) return;
     
-    const markdown = chatService.exportSession(session.id);
-    const blob = new Blob([markdown], { type: 'text/markdown' });
-    const url = URL.createObjectURL(blob);
-    
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `chat_${session.id}.md`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    
-    addToast('대화 기록이 다운로드되었습니다.', 'success');
+    try {
+      // Supabase에서 세션 데이터 가져오기
+      let exportData = chatService.exportSession(session.id);
+      
+      if (dbSessionId) {
+        // Supabase 세션 정보 추가
+        const sessionData = await chatSessionsService.getSessionById(dbSessionId);
+        if (sessionData) {
+          exportData = `# 채팅 세션 정보\n\n` +
+            `- 세션 ID: ${sessionData.id}\n` +
+            `- 생성일: ${new Date(sessionData.created_at).toLocaleString('ko-KR')}\n` +
+            `- 타입: ${sessionData.type || 'general'}\n` +
+            `- 메시지 수: ${messages.length}\n\n` +
+            `---\n\n` +
+            exportData;
+        }
+      }
+      
+      const blob = new Blob([exportData], { type: 'text/markdown' });
+      const url = URL.createObjectURL(blob);
+      
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `chat_${session.id}_${new Date().toISOString().slice(0, 10)}.md`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      
+      addToast('대화 기록이 다운로드되었습니다.', 'success');
+    } catch (error) {
+      console.error('Export error:', error);
+      addToast('내보내기 중 오류가 발생했습니다.', 'error');
+    }
   };
   
   return (
     <div className="flex h-full">
+      {/* 히스토리 패널 */}
+      {showHistory && (
+        <div className="w-80 border-r border-border-light bg-bg-secondary">
+          <ChatHistory
+            onSessionSelect={loadSession}
+            currentSessionId={dbSessionId || undefined}
+            onNewChat={startNewChat}
+          />
+        </div>
+      )}
+      
       {/* 사이드바 - 대화 목록 (모바일에서는 오버레이) */}
       <div className={`
         fixed lg:relative inset-y-0 left-0 z-40 w-72 bg-gradient-to-b from-bg-secondary to-white border-r border-border-light
@@ -463,7 +595,7 @@ export default function ChatInterface() {
               <div className="text-center py-8">
                 <Search className="w-12 h-12 text-txt-tertiary mx-auto mb-3" />
                 <Typography variant="body2" className="text-txt-tertiary">
-                  "{searchQuery}"에 대한 검색 결과가 없습니다
+                  &ldquo;{searchQuery}&rdquo;에 대한 검색 결과가 없습니다
                 </Typography>
               </div>
             )}
@@ -552,6 +684,15 @@ export default function ChatInterface() {
               >
                 <RefreshCw className="w-4 h-4" />
               </Button>
+              
+              <Button
+                variant="outline"
+                onClick={() => setShowHistory(!showHistory)}
+                className="p-2"
+                title="대화 히스토리"
+              >
+                <History className="w-4 h-4" />
+              </Button>
             </div>
           </div>
         </div>
@@ -621,6 +762,13 @@ export default function ChatInterface() {
               </div>
               
               <div className="flex justify-between">
+                <Typography variant="body2" className="text-txt-secondary">히스토리 토글</Typography>
+                <Typography variant="body2" className="font-mono text-xs bg-bg-secondary px-2 py-1 rounded">
+                  {navigator.platform.includes('Mac') ? '⌘' : 'Ctrl'} + H
+                </Typography>
+              </div>
+              
+              <div className="flex justify-between">
                 <Typography variant="body2" className="text-txt-secondary">대화 내보내기</Typography>
                 <Typography variant="body2" className="font-mono text-xs bg-bg-secondary px-2 py-1 rounded">
                   {navigator.platform.includes('Mac') ? '⌘' : 'Ctrl'} + S
@@ -653,7 +801,7 @@ export default function ChatInterface() {
       )}
       
       {/* Toast 알림 */}
-      <ToastContainer toasts={toasts} removeToast={removeToast} />
+      <ToastContainer toasts={toasts} onClose={hideToast} />
     </div>
   );
 }

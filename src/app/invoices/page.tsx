@@ -1,139 +1,28 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import AppLayout from '@/components/layout/AppLayout';
-import { Plus } from 'lucide-react';
+import { Plus, Loader2, AlertCircle } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import Table from '@/components/ui/Table';
 import Select from '@/components/ui/Select';
 import Typography from '@/components/ui/Typography';
-import { Invoice, InvoiceStatus } from '@/lib/types/invoice';
+import { invoicesService } from '@/lib/services/supabase/invoices.service';
+import { clientService, type Client } from '@/lib/services/supabase/clients.service';
+import { projectsService, type Project } from '@/lib/services/supabase/projects.service';
+import type { Database } from '@/lib/supabase/database.types';
 import { cn } from '@/lib/utils';
 
-// Mock client data
-const mockClients: Record<string, any> = {
-  'client-1': {
-    id: 'client-1',
-    name: '㈜테크스타트',
-    businessNumber: '123-45-67890',
-    email: 'contact@techstart.co.kr',
-    phone: '02-1234-5678'
-  },
-  'client-2': {
-    id: 'client-2',
-    name: '디자인컴퍼니',
-    businessNumber: '234-56-78901',
-    email: 'hello@designco.com',
-    phone: '02-2345-6789'
-  },
-  'client-3': {
-    id: 'client-3',
-    name: '이커머스플러스',
-    businessNumber: '345-67-89012',
-    email: 'info@ecomplus.kr',
-    phone: '02-3456-7890'
-  }
+// Supabase 타입
+type Invoice = Database['public']['Tables']['invoices']['Row'];
+type InvoiceStatus = Database['public']['Tables']['invoices']['Row']['status'];
+
+type InvoiceWithRelations = Invoice & {
+  client?: Client | null;
+  project?: Project | null;
 };
 
-const mockInvoices: Invoice[] = [
-  {
-    id: '1',
-    invoiceNumber: 'INV-2024-001',
-    tenantId: 'tenant-1',
-    clientId: 'client-1',
-    status: 'issued',
-    issueDate: new Date('2024-08-15'),
-    dueDate: new Date('2024-09-15'),
-    items: [
-      {
-        id: '1',
-        description: '웹사이트 리뉴얼',
-        quantity: 1,
-        unitPrice: 3500000,
-        amount: 3500000
-      }
-    ],
-    subtotal: 3500000,
-    tax: 350000,
-    total: 3850000,
-    currency: 'KRW',
-    createdAt: new Date('2024-08-15'),
-    updatedAt: new Date('2024-08-15')
-  },
-  {
-    id: '2',
-    invoiceNumber: 'INV-2024-002',
-    tenantId: 'tenant-1',
-    clientId: 'client-2',
-    status: 'overdue',
-    issueDate: new Date('2024-07-10'),
-    dueDate: new Date('2024-08-10'),
-    items: [
-      {
-        id: '2',
-        description: '브랜드 아이덴티티 디자인',
-        quantity: 1,
-        unitPrice: 2800000,
-        amount: 2800000
-      }
-    ],
-    subtotal: 2800000,
-    tax: 280000,
-    total: 3080000,
-    currency: 'KRW',
-    createdAt: new Date('2024-07-10'),
-    updatedAt: new Date('2024-07-10')
-  },
-  {
-    id: '3',
-    invoiceNumber: 'INV-2024-003',
-    tenantId: 'tenant-1',
-    clientId: 'client-3',
-    status: 'paid',
-    issueDate: new Date('2024-08-01'),
-    dueDate: new Date('2024-09-01'),
-    paidDate: new Date('2024-08-25'),
-    items: [
-      {
-        id: '3',
-        description: '쇼핑몰 구축',
-        quantity: 1,
-        unitPrice: 5500000,
-        amount: 5500000
-      }
-    ],
-    subtotal: 5500000,
-    tax: 550000,
-    total: 6050000,
-    currency: 'KRW',
-    createdAt: new Date('2024-08-01'),
-    updatedAt: new Date('2024-08-25')
-  },
-  {
-    id: '4',
-    invoiceNumber: 'INV-2024-004',
-    tenantId: 'tenant-1',
-    clientId: 'client-1',
-    status: 'draft',
-    issueDate: new Date('2024-08-25'),
-    dueDate: new Date('2024-09-25'),
-    items: [
-      {
-        id: '4',
-        description: '모바일 앱 개발 1차',
-        quantity: 1,
-        unitPrice: 4200000,
-        amount: 4200000
-      }
-    ],
-    subtotal: 4200000,
-    tax: 420000,
-    total: 4620000,
-    currency: 'KRW',
-    createdAt: new Date('2024-08-25'),
-    updatedAt: new Date('2024-08-25')
-  }
-];
 
 const statusOptions = [
   { value: 'all', label: '전체' },
@@ -148,7 +37,7 @@ const getStatusColor = (status: InvoiceStatus): string => {
   switch (status) {
     case 'draft':
       return 'text-txt-tertiary border border-border-light/50';
-    case 'issued':
+    case 'sent':
       return 'text-weave-primary border border-blue-200/50';
     case 'overdue':
       return 'text-red-600 border border-red-200/50';
@@ -165,7 +54,7 @@ const getStatusLabel = (status: InvoiceStatus): string => {
   switch (status) {
     case 'draft':
       return '임시저장';
-    case 'issued':
+    case 'sent':
       return '발행됨';
     case 'overdue':
       return '연체';
@@ -187,16 +76,68 @@ const formatDate = (date: Date): string => {
 };
 
 export default function InvoicesPage() {
-  const [invoices] = useState<Invoice[]>(mockInvoices);
+  const router = useRouter();
+  const [invoices, setInvoices] = useState<InvoiceWithRelations[]>([]);
   const [selectedStatus, setSelectedStatus] = useState('all');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // 인보이스 데이터 불러오기
+  useEffect(() => {
+    loadInvoices();
+  }, []);
+
+  const loadInvoices = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      // TODO: 실제 사용자 ID로 교체 필요
+      const userId = 'system';
+      const invoicesData = await invoicesService.getInvoices(userId);
+      
+      // 각 인보이스에 클라이언트와 프로젝트 정보 추가
+      const invoicesWithRelations = await Promise.all(
+        invoicesData.map(async (invoice) => {
+          let client = undefined;
+          let project = undefined;
+          
+          if (invoice.client_id) {
+            try {
+              client = await clientService.getClientById(invoice.client_id);
+            } catch (err) {
+              console.error(`Failed to load client for invoice ${invoice.id}:`, err);
+            }
+          }
+          
+          if (invoice.project_id) {
+            try {
+              project = await projectsService.getProjectById(invoice.project_id);
+            } catch (err) {
+              console.error(`Failed to load project for invoice ${invoice.id}:`, err);
+            }
+          }
+          
+          return {
+            ...invoice,
+            client: client || undefined,
+            project: project || undefined
+          };
+        })
+      );
+      
+      setInvoices(invoicesWithRelations);
+    } catch (err) {
+      console.error('Failed to load invoices:', err);
+      setError('인보이스 목록을 불러오는데 실패했습니다.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const filteredInvoices = selectedStatus === 'all' 
     ? invoices 
     : invoices.filter(invoice => invoice.status === selectedStatus);
-
-  const getClientInfo = (clientId: string) => {
-    return mockClients[clientId] || { name: 'Unknown Client', businessNumber: '' };
-  };
 
   return (
     <AppLayout>
@@ -249,6 +190,28 @@ export default function InvoicesPage() {
 
         {/* Invoice Table */}
         <div className="bg-white rounded-lg border border-border-light overflow-hidden">
+          {loading ? (
+            <div className="p-12 text-center">
+              <Loader2 className="w-8 h-8 animate-spin text-weave-primary mx-auto mb-4" />
+              <Typography variant="body1" className="text-txt-secondary">
+                인보이스 목록을 불러오는 중...
+              </Typography>
+            </div>
+          ) : error ? (
+            <div className="p-12 text-center">
+              <AlertCircle className="w-8 h-8 text-red-500 mx-auto mb-4" />
+              <Typography variant="body1" className="text-red-500">
+                {error}
+              </Typography>
+              <Button
+                variant="outline"
+                onClick={loadInvoices}
+                className="mt-4"
+              >
+                다시 시도
+              </Button>
+            </div>
+          ) : (
           <Table>
             <Table.Header>
               <Table.Row>
@@ -263,35 +226,34 @@ export default function InvoicesPage() {
             </Table.Header>
             <Table.Body>
               {filteredInvoices.map((invoice) => {
-                const client = getClientInfo(invoice.clientId);
                 return (
                   <Table.Row key={invoice.id}>
                     <Table.Cell>
                       <div className="font-medium text-txt-primary">
-                        {invoice.invoiceNumber}
+                        {invoice.invoice_number}
                       </div>
                     </Table.Cell>
                     <Table.Cell>
                       <div>
                         <div className="font-medium text-txt-primary">
-                          {client.name}
+                          {invoice.client?.company || '-'}
                         </div>
                         <div className="text-sm text-txt-tertiary">
-                          {client.businessNumber}
+                          {invoice.client?.business_number || ''}
                         </div>
                       </div>
                     </Table.Cell>
                     <Table.Cell className="text-txt-secondary">
-                      {formatDate(invoice.issueDate)}
+                      {invoice.issue_date ? formatDate(new Date(invoice.issue_date)) : '-'}
                     </Table.Cell>
                     <Table.Cell className="text-txt-secondary">
-                      {formatDate(invoice.dueDate)}
+                      {invoice.due_date ? formatDate(new Date(invoice.due_date)) : '-'}
                     </Table.Cell>
                     <Table.Cell>
                       <div className="font-medium text-txt-primary">
-                        {formatCurrency(invoice.total)}
+                        {formatCurrency(invoice.total || 0)}
                       </div>
-                      {invoice.tax > 0 && (
+                      {(invoice.tax || 0) > 0 && (
                         <div className="text-xs text-txt-tertiary">
                           VAT 포함
                         </div>
@@ -323,7 +285,7 @@ export default function InvoicesPage() {
                             수정
                           </Button>
                         )}
-                        {(invoice.status === 'issued' || invoice.status === 'overdue') && (
+                        {(invoice.status === 'sent' || invoice.status === 'overdue') && (
                           <Button
                             variant="ghost"
                             size="sm"
@@ -339,8 +301,9 @@ export default function InvoicesPage() {
               })}
             </Table.Body>
           </Table>
+          )}
 
-          {filteredInvoices.length === 0 && (
+          {!loading && !error && filteredInvoices.length === 0 && (
             <div className="text-center py-12">
               <div className="text-txt-tertiary text-lg mb-2">
                 조건에 맞는 인보이스가 없습니다
@@ -359,7 +322,7 @@ export default function InvoicesPage() {
               총 발행 금액
             </Typography>
             <Typography variant="h3" className="text-2xl">
-              {formatCurrency(invoices.reduce((sum, inv) => sum + inv.total, 0))}
+              {formatCurrency(invoices.reduce((sum, inv) => sum + (inv.total || 0), 0))}
             </Typography>
           </div>
           
@@ -368,7 +331,7 @@ export default function InvoicesPage() {
               결제 완료
             </Typography>
             <Typography variant="h3" className="text-2xl text-green-600">
-              {formatCurrency(invoices.filter(inv => inv.status === 'paid').reduce((sum, inv) => sum + inv.total, 0))}
+              {formatCurrency(invoices.filter(inv => inv.status === 'paid').reduce((sum, inv) => sum + (inv.total || 0), 0))}
             </Typography>
           </div>
           
@@ -377,7 +340,7 @@ export default function InvoicesPage() {
               미수금
             </Typography>
             <Typography variant="h3" className="text-2xl text-orange-600">
-              {formatCurrency(invoices.filter(inv => inv.status === 'issued' || inv.status === 'overdue').reduce((sum, inv) => sum + inv.total, 0))}
+              {formatCurrency(invoices.filter(inv => inv.status === 'sent' || inv.status === 'overdue').reduce((sum, inv) => sum + (inv.total || 0), 0))}
             </Typography>
           </div>
           
@@ -386,7 +349,7 @@ export default function InvoicesPage() {
               연체 금액
             </Typography>
             <Typography variant="h3" className="text-2xl text-red-600">
-              {formatCurrency(invoices.filter(inv => inv.status === 'overdue').reduce((sum, inv) => sum + inv.total, 0))}
+              {formatCurrency(invoices.filter(inv => inv.status === 'overdue').reduce((sum, inv) => sum + (inv.total || 0), 0))}
             </Typography>
           </div>
         </div>

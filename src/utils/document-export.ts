@@ -568,3 +568,331 @@ export function printDocument(markdown: string, title: string = '문서') {
   }
 }
 
+// PDF 내보내기 함수
+export async function exportToPDF(content: string, filename: string = 'document', title: string = '문서') {
+  try {
+    // jsPDF 동적 import
+    const jsPDF = (await import('jspdf')).default;
+    await import('jspdf-autotable');
+    
+    // 한글 폰트 로드 (NotoSansKR)
+    const doc = new jsPDF({
+      orientation: 'portrait',
+      unit: 'mm',
+      format: 'a4'
+    });
+    
+    // 문서 메타데이터
+    doc.setProperties({
+      title: title,
+      author: 'WEAVE Platform',
+      subject: title,
+      keywords: 'WEAVE, document, export',
+      creator: 'WEAVE AI Platform'
+    });
+    
+    // 헤더 추가
+    doc.setFontSize(24);
+    doc.setTextColor(37, 99, 235); // blue-600
+    doc.text('WEAVE', 105, 20, { align: 'center' });
+    
+    doc.setFontSize(18);
+    doc.setTextColor(0, 0, 0);
+    doc.text(title, 105, 35, { align: 'center' });
+    
+    // 날짜 추가
+    doc.setFontSize(10);
+    doc.setTextColor(100, 100, 100);
+    const today = new Date().toLocaleDateString('ko-KR', { 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    });
+    doc.text(`발행일: ${today}`, 105, 45, { align: 'center' });
+    
+    // 구분선
+    doc.setDrawColor(200, 200, 200);
+    doc.line(20, 50, 190, 50);
+    
+    // 본문 내용 추가 (마크다운을 텍스트로 변환)
+    doc.setFontSize(11);
+    doc.setTextColor(0, 0, 0);
+    
+    // 마크다운을 일반 텍스트로 변환
+    let plainText = content;
+    plainText = plainText.replace(/^### (.*$)/gim, '$1');
+    plainText = plainText.replace(/^## (.*$)/gim, '$1');
+    plainText = plainText.replace(/^# (.*$)/gim, '$1');
+    plainText = plainText.replace(/\*\*(.+?)\*\*/g, '$1');
+    plainText = plainText.replace(/\*(.+?)\*/g, '$1');
+    plainText = plainText.replace(/^\* (.+)/gim, '• $1');
+    plainText = plainText.replace(/^\- (.+)/gim, '• $1');
+    plainText = plainText.replace(/^\d+\. (.+)/gim, '$1');
+    
+    // 텍스트를 페이지에 맞게 분할
+    const lines = doc.splitTextToSize(plainText, 170);
+    let y = 60;
+    const pageHeight = doc.internal.pageSize.height;
+    
+    for (let i = 0; i < lines.length; i++) {
+      if (y > pageHeight - 30) {
+        doc.addPage();
+        y = 20;
+      }
+      doc.text(lines[i], 20, y);
+      y += 7;
+    }
+    
+    // 푸터 추가
+    const pageCount = doc.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i);
+      doc.setFontSize(9);
+      doc.setTextColor(150, 150, 150);
+      doc.text(
+        `WEAVE - AI Business Document Platform | 페이지 ${i}/${pageCount}`,
+        105,
+        pageHeight - 10,
+        { align: 'center' }
+      );
+    }
+    
+    // PDF 다운로드
+    doc.save(`${filename}.pdf`);
+    return true;
+    
+  } catch (error) {
+    console.error('PDF 내보내기 실패:', error);
+    // Word로 대체 내보내기 시도
+    return await exportToWord(content, filename, title);
+  }
+}
+
+// HTML 내보내기 함수
+export function exportToHTML(content: string, filename: string = 'document', title: string = '문서') {
+  try {
+    // 문서 번호 생성
+    const docNumber = `WV-${new Date().getFullYear()}-${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`;
+    const today = new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' });
+    
+    // HTML 문서 생성
+    const htmlContent = `<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${title} - WEAVE</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            line-height: 1.8;
+            color: #222;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 60px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            border-radius: 8px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 30px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        
+        .logo {
+            font-size: 28px;
+            font-weight: 900;
+            color: #2563eb;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 20px;
+        }
+        
+        h1 {
+            font-size: 32px;
+            font-weight: 700;
+            color: #000;
+            margin: 20px 0;
+        }
+        
+        .doc-info {
+            font-size: 11px;
+            color: #666;
+            margin-top: 15px;
+        }
+        
+        .content {
+            margin: 40px 0;
+        }
+        
+        .content h1 {
+            font-size: 24px;
+            margin: 30px 0 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #333;
+        }
+        
+        .content h2 {
+            font-size: 20px;
+            margin: 25px 0 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #666;
+        }
+        
+        .content h3 {
+            font-size: 16px;
+            margin: 20px 0 10px;
+            color: #333;
+        }
+        
+        .content p {
+            margin: 12px 0;
+            text-align: justify;
+        }
+        
+        .content ul, .content ol {
+            margin: 15px 0 15px 30px;
+        }
+        
+        .content li {
+            margin: 8px 0;
+        }
+        
+        .content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 25px 0;
+            border: 2px solid #333;
+        }
+        
+        .content th {
+            background: #f0f0f0;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            border: 1px solid #666;
+        }
+        
+        .content td {
+            padding: 10px 12px;
+            border: 1px solid #999;
+        }
+        
+        .footer {
+            margin-top: 60px;
+            padding-top: 30px;
+            border-top: 1px solid #999;
+            text-align: center;
+            font-size: 11px;
+            color: #666;
+        }
+        
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+            .container {
+                box-shadow: none;
+                border-radius: 0;
+                padding: 40px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">WEAVE</div>
+            <div class="subtitle">AI 기반 비즈니스 문서 생성 플랫폼</div>
+            <h1>${title}</h1>
+            <div class="doc-info">
+                <div>문서번호: ${docNumber}</div>
+                <div>발행일: ${today}</div>
+            </div>
+        </div>
+        
+        <div class="content">
+            ${convertMarkdownToHtml(content)}
+        </div>
+        
+        <div class="footer">
+            <p><strong>WEAVE</strong> - AI Business Document Platform</p>
+            <p>www.weave.co.kr | support@weave.co.kr</p>
+        </div>
+    </div>
+</body>
+</html>`;
+    
+    // HTML 파일 다운로드
+    const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
+    saveAs(blob, `${filename}.html`);
+    
+    return true;
+    
+  } catch (error) {
+    console.error('HTML 내보내기 실패:', error);
+    return false;
+  }
+}
+
+// 텍스트 내보내기 함수
+export function exportToText(content: string, filename: string = 'document', title: string = '문서') {
+  try {
+    // 마크다운을 일반 텍스트로 변환
+    let plainText = `${title}\n${'='.repeat(title.length)}\n\n`;
+    plainText += `생성일: ${new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })}\n`;
+    plainText += `${'─'.repeat(50)}\n\n`;
+    
+    // 마크다운 변환
+    let textContent = content;
+    textContent = textContent.replace(/^### (.*$)/gim, '\n$1\n');
+    textContent = textContent.replace(/^## (.*$)/gim, '\n$1\n═════════════════\n');
+    textContent = textContent.replace(/^# (.*$)/gim, '\n$1\n═══════════════════════════\n');
+    textContent = textContent.replace(/\*\*(.+?)\*\*/g, '$1');
+    textContent = textContent.replace(/\*(.+?)\*/g, '$1');
+    textContent = textContent.replace(/^\* (.+)/gim, '• $1');
+    textContent = textContent.replace(/^\- (.+)/gim, '• $1');
+    textContent = textContent.replace(/^\d+\. (.+)/gim, '$1');
+    textContent = textContent.replace(/\|(.+?)\|/g, '$1 ');
+    
+    plainText += textContent;
+    
+    // 푸터 추가
+    plainText += `\n\n${'─'.repeat(50)}\n`;
+    plainText += 'WEAVE - AI Business Document Platform\n';
+    plainText += 'www.weave.co.kr | support@weave.co.kr\n';
+    
+    // 텍스트 파일 다운로드
+    const blob = new Blob([plainText], { type: 'text/plain;charset=utf-8' });
+    saveAs(blob, `${filename}.txt`);
+    
+    return true;
+    
+  } catch (error) {
+    console.error('텍스트 내보내기 실패:', error);
+    return false;
+  }
+}
+

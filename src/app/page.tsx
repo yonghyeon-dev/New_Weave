@@ -34,6 +34,8 @@ export default function LandingPage() {
 
   useEffect(() => {
     setIsMounted(true);
+    // 랜딩 페이지는 그대로 보여주고, 로그인은 사용자가 선택하도록
+    // router.push('/login'); // 제거 - 자동 리다이렉트 하지 않음
   }, []);
 
   const navigateToPage = (path: string) => {
@@ -81,7 +83,7 @@ export default function LandingPage() {
               <Button
                 variant="secondary"
                 size="sm"
-                onClick={() => navigateToPage('/dashboard')}
+                onClick={() => navigateToPage('/login')}
                 className="flex items-center gap-2"
               >
                 <LogIn className="w-4 h-4" />
@@ -90,7 +92,7 @@ export default function LandingPage() {
               <Button
                 variant="primary"
                 size="sm"
-                onClick={() => navigateToPage('/dashboard')}
+                onClick={() => navigateToPage('/signup')}
                 className="flex items-center gap-2"
               >
                 <UserPlus className="w-4 h-4" />
@@ -137,10 +139,10 @@ export default function LandingPage() {
                 <Button
                   variant="secondary-dark"
                   size="lg"
-                  onClick={() => navigateToPage('/dashboard')}
+                  onClick={() => navigateToPage('/login')}
                   className="px-8 py-4 text-lg font-semibold"
                 >
-                  데모 보기
+                  로그인하기
                 </Button>
               </div>
 

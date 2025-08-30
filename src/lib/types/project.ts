@@ -71,7 +71,7 @@ export interface ProjectPayment {
   invoiceId?: string;
 }
 
-export interface Project {
+export interface ProjectDetail {
   id: string;
   name: string;
   description?: string;

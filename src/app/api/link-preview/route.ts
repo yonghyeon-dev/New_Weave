@@ -2,8 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 
 // 링크 메타데이터 추출 API
 export async function POST(request: NextRequest) {
+  let url = '';
+  
   try {
-    const { url } = await request.json();
+    const body = await request.json();
+    url = body.url;
     
     if (!url) {
       return NextResponse.json(
@@ -45,10 +48,20 @@ export async function POST(request: NextRequest) {
     console.error('Link preview error:', error);
     
     // 에러 발생 시 기본 메타데이터 반환
+    if (url) {
+      try {
+        return NextResponse.json({
+          url,
+          title: new URL(url).hostname
+        });
+      } catch {
+        // URL이 잘못된 경우
+      }
+    }
+    
     return NextResponse.json({
-      url: request.json().then(data => data.url),
-      title: new URL(request.json().then(data => data.url)).hostname
-    });
+      error: 'Failed to fetch link preview'
+    }, { status: 500 });
   }
 }
 

@@ -166,67 +166,135 @@ export default function SettingsPage() {
   );
 
   const renderNotificationsTab = () => (
-    <Card className="p-6">
-      <Typography variant="h3" className="mb-6">알림 설정</Typography>
-      
-      <div className="space-y-6">
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <Typography variant="body1" className="font-medium">이메일 알림</Typography>
-              <Typography variant="body2" className="text-txt-secondary">
-                인보이스, 결제, 프로젝트 관련 이메일 알림
-              </Typography>
+    <div className="space-y-6">
+      <Card className="p-6">
+        <Typography variant="h3" className="mb-6">알림 설정</Typography>
+        
+        <div className="space-y-6">
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <Typography variant="body1" className="font-medium">이메일 알림</Typography>
+                <Typography variant="body2" className="text-txt-secondary">
+                  인보이스, 결제, 프로젝트 관련 이메일 알림
+                </Typography>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={settings.emailNotifications}
+                  onChange={(e) => handleSettingChange('emailNotifications', e.target.checked)}
+                  className="sr-only peer"
+                />
+                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-weave-primary"></div>
+              </label>
             </div>
-            <label className="relative inline-flex items-center cursor-pointer">
-              <input
-                type="checkbox"
-                checked={settings.emailNotifications}
-                onChange={(e) => handleSettingChange('emailNotifications', e.target.checked)}
-                className="sr-only peer"
-              />
-              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-weave-primary"></div>
-            </label>
-          </div>
 
-          <div className="flex items-center justify-between">
-            <div>
-              <Typography variant="body1" className="font-medium">푸시 알림</Typography>
-              <Typography variant="body2" className="text-txt-secondary">
-                브라우저 푸시 알림 및 모바일 알림
-              </Typography>
+            <div className="flex items-center justify-between">
+              <div>
+                <Typography variant="body1" className="font-medium">푸시 알림</Typography>
+                <Typography variant="body2" className="text-txt-secondary">
+                  브라우저 푸시 알림 및 모바일 알림
+                </Typography>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={settings.pushNotifications}
+                  onChange={(e) => handleSettingChange('pushNotifications', e.target.checked)}
+                  className="sr-only peer"
+                />
+                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-weave-primary"></div>
+              </label>
             </div>
-            <label className="relative inline-flex items-center cursor-pointer">
-              <input
-                type="checkbox"
-                checked={settings.pushNotifications}
-                onChange={(e) => handleSettingChange('pushNotifications', e.target.checked)}
-                className="sr-only peer"
-              />
-              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-weave-primary"></div>
-            </label>
-          </div>
 
-          <div className="flex items-center justify-between">
-            <div>
-              <Typography variant="body1" className="font-medium">리마인더 알림</Typography>
-              <Typography variant="body2" className="text-txt-secondary">
-                결제 일정, 프로젝트 마감일 리마인더
-              </Typography>
+            <div className="flex items-center justify-between">
+              <div>
+                <Typography variant="body1" className="font-medium">리마인더 알림</Typography>
+                <Typography variant="body2" className="text-txt-secondary">
+                  결제 일정, 프로젝트 마감일 리마인더
+                </Typography>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={settings.reminderNotifications}
+                  onChange={(e) => handleSettingChange('reminderNotifications', e.target.checked)}
+                  className="sr-only peer"
+                />
+                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-weave-primary"></div>
+              </label>
             </div>
-            <label className="relative inline-flex items-center cursor-pointer">
-              <input
-                type="checkbox"
-                checked={settings.reminderNotifications}
-                onChange={(e) => handleSettingChange('reminderNotifications', e.target.checked)}
-                className="sr-only peer"
-              />
-              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-weave-primary"></div>
-            </label>
           </div>
         </div>
-      </div>
-    </Card>
+      </Card>
+
+      {/* 결제 리마인더 설정 */}
+      <Card className="p-6">
+        <Typography variant="h3" className="mb-6">결제 리마인더 설정</Typography>
+        
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <Typography variant="body2" className="mb-2">리마인더 시기</Typography>
+              <Select
+                value="3days"
+                options={[
+                  { value: '1day', label: '1일 전' },
+                  { value: '3days', label: '3일 전' },
+                  { value: '7days', label: '7일 전' },
+                  { value: '14days', label: '14일 전' },
+                  { value: '30days', label: '30일 전' }
+                ]}
+              />
+            </div>
+            
+            <div>
+              <Typography variant="body2" className="mb-2">알림 시간</Typography>
+              <Select
+                value="09:00"
+                options={[
+                  { value: '09:00', label: '오전 9시' },
+                  { value: '12:00', label: '오후 12시' },
+                  { value: '15:00', label: '오후 3시' },
+                  { value: '18:00', label: '오후 6시' }
+                ]}
+              />
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <Typography variant="body2" className="font-medium">알림 받을 항목</Typography>
+            
+            <div className="space-y-3">
+              <label className="flex items-center space-x-3">
+                <input type="checkbox" defaultChecked className="w-4 h-4 text-weave-primary" />
+                <span className="text-txt-primary">프로젝트 마감일</span>
+              </label>
+              
+              <label className="flex items-center space-x-3">
+                <input type="checkbox" defaultChecked className="w-4 h-4 text-weave-primary" />
+                <span className="text-txt-primary">인보이스 결제 기한</span>
+              </label>
+              
+              <label className="flex items-center space-x-3">
+                <input type="checkbox" defaultChecked className="w-4 h-4 text-weave-primary" />
+                <span className="text-txt-primary">세금 신고 기한</span>
+              </label>
+              
+              <label className="flex items-center space-x-3">
+                <input type="checkbox" defaultChecked className="w-4 h-4 text-weave-primary" />
+                <span className="text-txt-primary">계약 갱신 알림</span>
+              </label>
+            </div>
+          </div>
+
+          <Button variant="primary" className="w-full md:w-auto">
+            리마인더 설정 저장
+          </Button>
+        </div>
+      </Card>
+    </div>
   );
 
   const renderSystemTab = () => (

@@ -88,8 +88,8 @@ export default function ProjectSelector({
     const configs = {
       planning: { variant: 'secondary' as const, icon: Circle, label: '기획중' },
       in_progress: { variant: 'primary' as const, icon: AlertCircle, label: '진행중' },
-      completed: { variant: 'success' as const, icon: CheckCircle, label: '완료' },
-      on_hold: { variant: 'warning' as const, icon: AlertCircle, label: '보류' }
+      completed: { variant: 'positive' as const, icon: CheckCircle, label: '완료' },
+      on_hold: { variant: 'notice' as const, icon: AlertCircle, label: '보류' }
     };
     
     const config = configs[status];
