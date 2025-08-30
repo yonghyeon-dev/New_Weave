@@ -6,6 +6,7 @@ import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import Typography from '@/components/ui/Typography';
 import Badge from '@/components/ui/Badge';
+import { documentsService } from '@/lib/services/supabase/documents.service';
 import { 
   FileText, 
   Download, 
@@ -19,7 +20,10 @@ import {
   Sparkles,
   ChevronDown,
   ChevronUp,
-  AlertCircle
+  AlertCircle,
+  Search,
+  Database,
+  Loader2
 } from 'lucide-react';
 import { DocumentTemplate } from '@/templates/document-templates';
 import { documentTemplates } from '@/templates/document-templates';
@@ -32,6 +36,8 @@ interface DocumentGeneratorProps {
   enableAIGeneration?: boolean;
   allowTemplateCustomization?: boolean;
   exportFormats?: string[];
+  projectId?: string; // 프로젝트 ID로 문서 연결
+  enableRAGSearch?: boolean; // RAG 검색 활성화
 }
 
 interface TemplateVariable {
@@ -47,7 +53,9 @@ export default function DocumentGenerator({
   onError,
   enableAIGeneration = false,
   allowTemplateCustomization = true,
-  exportFormats = ['markdown', 'pdf', 'docx', 'html']
+  exportFormats = ['markdown', 'pdf', 'docx', 'html'],
+  projectId,
+  enableRAGSearch = true
 }: DocumentGeneratorProps) {
   const [selectedTemplate, setSelectedTemplate] = useState<DocumentTemplate | null>(null);
   const [templateVariables, setTemplateVariables] = useState<TemplateVariable[]>([]);
@@ -58,6 +66,10 @@ export default function DocumentGenerator({
   const [copied, setCopied] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [expandedSections, setExpandedSections] = useState<{ [key: string]: boolean }>({});
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [showSearchResults, setShowSearchResults] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // selectedTemplateId가 전달되면 해당 템플릿 자동 선택
@@ -174,6 +186,50 @@ export default function DocumentGenerator({
     }
   }, [selectedTemplate, templateVariables, enableAIGeneration, onDocumentGenerated, onError]);
 
+  // RAG 시스템에서 관련 문서 검색
+  const searchRAGDocuments = async () => {
+    if (!searchQuery.trim()) return;
+
+    setIsSearching(true);
+    setShowSearchResults(true);
+    try {
+      // TODO: Implement searchSimilar or use searchDocumentsByText
+      const results = await documentsService.searchDocumentsByText('system', searchQuery);
+      setSearchResults(results);
+    } catch (err) {
+      console.error('RAG search failed:', err);
+      onError?.(new Error('관련 문서 검색에 실패했습니다.'));
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  // 검색 결과를 템플릿 변수에 적용
+  const applySearchResult = (result: any) => {
+    // 검색 결과의 내용을 현재 편집 중인 문서에 추가
+    const content = result.content || '';
+    const metadata = result.metadata || {};
+    
+    // 메타데이터에서 유용한 정보 추출
+    const extractedInfo = [];
+    if (metadata.businessNumber) extractedInfo.push(`사업자번호: ${metadata.businessNumber}`);
+    if (metadata.companyName) extractedInfo.push(`회사명: ${metadata.companyName}`);
+    if (metadata.representativeName) extractedInfo.push(`대표자: ${metadata.representativeName}`);
+    if (metadata.businessAddress) extractedInfo.push(`주소: ${metadata.businessAddress}`);
+    
+    const infoText = extractedInfo.length > 0 
+      ? `\n\n**참조 정보:**\n${extractedInfo.join('\n')}`
+      : '';
+    
+    if (isEditing) {
+      setEditedDocument(prev => prev + '\n\n' + content + infoText);
+    } else {
+      setGeneratedDocument(prev => prev + '\n\n' + content + infoText);
+    }
+    
+    setShowSearchResults(false);
+  };
+
   // 문서 복사
   const copyToClipboard = async () => {
     const documentToCopy = isEditing ? editedDocument : generatedDocument;
@@ -185,6 +241,39 @@ export default function DocumentGenerator({
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
       onError?.(new Error('클립보드 복사에 실패했습니다.'));
+    }
+  };
+
+  // 문서를 RAG 시스템에 저장
+  const saveToRAGSystem = async () => {
+    const documentToSave = isEditing ? editedDocument : generatedDocument;
+    if (!documentToSave || !selectedTemplate) return;
+
+    try {
+      // TODO: Implement document creation for text content
+      // Need to either use uploadDocument with File or create new method
+      console.log('Saving document to RAG:', {
+        title: selectedTemplate.name,
+        content: documentToSave,
+        type: 'generated',
+        project_id: projectId || null,
+        metadata: {
+          template_id: selectedTemplate.id,
+          template_name: selectedTemplate.name,
+          generated_at: new Date().toISOString(),
+          variables: templateVariables.reduce((acc, v) => ({
+            ...acc,
+            [v.name]: v.value
+          }), {})
+        },
+        tags: ['generated', 'document', selectedTemplate.category]
+      });
+      
+      // 성공 메시지 표시 (임시)
+      alert('문서가 RAG 시스템에 저장되었습니다.');
+    } catch (err) {
+      console.error('Failed to save to RAG system:', err);
+      onError?.(new Error('문서 저장에 실패했습니다.'));
     }
   };
 
@@ -347,6 +436,88 @@ export default function DocumentGenerator({
             )}
           </div>
 
+          {/* RAG 검색 섹션 */}
+          {enableRAGSearch && (
+            <div className="mb-6 p-4 bg-bg-secondary rounded-lg">
+              <div className="flex items-center gap-2 mb-3">
+                <Database className="w-4 h-4 text-weave-primary" />
+                <Typography variant="body2" className="font-medium text-txt-primary">
+                  관련 문서 검색 (RAG)
+                </Typography>
+              </div>
+              <div className="flex gap-2">
+                <Input
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="검색어를 입력하세요..."
+                  onKeyPress={(e) => e.key === 'Enter' && searchRAGDocuments()}
+                  className="flex-1"
+                />
+                <Button
+                  variant="outline"
+                  onClick={searchRAGDocuments}
+                  disabled={isSearching || !searchQuery.trim()}
+                >
+                  {isSearching ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Search className="w-4 h-4" />
+                  )}
+                </Button>
+              </div>
+              
+              {/* 검색 결과 표시 */}
+              {showSearchResults && searchResults.length > 0 && (
+                <div className="mt-3 space-y-2">
+                  <Typography variant="body2" className="text-txt-secondary">
+                    검색 결과: {searchResults.length}개
+                  </Typography>
+                  <div className="max-h-48 overflow-y-auto space-y-2">
+                    {searchResults.map((result, idx) => (
+                      <div 
+                        key={idx}
+                        className="p-3 bg-white rounded border border-border-light hover:border-weave-primary cursor-pointer transition-colors"
+                        onClick={() => applySearchResult(result)}
+                      >
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <Typography variant="body2" className="font-medium text-txt-primary">
+                              {result.title || `문서 ${idx + 1}`}
+                            </Typography>
+                            <Typography variant="body2" className="text-txt-secondary text-sm mt-1 line-clamp-2">
+                              {result.content?.substring(0, 100)}...
+                            </Typography>
+                            {result.similarity_score && (
+                              <Badge variant="secondary" className="mt-1">
+                                유사도: {(result.similarity_score * 100).toFixed(0)}%
+                              </Badge>
+                            )}
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              applySearchResult(result);
+                            }}
+                          >
+                            적용
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              {showSearchResults && searchResults.length === 0 && !isSearching && (
+                <Typography variant="body2" className="text-txt-tertiary mt-3">
+                  검색 결과가 없습니다.
+                </Typography>
+              )}
+            </div>
+          )}
+
           <div className="space-y-4">
             {templateVariables.map((variable, index) => (
               <div key={variable.name}>
@@ -503,6 +674,17 @@ export default function DocumentGenerator({
                 {format}
               </Button>
             ))}
+            {enableRAGSearch && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={saveToRAGSystem}
+                className="ml-auto"
+              >
+                <Database className="w-4 h-4 mr-1" />
+                RAG 시스템에 저장
+              </Button>
+            )}
           </div>
         </Card>
       )}

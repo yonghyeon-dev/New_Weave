@@ -9,7 +9,7 @@ import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import Typography from '@/components/ui/Typography';
 import { projectsService } from '@/lib/services/supabase/projects.service';
-import { clientsService } from '@/lib/services/supabase/clients.service';
+import { clientService } from '@/lib/services/supabase/clients.service';
 import type { Database } from '@/lib/supabase/database.types';
 import { 
   FolderPlus,
@@ -50,7 +50,9 @@ export default function NewProjectPage() {
   const loadClients = async () => {
     try {
       setLoading(true);
-      const clientsData = await clientsService.getAll();
+      // TODO: 실제 사용자 ID로 교체 필요
+      const userId = 'system';
+      const clientsData = await clientService.getClients(userId);
       setClients(clientsData);
     } catch (err) {
       console.error('Failed to load clients:', err);
@@ -72,18 +74,18 @@ export default function NewProjectPage() {
     setError(null);
 
     try {
-      await projectsService.create({
+      await projectsService.createProject({
+        user_id: 'system', // TODO: 실제 사용자 ID로 교체 필요
         name: formData.name,
         description: formData.description || null,
         client_id: formData.client_id,
         status: formData.status,
         priority: formData.priority,
-        budget: formData.budget || null,
-        actual_cost: 0,
+        budget_estimated: formData.budget || null,
+        budget_spent: 0,
         start_date: formData.start_date,
-        end_date: formData.end_date || null,
-        progress: formData.progress,
-        team_members: []
+        due_date: formData.end_date || null,
+        progress: formData.progress
       });
 
       router.push('/projects');

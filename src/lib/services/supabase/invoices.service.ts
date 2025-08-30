@@ -21,7 +21,7 @@ export class InvoicesService {
   }
 
   // 인보이스 목록 조회
-  async getInvoices(userId: string, status?: Invoice['status']) {
+  async getInvoices(userId: string, status?: Invoice['status']): Promise<Invoice[]> {
     let query = this.supabase
       .from('invoices')
       .select(`
@@ -48,7 +48,7 @@ export class InvoicesService {
     const { data, error } = await query
 
     if (error) throw error
-    return data
+    return data || []
   }
 
   // 특정 인보이스 조회

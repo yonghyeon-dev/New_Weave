@@ -9,7 +9,7 @@ import Table from '@/components/ui/Table';
 import Select from '@/components/ui/Select';
 import Typography from '@/components/ui/Typography';
 import { invoicesService } from '@/lib/services/supabase/invoices.service';
-import { clientsService } from '@/lib/services/supabase/clients.service';
+import { clientService } from '@/lib/services/supabase/clients.service';
 import { projectsService } from '@/lib/services/supabase/projects.service';
 import type { Database } from '@/lib/supabase/database.types';
 import { cn } from '@/lib/utils';
@@ -39,7 +39,7 @@ const getStatusColor = (status: InvoiceStatus): string => {
   switch (status) {
     case 'draft':
       return 'text-txt-tertiary border border-border-light/50';
-    case 'issued':
+    case 'sent':
       return 'text-weave-primary border border-blue-200/50';
     case 'overdue':
       return 'text-red-600 border border-red-200/50';
@@ -56,7 +56,7 @@ const getStatusLabel = (status: InvoiceStatus): string => {
   switch (status) {
     case 'draft':
       return '임시저장';
-    case 'issued':
+    case 'sent':
       return '발행됨';
     case 'overdue':
       return '연체';
@@ -94,17 +94,19 @@ export default function InvoicesPage() {
       setLoading(true);
       setError(null);
       
-      const invoicesData = await invoicesService.getAll();
+      // TODO: 실제 사용자 ID로 교체 필요
+      const userId = 'system';
+      const invoicesData = await invoicesService.getInvoices(userId);
       
       // 각 인보이스에 클라이언트와 프로젝트 정보 추가
       const invoicesWithRelations = await Promise.all(
         invoicesData.map(async (invoice) => {
-          let client = null;
-          let project = null;
+          let client = undefined;
+          let project = undefined;
           
           if (invoice.client_id) {
             try {
-              client = await clientsService.getById(invoice.client_id);
+              client = await clientService.getClientById(invoice.client_id);
             } catch (err) {
               console.error(`Failed to load client for invoice ${invoice.id}:`, err);
             }
@@ -112,7 +114,7 @@ export default function InvoicesPage() {
           
           if (invoice.project_id) {
             try {
-              project = await projectsService.getById(invoice.project_id);
+              project = await projectsService.getProjectById(invoice.project_id);
             } catch (err) {
               console.error(`Failed to load project for invoice ${invoice.id}:`, err);
             }
@@ -251,9 +253,9 @@ export default function InvoicesPage() {
                     </Table.Cell>
                     <Table.Cell>
                       <div className="font-medium text-txt-primary">
-                        {formatCurrency(invoice.total_amount || 0)}
+                        {formatCurrency(invoice.total || 0)}
                       </div>
-                      {(invoice.tax_amount || 0) > 0 && (
+                      {(invoice.tax || 0) > 0 && (
                         <div className="text-xs text-txt-tertiary">
                           VAT 포함
                         </div>
@@ -322,7 +324,7 @@ export default function InvoicesPage() {
               총 발행 금액
             </Typography>
             <Typography variant="h3" className="text-2xl">
-              {formatCurrency(invoices.reduce((sum, inv) => sum + (inv.total_amount || 0), 0))}
+              {formatCurrency(invoices.reduce((sum, inv) => sum + (inv.total || 0), 0))}
             </Typography>
           </div>
           
@@ -331,7 +333,7 @@ export default function InvoicesPage() {
               결제 완료
             </Typography>
             <Typography variant="h3" className="text-2xl text-green-600">
-              {formatCurrency(invoices.filter(inv => inv.status === 'paid').reduce((sum, inv) => sum + (inv.total_amount || 0), 0))}
+              {formatCurrency(invoices.filter(inv => inv.status === 'paid').reduce((sum, inv) => sum + (inv.total || 0), 0))}
             </Typography>
           </div>
           
@@ -340,7 +342,7 @@ export default function InvoicesPage() {
               미수금
             </Typography>
             <Typography variant="h3" className="text-2xl text-orange-600">
-              {formatCurrency(invoices.filter(inv => inv.status === 'sent' || inv.status === 'overdue').reduce((sum, inv) => sum + (inv.total_amount || 0), 0))}
+              {formatCurrency(invoices.filter(inv => inv.status === 'sent' || inv.status === 'overdue').reduce((sum, inv) => sum + (inv.total || 0), 0))}
             </Typography>
           </div>
           
@@ -349,7 +351,7 @@ export default function InvoicesPage() {
               연체 금액
             </Typography>
             <Typography variant="h3" className="text-2xl text-red-600">
-              {formatCurrency(invoices.filter(inv => inv.status === 'overdue').reduce((sum, inv) => sum + (inv.total_amount || 0), 0))}
+              {formatCurrency(invoices.filter(inv => inv.status === 'overdue').reduce((sum, inv) => sum + (inv.total || 0), 0))}
             </Typography>
           </div>
         </div>

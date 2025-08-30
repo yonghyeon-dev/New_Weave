@@ -9,6 +9,7 @@ import TaxKnowledgeBase, { TaxCategory } from '@/lib/tax/taxKnowledgeBase';
 import TaxPromptEngine, { TaxConsultationContext } from '@/lib/tax/taxPromptEngine';
 import TaxCalculator from '@/lib/tax/taxCalculator';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { taxService } from '@/lib/services/supabase/tax.service';
 
 // Gemini AI 초기화
 const genAI = process.env.GEMINI_API_KEY 
@@ -28,6 +29,34 @@ const taxKnowledgeBase = new TaxKnowledgeBase();
 const taxCalculator = new TaxCalculator();
 
 /**
+ * TaxCategory를 tax_type 문자열로 변환
+ */
+function getTaxTypeFromCategory(category: TaxCategory): string {
+  switch (category) {
+    case TaxCategory.INCOME_TAX:
+      return '종합소득세';
+    case TaxCategory.VAT:
+      return '부가가치세';
+    case TaxCategory.CORPORATE_TAX:
+      return '법인세';
+    case TaxCategory.PROPERTY_TAX:
+      return '재산세';
+    case TaxCategory.CAPITAL_GAINS:
+      return '양도소득세';
+    case TaxCategory.GIFT_TAX:
+      return '증여세';
+    case TaxCategory.INHERITANCE_TAX:
+      return '상속세';
+    case TaxCategory.EARNED_INCOME:
+      return '근로소득세';
+    case TaxCategory.LOCAL_TAX:
+      return '지방세';
+    default:
+      return '기타';
+  }
+}
+
+/**
  * 세무 상담 요청 인터페이스
  */
 interface TaxConsultationRequest {
@@ -37,6 +66,8 @@ interface TaxConsultationRequest {
   taxYear?: number;
   calculationData?: any;
   sessionId?: string;
+  projectId?: string; // 프로젝트 ID로 세금 레코드 연결
+  saveToDatabase?: boolean; // 데이터베이스 저장 여부
   messages?: Array<{
     role: 'user' | 'assistant';
     content: string;
@@ -55,6 +86,8 @@ export async function POST(request: NextRequest) {
       userType = 'individual',
       taxYear = new Date().getFullYear(),
       calculationData,
+      projectId,
+      saveToDatabase = true,
       messages = []
     } = body;
 
@@ -94,6 +127,47 @@ export async function POST(request: NextRequest) {
             );
             
             if (calculationResult) {
+              // Supabase에 세금 계산 결과 저장
+              if (saveToDatabase) {
+                try {
+                  // amount 필드를 계산 결과에 따라 다르게 처리
+                  let taxAmount = 0;
+                  if ('finalTax' in calculationResult && calculationResult.finalTax) {
+                    taxAmount = calculationResult.finalTax;
+                  } else if ('vat' in calculationResult && (calculationResult as any).vat) {
+                    taxAmount = (calculationResult as any).vat;
+                  } else if ('total' in calculationResult && (calculationResult as any).total) {
+                    taxAmount = (calculationResult as any).total;
+                  }
+                  
+                  await taxService.createTaxRecord({
+                    user_id: 'system', // TODO: 실제 사용자 ID로 교체 필요
+                    year: taxYear,
+                    quarter: null,
+                    business_number: '000-00-00000', // TODO: 실제 사업자번호로 교체 필요
+                    tax_type: getTaxTypeFromCategory(category),
+                    amount: taxAmount,
+                    status: 'calculated',
+                    client_id: null,
+                    filed_date: null,
+                    due_date: null,
+                    metadata: {
+                      calculation_result: JSON.parse(JSON.stringify(calculationResult)),
+                      category: category,
+                      user_type: userType,
+                      income: calculationData.income || 0,
+                      expenses: calculationData.expenses || 0,
+                      tax_year: taxYear,
+                      calculation_data: calculationData,
+                      calculated_at: new Date().toISOString()
+                    }
+                  });
+                } catch (err) {
+                  console.error('Failed to save tax calculation:', err);
+                  // 저장 실패해도 계속 진행
+                }
+              }
+              
               // 계산 결과를 포함한 설명 생성
               await generateCalculationExplanation(
                 calculationResult,

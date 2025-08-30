@@ -11,6 +11,7 @@ import { SidebarSkeleton } from './MessageSkeleton';
 import { ToastContainer, useToast } from '@/components/ui/Toast';
 import { useReactions } from './EmojiReaction';
 import { chatService, ChatMessage, ChatSession } from '@/lib/services/chatService';
+import { chatService as chatSessionsService } from '@/lib/services/supabase/chat.service';
 import { Trash2, Download, RefreshCw, Menu, X, Search, Keyboard, History } from 'lucide-react';
 
 export default function ChatInterface() {
@@ -29,38 +30,32 @@ export default function ChatInterface() {
   const [showShortcuts, setShowShortcuts] = useState(false);
   const [dbSessionId, setDbSessionId] = useState<string | null>(null);
   const [chatType, setChatType] = useState<'general' | 'tax' | 'rag'>('general');
-  const { toasts, addToast, removeToast } = useToast();
+  const { toasts, addToast, hideToast } = useToast();
   const { addReaction, getReactions } = useReactions();
   
   // 초기화
   useEffect(() => {
     initializeChat();
-    createDatabaseSession();
-  }, []);
+    createSupabaseSession();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
   
-  // 데이터베이스 세션 생성
-  const createDatabaseSession = async () => {
+  // Supabase 세션 생성
+  const createSupabaseSession = async () => {
     try {
-      const response = await fetch('/api/chat/history', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          createSession: true,
-          type: chatType,
-          title: null,
-          metadata: {
-            userAgent: navigator.userAgent,
-            timestamp: new Date().toISOString()
-          }
-        })
-      });
+      // TODO: 실제 사용자 ID로 교체 필요
+      const userId = 'system';
+      const newSession = await chatSessionsService.createSession(
+        userId,
+        chatType,
+        undefined
+      );
       
-      const data = await response.json();
-      if (data.success && data.data) {
-        setDbSessionId(data.data.id);
+      if (newSession) {
+        setDbSessionId(newSession.id);
+        // 세션이 생성되었습니다
       }
     } catch (error) {
-      console.error('세션 생성 오류:', error);
+      console.error('Supabase 세션 생성 오류:', error);
     }
   };
   
@@ -145,9 +140,9 @@ export default function ChatInterface() {
     
     setMessages(prev => [...prev, userMessage]);
     
-    // 데이터베이스에 메시지 저장
+    // Supabase에 메시지 저장
     if (dbSessionId) {
-      saveMessageToDatabase(dbSessionId, {
+      saveMessageToSupabase(dbSessionId, {
         role: 'user',
         content,
         metadata: {}
@@ -238,9 +233,9 @@ export default function ChatInterface() {
         
         setMessages(prev => [...prev, aiMessage]);
         
-        // 데이터베이스에 메시지 저장
+        // Supabase에 메시지 저장
         if (dbSessionId) {
-          saveMessageToDatabase(dbSessionId, {
+          saveMessageToSupabase(dbSessionId, {
             role: 'assistant',
             content: accumulatedContent,
             metadata: metadata || {},
@@ -322,44 +317,54 @@ export default function ChatInterface() {
     setSessions(chatService.getAllSessions());
     setShowSidebar(false);
     setShowHistory(false);
-    createDatabaseSession(); // 새 DB 세션 생성
+    createSupabaseSession(); // 새 Supabase 세션 생성
   };
   
-  // 데이터베이스에 메시지 저장
-  const saveMessageToDatabase = async (sessionId: string, message: any) => {
+  // Supabase에 메시지 저장
+  const saveMessageToSupabase = async (sessionId: string, message: any) => {
     try {
-      await fetch('/api/chat/history', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          sessionId,
-          message
-        })
+      await chatSessionsService.addMessage(sessionId, {
+        role: message.role as 'user' | 'assistant' | 'system',
+        content: message.content,
+        metadata: {
+          ...(message.metadata || {}),
+          model: message.model
+        }
       });
+      
+      // addMessage는 자동으로 세션 업데이트 시간을 갱신합니다
     } catch (error) {
       console.error('메시지 저장 오류:', error);
     }
   };
   
-  // 세션 로드 (히스토리에서 선택 시)
+  // Supabase에서 세션 로드 (히스토리에서 선택 시)
   const loadSession = async (sessionId: string) => {
     try {
-      const response = await fetch(`/api/chat/history?sessionId=${sessionId}`);
-      const data = await response.json();
+      // 세션 정보 가져오기
+      const sessionData = await chatSessionsService.getSessionById(sessionId);
       
-      if (data.success && data.data) {
-        // 메시지 로드
-        const loadedMessages = data.data.map((msg: any) => ({
+      if (sessionData) {
+        // 메시지 가져오기
+        const messagesData = await chatSessionsService.getMessages(sessionId);
+        
+        // 메시지 형식 변환
+        const loadedMessages = messagesData.map((msg: any) => ({
           id: msg.id,
           role: msg.role,
           content: msg.content,
-          timestamp: new Date(msg.createdAt),
+          timestamp: new Date(msg.created_at),
           metadata: msg.metadata
         }));
         
         setMessages(loadedMessages);
         setDbSessionId(sessionId);
         setShowHistory(false);
+        
+        // 세션 타입 업데이트
+        if (sessionData.type) {
+          setChatType(sessionData.type as 'general' | 'tax' | 'rag');
+        }
       }
     } catch (error) {
       console.error('세션 로드 오류:', error);
@@ -433,23 +438,44 @@ export default function ChatInterface() {
     }
   };
   
-  // 대화 내보내기
-  const exportChat = () => {
+  // 대화 내보내기 (Supabase 데이터 포함)
+  const exportChat = async () => {
     if (!session) return;
     
-    const markdown = chatService.exportSession(session.id);
-    const blob = new Blob([markdown], { type: 'text/markdown' });
-    const url = URL.createObjectURL(blob);
-    
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `chat_${session.id}.md`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    
-    addToast('대화 기록이 다운로드되었습니다.', 'success');
+    try {
+      // Supabase에서 세션 데이터 가져오기
+      let exportData = chatService.exportSession(session.id);
+      
+      if (dbSessionId) {
+        // Supabase 세션 정보 추가
+        const sessionData = await chatSessionsService.getSessionById(dbSessionId);
+        if (sessionData) {
+          exportData = `# 채팅 세션 정보\n\n` +
+            `- 세션 ID: ${sessionData.id}\n` +
+            `- 생성일: ${new Date(sessionData.created_at).toLocaleString('ko-KR')}\n` +
+            `- 타입: ${sessionData.type || 'general'}\n` +
+            `- 메시지 수: ${messages.length}\n\n` +
+            `---\n\n` +
+            exportData;
+        }
+      }
+      
+      const blob = new Blob([exportData], { type: 'text/markdown' });
+      const url = URL.createObjectURL(blob);
+      
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `chat_${session.id}_${new Date().toISOString().slice(0, 10)}.md`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      
+      addToast('대화 기록이 다운로드되었습니다.', 'success');
+    } catch (error) {
+      console.error('Export error:', error);
+      addToast('내보내기 중 오류가 발생했습니다.', 'error');
+    }
   };
   
   return (
@@ -775,7 +801,7 @@ export default function ChatInterface() {
       )}
       
       {/* Toast 알림 */}
-      <ToastContainer toasts={toasts} removeToast={removeToast} />
+      <ToastContainer toasts={toasts} onClose={hideToast} />
     </div>
   );
 }

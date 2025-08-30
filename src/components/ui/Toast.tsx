@@ -37,9 +37,31 @@ const ToastContext = createContext<ToastContextType | null>(null);
 export const useToast = () => {
   const context = useContext(ToastContext);
   if (!context) {
-    throw new Error('useToast must be used within a ToastProvider');
+    // ToastProvider가 없을 때 기본 동작 제공
+    return {
+      toasts: [],
+      showToast: () => {},
+      hideToast: () => {},
+      clearAll: () => {},
+      addToast: (message: string, type: ToastType = 'info', options?: Partial<Omit<ToastData, 'id' | 'type' | 'message'>>) => {
+        console.warn('ToastProvider가 설정되지 않았습니다.');
+      }
+    };
   }
-  return context;
+  
+  // addToast 편의 메서드 추가
+  const addToast = (message: string, type: ToastType = 'info', options?: Partial<Omit<ToastData, 'id' | 'type' | 'message'>>) => {
+    context.showToast({
+      type,
+      message,
+      ...options
+    });
+  };
+  
+  return {
+    ...context,
+    addToast
+  };
 };
 
 // Toast 아이콘 매핑
@@ -171,7 +193,7 @@ export interface ToastContainerProps {
   position?: 'top-right' | 'top-left' | 'bottom-right' | 'bottom-left' | 'top-center' | 'bottom-center';
 }
 
-const ToastContainer: React.FC<ToastContainerProps> = ({ 
+export const ToastContainer: React.FC<ToastContainerProps> = ({ 
   toasts, 
   onClose, 
   position = 'top-right' 

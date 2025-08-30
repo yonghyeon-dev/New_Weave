@@ -1,6 +1,6 @@
 // Supabase 서비스 통합 인덱스
 
-export { clientsService } from './clients.service'
+export { clientService } from './clients.service'
 export { projectsService } from './projects.service'
 export { invoicesService } from './invoices.service'
 export { documentsService } from './documents.service'

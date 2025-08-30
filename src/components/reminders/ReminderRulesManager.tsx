@@ -172,8 +172,11 @@ export default function ReminderRulesManager({
     return `${rule.repeatInterval}일마다 반복 (최대 ${rule.maxReminders}회)`;
   };
 
-  const formatDate = (date: Date): string => {
-    return date.toLocaleDateString('ko-KR');
+  const formatDate = (date: Date | string): string => {
+    if (!date) return '-';
+    const dateObj = typeof date === 'string' ? new Date(date) : date;
+    if (isNaN(dateObj.getTime())) return '-';
+    return dateObj.toLocaleDateString('ko-KR');
   };
 
   if (loading) {

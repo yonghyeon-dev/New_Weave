@@ -159,7 +159,7 @@ export class RemindersService {
   }
 
   // 다가오는 리마인더 조회
-  async getUpcomingReminders(userId: string, days: number = 7) {
+  async getUpcomingReminders(userId: string, days: number = 7): Promise<Reminder[]> {
     const now = new Date()
     const future = new Date()
     future.setDate(future.getDate() + days)
@@ -179,7 +179,7 @@ export class RemindersService {
       .order('due_date', { ascending: true })
 
     if (error) throw error
-    return data
+    return data || []
   }
 
   // 우선순위별 리마인더 조회

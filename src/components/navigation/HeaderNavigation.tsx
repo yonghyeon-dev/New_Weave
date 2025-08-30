@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import Image from 'next/image';
@@ -55,6 +55,7 @@ export default function HeaderNavigation() {
   const pathname = usePathname();
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [dropdownTimeout, setDropdownTimeout] = useState<NodeJS.Timeout | null>(null);
 
   const isActive = (href: string) => {
     if (href === '/') return pathname === href;
@@ -62,12 +63,30 @@ export default function HeaderNavigation() {
   };
 
   const handleMouseEnter = (title: string) => {
+    // 기존 타임아웃이 있으면 취소
+    if (dropdownTimeout) {
+      clearTimeout(dropdownTimeout);
+      setDropdownTimeout(null);
+    }
     setActiveDropdown(title);
   };
 
   const handleMouseLeave = () => {
-    setActiveDropdown(null);
+    // 300ms 지연 후 드롭다운 닫기
+    const timeout = setTimeout(() => {
+      setActiveDropdown(null);
+    }, 300);
+    setDropdownTimeout(timeout);
   };
+
+  // 컴포넌트 언마운트 시 타임아웃 정리
+  useEffect(() => {
+    return () => {
+      if (dropdownTimeout) {
+        clearTimeout(dropdownTimeout);
+      }
+    };
+  }, [dropdownTimeout]);
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-bg-primary border-b border-border-light">
@@ -123,23 +142,30 @@ export default function HeaderNavigation() {
                   }`} />
                 </button>
 
-                {/* Dropdown Menu */}
+                {/* Dropdown Menu - pt-2로 버튼과 메뉴 사이 갭 연결 */}
                 {activeDropdown === section.title && (
-                  <div className="absolute top-full left-0 mt-2 w-56 bg-bg-secondary rounded-lg shadow-lg border border-border-light overflow-hidden">
-                    {section.items.map((item) => (
-                      <Link
-                        key={item.href}
-                        href={item.href}
-                        className={`flex items-center gap-3 px-4 py-3 hover:bg-bg-tertiary transition-colors ${
-                          isActive(item.href) ? 'bg-bg-tertiary text-weave-primary' : 'text-txt-secondary'
-                        }`}
-                      >
-                        {item.icon}
-                        <Typography variant="body2">
-                          {item.label}
-                        </Typography>
-                      </Link>
-                    ))}
+                  <div 
+                    className="absolute top-full left-0 pt-2 w-56"
+                    onMouseEnter={() => handleMouseEnter(section.title)}
+                    onMouseLeave={handleMouseLeave}
+                  >
+                    <div className="bg-bg-secondary rounded-lg shadow-lg border border-border-light overflow-hidden">
+                      {section.items.map((item) => (
+                        <Link
+                          key={item.href}
+                          href={item.href}
+                          className={`flex items-center gap-3 px-4 py-3 hover:bg-bg-tertiary transition-colors ${
+                            isActive(item.href) ? 'bg-bg-tertiary text-weave-primary' : 'text-txt-secondary'
+                          }`}
+                          onClick={() => setActiveDropdown(null)}
+                        >
+                          {item.icon}
+                          <Typography variant="body2">
+                            {item.label}
+                          </Typography>
+                        </Link>
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>

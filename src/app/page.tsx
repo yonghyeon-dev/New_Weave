@@ -81,7 +81,7 @@ export default function LandingPage() {
               <Button
                 variant="secondary"
                 size="sm"
-                onClick={() => navigateToPage('/dashboard')}
+                onClick={() => navigateToPage('/login')}
                 className="flex items-center gap-2"
               >
                 <LogIn className="w-4 h-4" />
@@ -90,7 +90,7 @@ export default function LandingPage() {
               <Button
                 variant="primary"
                 size="sm"
-                onClick={() => navigateToPage('/dashboard')}
+                onClick={() => navigateToPage('/signup')}
                 className="flex items-center gap-2"
               >
                 <UserPlus className="w-4 h-4" />
@@ -137,10 +137,10 @@ export default function LandingPage() {
                 <Button
                   variant="secondary-dark"
                   size="lg"
-                  onClick={() => navigateToPage('/dashboard')}
+                  onClick={() => navigateToPage('/login')}
                   className="px-8 py-4 text-lg font-semibold"
                 >
-                  데모 보기
+                  로그인하기
                 </Button>
               </div>
 

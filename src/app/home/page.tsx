@@ -210,7 +210,7 @@ export default function Home() {
               <Button
                 variant="secondary"
                 size="sm"
-                onClick={() => router.push('/dashboard')}
+                onClick={() => router.push('/login')}
                 className="flex items-center gap-2"
               >
                 <LogIn className="w-4 h-4" />
@@ -219,7 +219,7 @@ export default function Home() {
               <Button
                 variant="primary"
                 size="sm"
-                onClick={() => router.push('/dashboard')}
+                onClick={() => router.push('/signup')}
                 className="flex items-center gap-2"
               >
                 <UserPlus className="w-4 h-4" />

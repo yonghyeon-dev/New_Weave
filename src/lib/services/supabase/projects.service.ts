@@ -9,7 +9,7 @@ export class ProjectsService {
   private supabase = getSupabaseClient()
 
   // 모든 프로젝트 조회
-  async getProjects(userId: string) {
+  async getProjects(userId: string): Promise<Project[]> {
     const { data, error } = await this.supabase
       .from('projects')
       .select(`
@@ -24,7 +24,7 @@ export class ProjectsService {
       .order('created_at', { ascending: false })
 
     if (error) throw error
-    return data
+    return data || []
   }
 
   // 프로젝트 ID로 조회
@@ -98,7 +98,7 @@ export class ProjectsService {
   }
 
   // 클라이언트별 프로젝트 조회
-  async getProjectsByClient(clientId: string) {
+  async getProjectsByClient(clientId: string): Promise<Project[]> {
     const { data, error } = await this.supabase
       .from('projects')
       .select('*')
@@ -106,7 +106,7 @@ export class ProjectsService {
       .order('created_at', { ascending: false })
 
     if (error) throw error
-    return data
+    return data || []
   }
 
   // 프로젝트 통계

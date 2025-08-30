@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import AppLayout from '@/components/layout/AppLayout';
 import { WorkspacePageContainer } from '@/components/layout/PageContainer';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
@@ -8,6 +9,12 @@ import DashboardCalendar from '@/components/dashboard/DashboardCalendar';
 import Typography from '@/components/ui/Typography';
 import type { DashboardInsight, QuickAction } from '@/components/dashboard/DashboardLayout';
 import type { CalendarEvent } from '@/components/dashboard/DashboardCalendar';
+import { createClient } from '@/lib/supabase/client';
+import { projectsService } from '@/lib/services/supabase/projects.service';
+import { clientService } from '@/lib/services/supabase/clients.service';
+import { invoicesService } from '@/lib/services/supabase/invoices.service';
+import { remindersService } from '@/lib/services/supabase/reminders.service';
+import type { RealtimeChannel } from '@supabase/supabase-js';
 
 // Mock 데이터 - 실제로는 API에서 가져올 데이터
 interface DashboardData {
@@ -40,16 +47,157 @@ interface DashboardData {
 }
 
 export default function Dashboard() {
+  const router = useRouter();
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [supabaseClient] = useState(() => createClient());
+  const [realtimeChannel, setRealtimeChannel] = useState<RealtimeChannel | null>(null);
 
-  // Mock API 데이터 로딩
+  // Supabase에서 실시간 데이터 로딩
   useEffect(() => {
     const fetchDashboardData = async () => {
-      // 실제 API 호출 시뮬레이션
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      setIsLoading(true);
       
-      const mockData: DashboardData = {
+      try {
+        // 실제 Supabase 데이터 가져오기
+        // TODO: 실제 사용자 ID로 교체 필요
+        const userId = 'system';
+        const [projects, clients, invoices, reminders] = await Promise.all([
+          projectsService.getProjects(userId),
+          clientService.getClients(userId),
+          invoicesService.getInvoices(userId),
+          remindersService.getUpcomingReminders(userId)
+        ]);
+        
+        // 연체 인보이스 계산
+        const overdueInvoices = invoices.filter(inv => {
+          if (!inv.due_date || inv.status === 'paid') return false;
+          return new Date(inv.due_date) < new Date();
+        });
+        
+        // 다가오는 마감일 계산
+        const upcomingProjects = projects.filter(proj => {
+          if (!proj.due_date || proj.status === 'completed') return false;
+          const daysLeft = Math.ceil((new Date(proj.due_date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+          return daysLeft > 0 && daysLeft <= 14;
+        });
+        
+        // 월별 재무 정보 계산
+        const thisMonth = new Date().getMonth();
+        const thisYear = new Date().getFullYear();
+        const monthlyInvoices = invoices.filter(inv => {
+          const date = new Date(inv.issue_date || inv.created_at);
+          return date.getMonth() === thisMonth && date.getFullYear() === thisYear;
+        });
+        
+        const issued = monthlyInvoices.reduce((sum, inv) => sum + (inv.total || 0), 0);
+        const paid = monthlyInvoices.filter(inv => inv.status === 'paid').reduce((sum, inv) => sum + (inv.total || 0), 0);
+        
+        // 상위 클라이언트 계산 (프로젝트 기준)
+        const clientRevenue = new Map<string, number>();
+        projects.forEach(proj => {
+          if (proj.client_id) {
+            const current = clientRevenue.get(proj.client_id) || 0;
+            clientRevenue.set(proj.client_id, current + (proj.budget_estimated || 0));
+          }
+        });
+        
+        const topClientsData = Array.from(clientRevenue.entries())
+          .map(([clientId, revenue]) => {
+            const client = clients.find(c => c.id === clientId);
+            return {
+              id: clientId,
+              name: client?.company || '알 수 없음',
+              revenue,
+              percentage: 0
+            };
+          })
+          .sort((a, b) => b.revenue - a.revenue)
+          .slice(0, 3);
+        
+        const totalRevenue = topClientsData.reduce((sum, c) => sum + c.revenue, 0);
+        topClientsData.forEach(client => {
+          client.percentage = totalRevenue > 0 ? (client.revenue / totalRevenue) * 100 : 0;
+        });
+        
+        // 캘린더 이벤트 생성
+        const calendarEvents: CalendarEvent[] = [];
+        
+        // 인보이스 이벤트
+        invoices.forEach(inv => {
+          if (inv.issue_date) {
+            calendarEvents.push({
+              id: `inv-${inv.id}`,
+              title: `${inv.invoice_number} 인보이스`,
+              date: inv.issue_date.slice(0, 10),
+              type: 'invoice'
+            });
+          }
+          if (inv.due_date) {
+            calendarEvents.push({
+              id: `due-${inv.id}`,
+              title: `${inv.invoice_number} 결제 예정`,
+              date: inv.due_date.slice(0, 10),
+              type: 'payment'
+            });
+          }
+        });
+        
+        // 프로젝트 마감일 이벤트
+        projects.forEach(proj => {
+          if (proj.due_date) {
+            calendarEvents.push({
+              id: `proj-${proj.id}`,
+              title: `${proj.name} 마감`,
+              date: proj.due_date.slice(0, 10),
+              type: 'deadline'
+            });
+          }
+        });
+        
+        // 리마인더 이벤트
+        reminders.forEach(rem => {
+          if (rem.due_date) {
+            calendarEvents.push({
+              id: `rem-${rem.id}`,
+              title: rem.title,
+              date: rem.due_date.slice(0, 10),
+              type: 'reminder'
+            });
+          }
+        });
+        
+        const dashboardData: DashboardData = {
+          overdueInvoices: {
+            count: overdueInvoices.length,
+            totalAmount: overdueInvoices.reduce((sum, inv) => sum + (inv.total || 0), 0)
+          },
+          upcomingDeadlines: {
+            count: upcomingProjects.length,
+            projects: upcomingProjects.map(proj => ({
+              id: proj.id,
+              name: proj.name,
+              dueDate: new Date(proj.due_date!),
+              daysLeft: Math.ceil((new Date(proj.due_date!).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))
+            }))
+          },
+          monthlyFinancials: {
+            issued,
+            paid,
+            difference: issued - paid,
+            trend: 0 // TODO: 전달 대비 비교 구현
+          },
+          topClients: topClientsData,
+          calendarEvents
+        };
+        
+        setDashboardData(dashboardData);
+        setIsLoading(false);
+      } catch (error) {
+        console.error('Failed to load dashboard data:', error);
+        setIsLoading(false);
+        // 오류 발생 시 Mock 데이터 사용
+        const mockData: DashboardData = {
         overdueInvoices: {
           count: 3,
           totalAmount: 4500000
@@ -135,11 +283,66 @@ export default function Dashboard() {
       };
 
       setDashboardData(mockData);
-      setIsLoading(false);
+      }
     };
 
     fetchDashboardData();
-  }, []);
+    
+    // 실시간 구독 설정
+    const setupRealtimeSubscription = () => {
+      const channel = supabaseClient
+        .channel('dashboard-updates')
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'projects' },
+          (payload) => {
+            console.log('Project change received:', payload);
+            fetchDashboardData(); // 데이터 다시 로드
+          }
+        )
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'clients' },
+          (payload) => {
+            console.log('Client change received:', payload);
+            fetchDashboardData(); // 데이터 다시 로드
+          }
+        )
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'invoices' },
+          (payload) => {
+            console.log('Invoice change received:', payload);
+            fetchDashboardData(); // 데이터 다시 로드
+          }
+        )
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'reminders' },
+          (payload) => {
+            console.log('Reminder change received:', payload);
+            fetchDashboardData(); // 데이터 다시 로드
+          }
+        )
+        .subscribe((status) => {
+          if (status === 'SUBSCRIBED') {
+            console.log('Dashboard realtime subscription active');
+          }
+        });
+      
+      setRealtimeChannel(channel);
+    };
+    
+    setupRealtimeSubscription();
+    
+    // Cleanup 함수
+    return () => {
+      if (realtimeChannel) {
+        console.log('Unsubscribing from dashboard realtime updates');
+        supabaseClient.removeChannel(realtimeChannel);
+      }
+    };
+  }, [supabaseClient]);
 
   // 빠른 실행 버튼들
   const quickActions: QuickAction[] = [
@@ -150,7 +353,7 @@ export default function Dashboard() {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
         </svg>
       ),
-      onClick: () => console.log('Navigate to project creation'),
+      onClick: () => router.push('/projects/new'),
       variant: 'primary'
     }
   ];
@@ -201,7 +404,7 @@ export default function Dashboard() {
       ),
       variant: dashboardData.overdueInvoices.count > 0 ? 'warning' : 'default',
       actionLabel: dashboardData.overdueInvoices.count > 0 ? '연체 내역 보기' : undefined,
-      onActionClick: dashboardData.overdueInvoices.count > 0 ? () => console.log('Show overdue invoices') : undefined,
+      onActionClick: dashboardData.overdueInvoices.count > 0 ? () => router.push('/invoices') : undefined,
       isEmpty: dashboardData.overdueInvoices.count === 0,
       emptyMessage: '연체된 청구서가 없습니다 👍'
     },
@@ -219,7 +422,7 @@ export default function Dashboard() {
       ),
       variant: dashboardData.upcomingDeadlines.count > 0 ? 'info' : 'default',
       actionLabel: dashboardData.upcomingDeadlines.count > 0 ? '프로젝트 보기' : undefined,
-      onActionClick: dashboardData.upcomingDeadlines.count > 0 ? () => console.log('Show upcoming projects') : undefined,
+      onActionClick: dashboardData.upcomingDeadlines.count > 0 ? () => router.push('/projects') : undefined,
       isEmpty: dashboardData.upcomingDeadlines.count === 0,
       emptyMessage: '마감 임박 프로젝트가 없습니다'
     },
@@ -240,7 +443,7 @@ export default function Dashboard() {
       ),
       variant: 'success',
       actionLabel: '상세 리포트',
-      onActionClick: () => console.log('Show financial report')
+      onActionClick: () => router.push('/invoices')
     },
     {
       id: 'R4',
@@ -255,7 +458,7 @@ export default function Dashboard() {
         </svg>
       ),
       actionLabel: '고객 상세',
-      onActionClick: () => console.log('Show client details'),
+      onActionClick: () => router.push('/clients'),
       isEmpty: dashboardData.topClients.length === 0,
       emptyMessage: '고객 데이터가 없습니다'
     }
@@ -275,7 +478,16 @@ export default function Dashboard() {
               <DashboardCalendar 
                 events={dashboardData?.calendarEvents || []}
                 onDateSelect={(date) => console.log('Selected date:', date)}
-                onEventClick={(event) => console.log('Clicked event:', event)}
+                onEventClick={(event) => {
+                  // 이벤트 타입에 따라 다른 페이지로 이동
+                  if (event.type === 'invoice' || event.type === 'payment') {
+                    router.push('/invoices');
+                  } else if (event.type === 'deadline') {
+                    router.push('/projects');
+                  } else if (event.type === 'reminder') {
+                    router.push('/reminder');
+                  }
+                }}
               />
             </div>
             

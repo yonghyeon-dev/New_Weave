@@ -13,7 +13,7 @@ import { LogIn, Mail, Lock, AlertCircle, Loader2 } from 'lucide-react'
 export default function LoginPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const redirect = searchParams.get('redirect') || '/dashboard'
+  const redirect = searchParams.get('redirectTo') || '/dashboard'
   
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -46,7 +46,6 @@ export default function LoginPage() {
 
       // 로그인 성공
       router.push(redirect)
-      router.refresh()
     } catch (err) {
       console.error('Login error:', err)
       setError('로그인 중 오류가 발생했습니다.')
@@ -63,7 +62,7 @@ export default function LoginPage() {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback?redirect=${redirect}`,
+          redirectTo: `${window.location.origin}/auth/callback?redirectTo=${redirect}`,
         },
       })
 

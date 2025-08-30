@@ -9,7 +9,7 @@ import Input from '@/components/ui/Input';
 import Typography from '@/components/ui/Typography';
 import BusinessInfoLookup from '@/components/tax/BusinessInfoLookup';
 import { BusinessInfo } from '@/lib/types/business';
-import { clientsService } from '@/lib/services/supabase/clients.service';
+import { clientService } from '@/lib/services/supabase/clients.service';
 import { projectsService } from '@/lib/services/supabase/projects.service';
 import type { Database } from '@/lib/supabase/database.types';
 import { 
@@ -69,14 +69,21 @@ export default function ClientsPage() {
       setLoading(true);
       setError(null);
       
-      const clientsData = await clientsService.getAll();
+      // TODO: 실제 사용자 ID로 교체 필요
+      const userId = 'system';
+      const clientsData = await clientService.getClients(userId);
+      
+      if (!clientsData || clientsData.length === 0) {
+        setClients([]);
+        return;
+      }
       
       // 각 클라이언트의 프로젝트 통계 가져오기
       const clientsWithStats = await Promise.all(
         clientsData.map(async (client) => {
           try {
-            const projects = await projectsService.getByClientId(client.id);
-            const totalRevenue = projects.reduce((sum, p) => sum + (p.budget || 0), 0);
+            const projects = await projectsService.getProjectsByClient(client.id);
+            const totalRevenue = projects.reduce((sum, p) => sum + (p.budget_estimated || 0), 0);
             
             return {
               ...client,
@@ -132,7 +139,10 @@ export default function ClientsPage() {
 
     setSaving(true);
     try {
-      const newClient = await clientsService.create({
+      // TODO: 실제 사용자 ID로 교체 필요
+      const userId = 'system';
+      const newClient = await clientService.createClient({
+        user_id: userId,
         name: formData.name || '',
         company: formData.company || '',
         business_number: formData.business_number,
@@ -141,8 +151,7 @@ export default function ClientsPage() {
         address: formData.address,
         contact_person: formData.contact_person,
         status: formData.status as 'active' | 'inactive' || 'active',
-        tax_type: formData.tax_type,
-        last_contact: new Date().toISOString()
+        tax_type: formData.tax_type
       });
 
       const clientWithStats: ClientWithStats = {
@@ -177,7 +186,7 @@ export default function ClientsPage() {
 
     setSaving(true);
     try {
-      const updatedClient = await clientsService.update(selectedClient.id, {
+      const updatedClient = await clientService.updateClient(selectedClient.id, {
         name: formData.name,
         company: formData.company,
         business_number: formData.business_number,
@@ -215,7 +224,7 @@ export default function ClientsPage() {
     if (!confirm('정말로 이 클라이언트를 삭제하시겠습니까?')) return;
 
     try {
-      await clientsService.delete(clientId);
+      await clientService.deleteClient(clientId);
       setClients(prev => prev.filter(c => c.id !== clientId));
       if (selectedClient?.id === clientId) {
         setSelectedClient(null);
@@ -440,10 +449,10 @@ export default function ClientsPage() {
                         {getStatusBadge(selectedClient.status)}
                       </div>
                       <div>
-                        <Typography variant="body2" className="text-txt-tertiary">마지막 연락</Typography>
+                        <Typography variant="body2" className="text-txt-tertiary">등록일</Typography>
                         <Typography variant="body1">
-                          {selectedClient.last_contact ? 
-                            new Date(selectedClient.last_contact).toLocaleDateString('ko-KR') : 
+                          {selectedClient.created_at ? 
+                            new Date(selectedClient.created_at).toLocaleDateString('ko-KR') : 
                             '-'}
                         </Typography>
                       </div>

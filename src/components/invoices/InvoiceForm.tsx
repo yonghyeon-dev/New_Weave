@@ -498,8 +498,7 @@ export default function InvoiceForm({
               </Button>
             </div>
             <DataExtractor
-              onExtract={handleExtractedData}
-              extractType="invoice"
+              onDataExtracted={handleExtractedData}
             />
           </div>
         </div>

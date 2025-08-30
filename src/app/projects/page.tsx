@@ -6,7 +6,7 @@ import AppLayout from '@/components/layout/AppLayout';
 import { DataPageContainer } from '@/components/layout/PageContainer';
 import { ProjectTabContent, ClientTabContent, InvoiceTabContent, PaymentTabContent } from '@/components/projects/ProjectTabs';
 import { projectsService } from '@/lib/services/supabase/projects.service';
-import { clientsService } from '@/lib/services/supabase/clients.service';
+import { clientService } from '@/lib/services/supabase/clients.service';
 import { invoicesService } from '@/lib/services/supabase/invoices.service';
 import type { Database } from '@/lib/supabase/database.types';
 import { 
@@ -73,15 +73,17 @@ function ProjectsContent() {
       setError(null);
       
       // 모든 프로젝트 가져오기
-      const projectsData = await projectsService.getAll();
+      // TODO: 실제 사용자 ID로 교체 필요
+      const userId = 'system';
+      const projectsData = await projectsService.getProjects(userId);
       
       // 각 프로젝트에 클라이언트 정보 추가
       const projectsWithClients = await Promise.all(
         projectsData.map(async (project) => {
-          let client = null;
+          let client = undefined;
           if (project.client_id) {
             try {
-              client = await clientsService.getById(project.client_id);
+              client = await clientService.getClientById(project.client_id);
             } catch (err) {
               console.error(`Failed to load client for project ${project.id}:`, err);
             }
@@ -106,22 +108,22 @@ function ProjectsContent() {
       // 통계 계산
       const activeProjects = projectsWithClients.filter(p => p.status === 'in_progress').length;
       const completedProjects = projectsWithClients.filter(p => p.status === 'completed').length;
-      const totalRevenue = projectsWithClients.reduce((sum, p) => sum + (p.budget || 0), 0);
+      const totalRevenue = projectsWithClients.reduce((sum, p) => sum + (p.budget_estimated || 0), 0);
       const progressSum = projectsWithClients.reduce((sum, p) => sum + (p.progress || 0), 0);
       const averageProgress = projectsWithClients.length > 0 ? Math.round(progressSum / projectsWithClients.length) : 0;
       
       // 마감일 계산
       const today = new Date();
       const upcomingDeadlines = projectsWithClients.filter(p => {
-        if (!p.end_date) return false;
-        const endDate = new Date(p.end_date);
+        if (!p.due_date) return false;
+        const endDate = new Date(p.due_date);
         const daysUntilDeadline = Math.ceil((endDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
         return daysUntilDeadline > 0 && daysUntilDeadline <= 7;
       }).length;
       
       const overdueProjects = projectsWithClients.filter(p => {
-        if (!p.end_date || p.status === 'completed') return false;
-        const endDate = new Date(p.end_date);
+        if (!p.due_date || p.status === 'completed') return false;
+        const endDate = new Date(p.due_date);
         return endDate < today;
       }).length;
       
@@ -497,23 +499,23 @@ function ProjectsContent() {
                       <td className="px-6 py-4">
                         <div className="text-sm">
                           <div className="text-txt-primary">
-                            {((project.actual_cost || 0) / 10000).toLocaleString()}만원
+                            {((project.budget_spent || 0) / 10000).toLocaleString()}만원
                           </div>
                           <div className="text-xs text-txt-tertiary">
-                            / {((project.budget || 0) / 10000).toLocaleString()}만원
+                            / {((project.budget_estimated || 0) / 10000).toLocaleString()}만원
                           </div>
                         </div>
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center text-sm text-txt-primary">
                           <Calendar className="w-4 h-4 mr-1 text-txt-tertiary" />
-                          {project.end_date ? new Date(project.end_date).toLocaleDateString('ko-KR') : '-'}
+                          {project.due_date ? new Date(project.due_date).toLocaleDateString('ko-KR') : '-'}
                         </div>
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center">
                           <Users className="w-4 h-4 mr-1 text-txt-tertiary" />
-                          <span className="text-sm text-txt-primary">{project.team_members?.length || 0}</span>
+                          <span className="text-sm text-txt-primary">0</span>
                         </div>
                       </td>
                       <td className="px-6 py-4 text-right">

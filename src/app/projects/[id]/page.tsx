@@ -716,14 +716,7 @@ export default function ProjectDetailPage() {
               
               <div className="flex-1 overflow-y-auto p-6">
                 <DocumentGenerator
-                  defaultType={documentType}
-                  projectContext={{
-                    projectId: project.id,
-                    projectName: project.name,
-                    clientId: project.clientId,
-                    clientName: project.clientName
-                  }}
-                  onGenerate={(doc) => {
+                  onDocumentGenerated={(doc) => {
                     console.log('Generated document:', doc);
                     setShowDocumentGenerator(false);
                     // TODO: 문서를 프로젝트에 저장하는 로직 추가
