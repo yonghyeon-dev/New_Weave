@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import AppLayout from '@/components/layout/AppLayout';
-import DocumentGenerator from '@/components/ai-assistant/DocumentGenerator';
+import AIDocumentModal from '@/components/ai-assistant/AIDocumentModal';
 import { Typography, Button, Card } from '@/components/ui';
+import { clientService } from '@/lib/services/supabase/clients.service';
 import { 
   ArrowLeft,
   Calendar,
@@ -244,8 +245,22 @@ export default function ProjectDetailPage() {
   const params = useParams();
   const [activeTab, setActiveTab] = useState('overview');
   const [project] = useState<Project>(mockProject);
-  const [showDocumentGenerator, setShowDocumentGenerator] = useState(false);
-  const [documentType, setDocumentType] = useState<'contract' | 'proposal' | 'invoice' | 'report'>('contract');
+  const [showAIModal, setShowAIModal] = useState(false);
+  const [documentType, setDocumentType] = useState<'quotation' | 'contract' | 'invoice' | 'report'>('quotation');
+  const [clientDetails, setClientDetails] = useState<any>(null);
+
+  // 클라이언트 상세 정보 가져오기
+  useEffect(() => {
+    const fetchClientDetails = async () => {
+      if (project.clientId) {
+        const client = await clientService.getClientById(project.clientId);
+        if (client) {
+          setClientDetails(client);
+        }
+      }
+    };
+    fetchClientDetails();
+  }, [project.clientId]);
 
   // 탭 메뉴
   const tabs = [
@@ -558,18 +573,18 @@ export default function ProjectDetailPage() {
                   <div className="space-y-2">
                     <button 
                       onClick={() => {
-                        setDocumentType('invoice');
-                        setShowDocumentGenerator(true);
+                        setDocumentType('quotation');
+                        setShowAIModal(true);
                       }}
                       className="w-full flex items-center gap-3 px-3 py-2 text-sm text-txt-secondary hover:text-txt-primary hover:bg-bg-secondary rounded-lg transition-colors"
                     >
                       <FileText className="w-4 h-4" />
-                      <span>인보이스 생성</span>
+                      <span>견적서 생성</span>
                     </button>
                     <button 
                       onClick={() => {
                         setDocumentType('contract');
-                        setShowDocumentGenerator(true);
+                        setShowAIModal(true);
                       }}
                       className="w-full flex items-center gap-3 px-3 py-2 text-sm text-txt-secondary hover:text-txt-primary hover:bg-bg-secondary rounded-lg transition-colors"
                     >
@@ -578,13 +593,23 @@ export default function ProjectDetailPage() {
                     </button>
                     <button 
                       onClick={() => {
-                        setDocumentType('proposal');
-                        setShowDocumentGenerator(true);
+                        setDocumentType('invoice');
+                        setShowAIModal(true);
+                      }}
+                      className="w-full flex items-center gap-3 px-3 py-2 text-sm text-txt-secondary hover:text-txt-primary hover:bg-bg-secondary rounded-lg transition-colors"
+                    >
+                      <CreditCard className="w-4 h-4" />
+                      <span>청구서 생성</span>
+                    </button>
+                    <button 
+                      onClick={() => {
+                        setDocumentType('report');
+                        setShowAIModal(true);
                       }}
                       className="w-full flex items-center gap-3 px-3 py-2 text-sm text-txt-secondary hover:text-txt-primary hover:bg-bg-secondary rounded-lg transition-colors"
                     >
                       <Wand2 className="w-4 h-4" />
-                      <span>제안서 생성</span>
+                      <span>보고서 생성</span>
                     </button>
                     <button className="w-full flex items-center gap-3 px-3 py-2 text-sm text-txt-secondary hover:text-txt-primary hover:bg-bg-secondary rounded-lg transition-colors">
                       <Upload className="w-4 h-4" />
@@ -693,38 +718,39 @@ export default function ProjectDetailPage() {
           {/* 다른 탭들도 필요에 따라 구현 */}
         </div>
 
-        {/* Document Generator Modal */}
-        {showDocumentGenerator && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <Card className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
-              <div className="px-6 py-4 border-b border-border-light">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <Wand2 className="w-5 h-5 text-weave-primary" />
-                    <Typography variant="h3" className="text-txt-primary">
-                      AI 문서 생성
-                    </Typography>
-                  </div>
-                  <button
-                    onClick={() => setShowDocumentGenerator(false)}
-                    className="p-2 hover:bg-bg-secondary rounded-lg transition-colors"
-                  >
-                    <X className="w-4 h-4 text-txt-tertiary" />
-                  </button>
-                </div>
-              </div>
-              
-              <div className="flex-1 overflow-y-auto p-6">
-                <DocumentGenerator
-                  onDocumentGenerated={(doc) => {
-                    console.log('Generated document:', doc);
-                    setShowDocumentGenerator(false);
-                    // TODO: 문서를 프로젝트에 저장하는 로직 추가
-                  }}
-                />
-              </div>
-            </Card>
-          </div>
+        {/* AI Document Modal */}
+        {showAIModal && (
+          <AIDocumentModal
+            isOpen={showAIModal}
+            onClose={() => setShowAIModal(false)}
+            documentType={documentType}
+            projectData={{
+              id: project.id,
+              name: project.name,
+              clientId: project.clientId,
+              clientName: project.clientName,
+              budget: project.budget.estimated,
+              description: project.description
+            }}
+            clientData={clientDetails ? {
+              id: clientDetails.id,
+              company: clientDetails.company || clientDetails.name,
+              contact_person: clientDetails.name,
+              email: clientDetails.email || 'contact@example.com',
+              phone: clientDetails.phone || '02-1234-5678'
+            } : {
+              id: project.clientId,
+              company: project.clientName,
+              contact_person: '담당자',
+              email: 'contact@example.com',
+              phone: '02-1234-5678'
+            }}
+            onDocumentGenerated={(doc) => {
+              console.log('AI 문서 생성 완료:', doc);
+              // TODO: 생성된 문서를 프로젝트 문서 목록에 추가
+              setShowAIModal(false);
+            }}
+          />
         )}
       </div>
     </AppLayout>

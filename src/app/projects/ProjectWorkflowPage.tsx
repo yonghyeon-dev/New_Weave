@@ -24,12 +24,14 @@ import {
   DollarSign,
   Clock,
   CheckCircle,
-  XCircle
+  XCircle,
+  Sparkles
 } from 'lucide-react';
 import { projectsService } from '@/lib/services/supabase/projects.service';
 import { clientService } from '@/lib/services/supabase/clients.service';
 import { invoicesService } from '@/lib/services/supabase/invoices.service';
 import type { Database } from '@/lib/supabase/database.types';
+import AIDocumentModal from '@/components/ai-assistant/AIDocumentModal';
 
 // 워크플로우 기반 탭 구조
 interface WorkflowTab {
@@ -68,6 +70,12 @@ export default function ProjectWorkflowPage() {
   const [activeTab, setActiveTab] = useState('clients');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
+  // AI 모달 상태
+  const [showAIModal, setShowAIModal] = useState(false);
+  const [aiDocumentType, setAIDocumentType] = useState<'quotation' | 'contract' | 'invoice' | 'report'>('quotation');
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   
   // 데이터 상태
   const [clients, setClients] = useState<Client[]>([]);
@@ -197,6 +205,19 @@ export default function ProjectWorkflowPage() {
     window.history.pushState({}, '', url);
   };
 
+  // AI 모달 열기 핸들러
+  const handleOpenAIModal = (type: 'quotation' | 'contract' | 'invoice' | 'report') => {
+    setAIDocumentType(type);
+    // 현재 탭에서 선택된 프로젝트/클라이언트 정보 설정
+    if (projects.length > 0) {
+      setSelectedProject(projects[0]); // 첨 번째 프로젝트 자동 선택
+    }
+    if (clients.length > 0) {
+      setSelectedClient(clients[0]); // 첨 번째 클라이언트 자동 선택
+    }
+    setShowAIModal(true);
+  };
+
   // 각 탭의 컨텐츠 렌더링
   const renderTabContent = () => {
     if (loading) {
@@ -227,13 +248,13 @@ export default function ProjectWorkflowPage() {
       case 'projects':
         return <ProjectsTab projects={projects} clients={clients} searchQuery={searchQuery} />;
       case 'quotations':
-        return <QuotationsTab quotations={quotations} projects={projects} />;
+        return <QuotationsTab quotations={quotations} projects={projects} onOpenAIModal={handleOpenAIModal} />;
       case 'contracts':
-        return <ContractsTab contracts={contracts} projects={projects} />;
+        return <ContractsTab contracts={contracts} projects={projects} onOpenAIModal={handleOpenAIModal} />;
       case 'billing':
-        return <BillingTab invoices={invoices} projects={projects} />;
+        return <BillingTab invoices={invoices} projects={projects} onOpenAIModal={handleOpenAIModal} />;
       case 'reports':
-        return <ReportsTab reports={reports} projects={projects} />;
+        return <ReportsTab reports={reports} projects={projects} onOpenAIModal={handleOpenAIModal} />;
       case 'settings':
         return <SettingsTab />;
       default:
@@ -337,6 +358,32 @@ export default function ProjectWorkflowPage() {
         <div className="bg-white rounded-lg border border-border-light min-h-[400px]">
           {renderTabContent()}
         </div>
+
+        {/* AI 문서 생성 모달 */}
+        <AIDocumentModal
+          isOpen={showAIModal}
+          onClose={() => setShowAIModal(false)}
+          documentType={aiDocumentType}
+          projectData={selectedProject ? {
+            id: selectedProject.id,
+            name: selectedProject.name,
+            clientId: selectedProject.client_id || undefined,
+            clientName: clients.find(c => c.id === selectedProject.client_id)?.company,
+            budget: selectedProject.budget_estimated || undefined,
+            description: selectedProject.description || undefined
+          } : undefined}
+          clientData={selectedClient ? {
+            id: selectedClient.id,
+            company: selectedClient.company,
+            contact_person: selectedClient.contact_person || undefined,
+            email: selectedClient.email || undefined,
+            phone: selectedClient.phone || undefined
+          } : undefined}
+          onDocumentGenerated={(doc) => {
+            console.log('Generated document:', doc);
+            // TODO: 생성된 문서 저장 로직
+          }}
+        />
       </DataPageContainer>
     </AppLayout>
   );
@@ -554,7 +601,7 @@ function ProjectsTab({ projects, clients, searchQuery }: { projects: Project[], 
 }
 
 // 견적서 탭
-function QuotationsTab({ quotations, projects }: { quotations: any[], projects: Project[] }) {
+function QuotationsTab({ quotations, projects, onOpenAIModal }: { quotations: any[], projects: Project[], onOpenAIModal: (type: 'quotation') => void }) {
   return (
     <div className="p-4 sm:p-6">
       <div className="flex justify-between items-center mb-4">
@@ -564,9 +611,10 @@ function QuotationsTab({ quotations, projects }: { quotations: any[], projects: 
         <Button
           variant="primary"
           size="sm"
+          onClick={() => onOpenAIModal('quotation')}
           className="flex items-center gap-2"
         >
-          <Plus className="w-4 h-4" />
+          <Sparkles className="w-4 h-4" />
           AI 견적서 생성
         </Button>
       </div>
@@ -585,7 +633,7 @@ function QuotationsTab({ quotations, projects }: { quotations: any[], projects: 
 }
 
 // 계약서 탭
-function ContractsTab({ contracts, projects }: { contracts: any[], projects: Project[] }) {
+function ContractsTab({ contracts, projects, onOpenAIModal }: { contracts: any[], projects: Project[], onOpenAIModal: (type: 'contract') => void }) {
   return (
     <div className="p-4 sm:p-6">
       <div className="flex justify-between items-center mb-4">
@@ -595,10 +643,11 @@ function ContractsTab({ contracts, projects }: { contracts: any[], projects: Pro
         <Button
           variant="primary"
           size="sm"
+          onClick={() => onOpenAIModal('contract')}
           className="flex items-center gap-2"
         >
-          <Plus className="w-4 h-4" />
-          계약서 생성
+          <Sparkles className="w-4 h-4" />
+          AI 계약서 생성
         </Button>
       </div>
       
@@ -616,7 +665,7 @@ function ContractsTab({ contracts, projects }: { contracts: any[], projects: Pro
 }
 
 // 청구/정산 탭 (인보이스와 결제 통합)
-function BillingTab({ invoices, projects }: { invoices: Invoice[], projects: Project[] }) {
+function BillingTab({ invoices, projects, onOpenAIModal }: { invoices: Invoice[], projects: Project[], onOpenAIModal: (type: 'invoice') => void }) {
   const router = useRouter();
   
   return (
@@ -628,11 +677,11 @@ function BillingTab({ invoices, projects }: { invoices: Invoice[], projects: Pro
         <Button
           variant="primary"
           size="sm"
-          onClick={() => router.push('/invoices/new')}
+          onClick={() => onOpenAIModal('invoice')}
           className="flex items-center gap-2"
         >
-          <Plus className="w-4 h-4" />
-          새 청구서
+          <Sparkles className="w-4 h-4" />
+          AI 청구서 생성
         </Button>
       </div>
 
@@ -736,7 +785,7 @@ function BillingTab({ invoices, projects }: { invoices: Invoice[], projects: Pro
 }
 
 // 보고서 탭
-function ReportsTab({ reports, projects }: { reports: any[], projects: Project[] }) {
+function ReportsTab({ reports, projects, onOpenAIModal }: { reports: any[], projects: Project[], onOpenAIModal: (type: 'report') => void }) {
   return (
     <div className="p-4 sm:p-6">
       <div className="flex justify-between items-center mb-4">
@@ -746,10 +795,11 @@ function ReportsTab({ reports, projects }: { reports: any[], projects: Project[]
         <Button
           variant="primary"
           size="sm"
+          onClick={() => onOpenAIModal('report')}
           className="flex items-center gap-2"
         >
-          <Plus className="w-4 h-4" />
-          보고서 작성
+          <Sparkles className="w-4 h-4" />
+          AI 보고서 생성
         </Button>
       </div>
       
