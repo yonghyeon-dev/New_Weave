@@ -54,6 +54,8 @@ export default function AIDocumentModal({
 }: AIDocumentModalProps) {
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [generatedDocument, setGeneratedDocument] = useState<any>(null);
+  const [generationTime, setGenerationTime] = useState<string>('');
 
   // 문서 타입에 따라 추천 템플릿 자동 선택
   useEffect(() => {
@@ -67,27 +69,31 @@ export default function AIDocumentModal({
 
   if (!isOpen) return null;
 
-  const handleGenerate = async () => {
-    setIsGenerating(true);
+  const handleDocumentGenerated = (doc: any) => {
+    const now = new Date();
+    const timeString = now.toLocaleString('ko-KR', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit'
+    });
     
-    // AI 문서 생성 로직
-    const generatedDocument = {
-      type: documentType,
-      template: selectedTemplate,
-      project: projectData,
-      client: clientData,
-      generatedAt: new Date().toISOString(),
-      content: `AI가 생성한 ${documentTypeLabels[documentType]} 내용입니다.`
-    };
-
-    // 시뮬레이션을 위한 지연
-    setTimeout(() => {
-      setIsGenerating(false);
-      if (onDocumentGenerated) {
-        onDocumentGenerated(generatedDocument);
-      }
-      onClose();
-    }, 2000);
+    setGenerationTime(timeString);
+    setGeneratedDocument({
+      ...doc,
+      generatedAt: now.toISOString(),
+      generationTime: timeString
+    });
+    
+    if (onDocumentGenerated) {
+      onDocumentGenerated({
+        ...doc,
+        generatedAt: now.toISOString(),
+        generationTime: timeString
+      });
+    }
   };
 
   return (
@@ -200,13 +206,19 @@ export default function AIDocumentModal({
                 preselectedTemplate={selectedTemplate}
                 projectContext={projectData}
                 clientContext={clientData}
-                onGenerated={(doc) => {
-                  if (onDocumentGenerated) {
-                    onDocumentGenerated(doc);
-                  }
-                  onClose();
-                }}
+                onGenerated={handleDocumentGenerated}
+                hideHeader={true}
+                autoGenerate={isGenerating}
               />
+            </div>
+          )}
+          
+          {/* 생성 시간 표시 */}
+          {generationTime && (
+            <div className="mt-4 p-3 bg-bg-secondary rounded-lg">
+              <Typography variant="caption" className="text-txt-tertiary">
+                생성 완료: {generationTime}
+              </Typography>
             </div>
           )}
         </div>
@@ -227,7 +239,7 @@ export default function AIDocumentModal({
               </Button>
               <Button
                 variant="primary"
-                onClick={handleGenerate}
+                onClick={() => setIsGenerating(true)}
                 disabled={!selectedTemplate || isGenerating}
                 className="flex items-center gap-2"
               >

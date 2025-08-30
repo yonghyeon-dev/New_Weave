@@ -35,6 +35,8 @@ interface DocumentGeneratorV2Props {
   onBack?: () => void;
   onExport?: (document: string, format: string) => void;
   onError?: (error: Error) => void;
+  hideHeader?: boolean;
+  autoGenerate?: boolean;
 }
 
 export default function DocumentGeneratorV2({
@@ -45,7 +47,9 @@ export default function DocumentGeneratorV2({
   onGenerated,
   onBack,
   onExport,
-  onError
+  onError,
+  hideHeader = false,
+  autoGenerate = false
 }: DocumentGeneratorV2Props) {
   const [generatedDocument, setGeneratedDocument] = useState<string>('');
   const [editedDocument, setEditedDocument] = useState<string>('');
@@ -231,7 +235,8 @@ export default function DocumentGeneratorV2({
       selectedTemplate: !!selectedTemplate,
       client: !!client,
       project: !!project,
-      generatedDocument: !!generatedDocument
+      generatedDocument: !!generatedDocument,
+      autoGenerate
     });
     
     if (selectedTemplate && client && project && !generatedDocument) {
@@ -239,6 +244,14 @@ export default function DocumentGeneratorV2({
       generateDocumentWithAI();
     }
   }, [selectedTemplate?.id, workflow?.client?.id, workflow?.project?.id, clientContext?.id, projectContext?.id]); // ID로 의존성 체크
+
+  // autoGenerate prop이 true로 변경되면 문서 생성 실행
+  useEffect(() => {
+    if (autoGenerate && selectedTemplate && !isGenerating && !generatedDocument) {
+      console.log('Auto-generating document due to autoGenerate prop');
+      generateDocumentWithAI();
+    }
+  }, [autoGenerate]);
 
   // 문서 복사
   const copyToClipboard = async () => {
@@ -324,50 +337,52 @@ export default function DocumentGeneratorV2({
 
   return (
     <div className="space-y-6">
-      {/* 프로젝트 정보 요약 */}
-      <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200/50 p-6">
-        <div className="flex items-start justify-between mb-4">
-          <div>
-            <Typography variant="h3" className="text-lg font-semibold text-txt-primary mb-2">
-              문서 정보
-            </Typography>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <Typography variant="body2" className="text-txt-tertiary">클라이언트</Typography>
-                <Typography variant="body1" className="font-medium">
-                  {workflow?.client?.companyName || clientContext?.company || clientContext?.name || '선택되지 않음'}
-                </Typography>
-              </div>
-              <div>
-                <Typography variant="body2" className="text-txt-tertiary">프로젝트</Typography>
-                <Typography variant="body1" className="font-medium">
-                  {workflow?.project?.name || projectContext?.name || '선택되지 않음'}
-                </Typography>
-              </div>
-              <div>
-                <Typography variant="body2" className="text-txt-tertiary">문서 종류</Typography>
-                <Typography variant="body1" className="font-medium">
-                  {workflow?.documentType?.name || '문서'}
-                </Typography>
+      {/* 프로젝트 정보 요약 - hideHeader가 false일 때만 표시 */}
+      {!hideHeader && (
+        <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200/50 p-6">
+          <div className="flex items-start justify-between mb-4">
+            <div>
+              <Typography variant="h3" className="text-lg font-semibold text-txt-primary mb-2">
+                문서 정보
+              </Typography>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <Typography variant="body2" className="text-txt-tertiary">클라이언트</Typography>
+                  <Typography variant="body1" className="font-medium">
+                    {workflow?.client?.companyName || clientContext?.company || clientContext?.name || '선택되지 않음'}
+                  </Typography>
+                </div>
+                <div>
+                  <Typography variant="body2" className="text-txt-tertiary">프로젝트</Typography>
+                  <Typography variant="body1" className="font-medium">
+                    {workflow?.project?.name || projectContext?.name || '선택되지 않음'}
+                  </Typography>
+                </div>
+                <div>
+                  <Typography variant="body2" className="text-txt-tertiary">문서 종류</Typography>
+                  <Typography variant="body1" className="font-medium">
+                    {workflow?.documentType?.name || '문서'}
+                  </Typography>
+                </div>
               </div>
             </div>
+            <div className="flex gap-2">
+              {!generatedDocument && !isGenerating && (
+                <Button variant="primary" size="sm" onClick={generateDocumentWithAI}>
+                  <Sparkles className="w-4 h-4 mr-1" />
+                  문서 생성 시작
+                </Button>
+              )}
+              {onBack && (
+                <Button variant="outline" size="sm" onClick={onBack}>
+                  <ArrowLeft className="w-4 h-4 mr-1" />
+                  이전 단계
+                </Button>
+              )}
+            </div>
           </div>
-          <div className="flex gap-2">
-            {!generatedDocument && !isGenerating && (
-              <Button variant="primary" size="sm" onClick={generateDocumentWithAI}>
-                <Sparkles className="w-4 h-4 mr-1" />
-                문서 생성 시작
-              </Button>
-            )}
-            {onBack && (
-              <Button variant="outline" size="sm" onClick={onBack}>
-                <ArrowLeft className="w-4 h-4 mr-1" />
-                이전 단계
-              </Button>
-            )}
-          </div>
-        </div>
-      </Card>
+        </Card>
+      )}
 
       {/* 문서 편집/미리보기 영역 */}
       <Card className="bg-white rounded-lg border border-border-light">
@@ -387,7 +402,7 @@ export default function DocumentGeneratorV2({
               {!isGenerating && generatedDocument && (
                 <Badge variant="positive" className="flex items-center gap-1">
                   <Check className="w-3 h-3" />
-                  생성 완료
+                  생성 완료 ({new Date().toLocaleTimeString('ko-KR')})
                 </Badge>
               )}
             </div>
