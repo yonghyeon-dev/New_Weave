@@ -69,7 +69,7 @@ export default function Dashboard() {
       }
       
       setUserId(session.user.id);
-      fetchDashboardData(session.user.id);
+      await fetchDashboardData(session.user.id);
     };
     
     const fetchDashboardData = async (userId: string) => {

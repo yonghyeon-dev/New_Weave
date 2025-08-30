@@ -26,65 +26,116 @@ export class ClientService {
 
   // 클라이언트 목록 조회
   async getClients(userId: string): Promise<Client[]> {
-    // TODO: clients 테이블이 생성되면 활성화
-    return []
+    const { data, error } = await this.supabase
+      .from('clients')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+
+    if (error) {
+      console.error('Failed to fetch clients:', error)
+      return []
+    }
+
+    return data || []
   }
 
   // 클라이언트 단일 조회
-  async getClientById(id: string): Promise<Client> {
-    // TODO: clients 테이블이 생성되면 활성화
-    return {
-      id,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      user_id: '',
-      name: 'Client',
-      company: 'Company',
-      is_active: true
-    } as Client
+  async getClientById(id: string): Promise<Client | null> {
+    const { data, error } = await this.supabase
+      .from('clients')
+      .select('*')
+      .eq('id', id)
+      .single()
+
+    if (error) {
+      console.error('Failed to fetch client by id:', error)
+      return null
+    }
+
+    return data
   }
 
   // 클라이언트 생성
-  async createClient(client: Omit<ClientInsert, 'id' | 'created_at' | 'updated_at'>): Promise<Client> {
-    // TODO: clients 테이블이 생성되면 활성화
-    return {
-      ...client,
-      id: Date.now().toString(),
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    } as Client
+  async createClient(client: Omit<ClientInsert, 'id' | 'created_at' | 'updated_at'>): Promise<Client | null> {
+    const { data, error } = await this.supabase
+      .from('clients')
+      .insert([client])
+      .select()
+      .single()
+
+    if (error) {
+      console.error('Failed to create client:', error)
+      return null
+    }
+
+    return data
   }
 
   // 클라이언트 업데이트
-  async updateClient(id: string, updates: ClientUpdate): Promise<Client> {
-    // TODO: clients 테이블이 생성되면 활성화
-    return {
-      id,
-      ...updates,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      user_id: '',
-      name: updates.name || 'Client',
-      company: updates.company || 'Company'
-    } as Client
+  async updateClient(id: string, updates: ClientUpdate): Promise<Client | null> {
+    const { data, error } = await this.supabase
+      .from('clients')
+      .update(updates)
+      .eq('id', id)
+      .select()
+      .single()
+
+    if (error) {
+      console.error('Failed to update client:', error)
+      return null
+    }
+
+    return data
   }
 
   // 클라이언트 삭제
   async deleteClient(id: string): Promise<boolean> {
-    // TODO: clients 테이블이 생성되면 활성화
+    const { error } = await this.supabase
+      .from('clients')
+      .delete()
+      .eq('id', id)
+
+    if (error) {
+      console.error('Failed to delete client:', error)
+      return false
+    }
+
     return true
   }
 
   // 사업자번호로 클라이언트 검색
   async getClientByBusinessNumber(businessNumber: string, userId: string): Promise<Client | null> {
-    // TODO: clients 테이블이 생성되면 활성화
-    return null
+    const { data, error } = await this.supabase
+      .from('clients')
+      .select('*')
+      .eq('business_number', businessNumber)
+      .eq('user_id', userId)
+      .single()
+
+    if (error) {
+      console.error('Failed to fetch client by business number:', error)
+      return null
+    }
+
+    return data
   }
 
   // 활성 클라이언트만 조회
   async getActiveClients(userId: string): Promise<Client[]> {
-    // TODO: clients 테이블이 생성되면 활성화
-    return []
+    const { data, error } = await this.supabase
+      .from('clients')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('status', 'active')
+      .order('created_at', { ascending: false })
+
+    if (error) {
+      console.error('Failed to fetch active clients:', error)
+      return []
+    }
+
+    return data || []
   }
 
   // 실시간 구독 설정

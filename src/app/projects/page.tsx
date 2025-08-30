@@ -72,9 +72,18 @@ function ProjectsContent() {
       setLoading(true);
       setError(null);
       
-      // 모든 프로젝트 가져오기
-      // TODO: 실제 사용자 ID로 교체 필요
-      const userId = 'system';
+      // Supabase에서 현재 사용자 가져오기
+      const { createClient } = await import('@/lib/supabase/client');
+      const supabase = createClient();
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      
+      if (authError || !user) {
+        console.error('Auth error:', authError);
+        setError('로그인이 필요합니다.');
+        return;
+      }
+      
+      const userId = user.id;
       const projectsData = await projectsService.getProjects(userId);
       
       // 각 프로젝트에 클라이언트 정보 추가

@@ -151,8 +151,18 @@ export default function ProjectWorkflowPage() {
       setLoading(true);
       setError(null);
       
-      // TODO: 실제 사용자 ID로 교체
-      const userId = 'system';
+      // Supabase에서 현재 사용자 가져오기
+      const { createClient } = await import('@/lib/supabase/client');
+      const supabase = createClient();
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      
+      if (authError || !user) {
+        console.error('Auth error:', authError);
+        setError('로그인이 필요합니다.');
+        return;
+      }
+      
+      const userId = user.id;
       
       // 병렬로 데이터 로드
       const [clientsData, projectsData, invoicesData] = await Promise.all([
@@ -213,7 +223,7 @@ export default function ProjectWorkflowPage() {
 
     switch (activeTab) {
       case 'clients':
-        return <ClientsTab clients={clients} searchQuery={searchQuery} />;
+        return <ClientsTab clients={clients} projects={projects} searchQuery={searchQuery} />;
       case 'projects':
         return <ProjectsTab projects={projects} clients={clients} searchQuery={searchQuery} />;
       case 'quotations':
@@ -333,12 +343,17 @@ export default function ProjectWorkflowPage() {
 }
 
 // 클라이언트 탭 컴포넌트
-function ClientsTab({ clients, searchQuery }: { clients: Client[], searchQuery: string }) {
+function ClientsTab({ clients, projects, searchQuery }: { clients: Client[], projects: Project[], searchQuery: string }) {
   const router = useRouter();
   const filteredClients = clients.filter(client => 
     client.company?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     client.contact_person?.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  // 각 클라이언트별 프로젝트 수 계산
+  const getProjectCount = (clientId: string) => {
+    return projects.filter(project => project.client_id === clientId).length;
+  };
 
   return (
     <div className="p-4 sm:p-6">
@@ -375,7 +390,7 @@ function ClientsTab({ clients, searchQuery }: { clients: Client[], searchQuery: 
                 <td className="px-4 py-3 text-sm text-txt-primary">{client.company}</td>
                 <td className="px-4 py-3 text-sm text-txt-secondary">{client.contact_person || '-'}</td>
                 <td className="px-4 py-3 text-sm text-txt-secondary">{client.phone || '-'}</td>
-                <td className="px-4 py-3 text-sm text-txt-primary">0</td>
+                <td className="px-4 py-3 text-sm text-txt-primary">{getProjectCount(client.id)}</td>
                 <td className="px-4 py-3">
                   <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
                     활성
@@ -406,7 +421,7 @@ function ClientsTab({ clients, searchQuery }: { clients: Client[], searchQuery: 
             </div>
             <div className="flex items-center gap-4 text-xs text-txt-tertiary">
               <span>{client.phone || '연락처 없음'}</span>
-              <span>프로젝트 0개</span>
+              <span>프로젝트 {getProjectCount(client.id)}개</span>
             </div>
           </div>
         ))}
