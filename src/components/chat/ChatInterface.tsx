@@ -527,11 +527,14 @@ export default function ChatInterface() {
     return (
       <div className="fixed inset-0 z-50 bg-white flex flex-col">
         {/* 최대화 헤더 */}
-        <div className="bg-white border-b border-border-light p-4">
+        <div className="bg-white border-b border-border-light px-4 py-2">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3 flex-1">
+            <div className="flex items-center gap-3">
+              {/* AI 업무비서 텍스트 - 작게 */}
+              <Typography variant="body2" className="text-sm font-medium text-txt-secondary">AI 업무비서</Typography>
+              
               {/* 채팅 모드 선택 */}
-              <div className="flex gap-2 flex-wrap">
+              <div className="flex gap-1.5">
                 <button
                   onClick={() => {
                     setChatType('general');
@@ -539,9 +542,9 @@ export default function ChatInterface() {
                       startNewChat();
                     }
                   }}
-                  className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                  className={`px-2.5 py-1 rounded-md text-xs font-medium transition-all ${
                     chatType === 'general'
-                      ? 'bg-weave-primary text-white shadow-md'
+                      ? 'bg-weave-primary text-white'
                       : 'bg-bg-secondary text-txt-secondary hover:bg-bg-tertiary'
                   }`}
                   title="일반적인 업무 질문과 대화"
@@ -555,9 +558,9 @@ export default function ChatInterface() {
                       startNewChat();
                     }
                   }}
-                  className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all relative ${
+                  className={`px-2.5 py-1 rounded-md text-xs font-medium transition-all relative ${
                     chatType === 'rag'
-                      ? 'bg-weave-primary text-white shadow-md'
+                      ? 'bg-weave-primary text-white'
                       : 'bg-bg-secondary text-txt-secondary hover:bg-bg-tertiary'
                   }`}
                   title="업로드된 문서를 기반으로 한 지능형 검색"
@@ -574,9 +577,9 @@ export default function ChatInterface() {
                       startNewChat();
                     }
                   }}
-                  className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                  className={`px-2.5 py-1 rounded-md text-xs font-medium transition-all ${
                     chatType === 'tax'
-                      ? 'bg-weave-primary text-white shadow-md'
+                      ? 'bg-weave-primary text-white'
                       : 'bg-bg-secondary text-txt-secondary hover:bg-bg-tertiary'
                   }`}
                   title="한국 세무 전문 상담"
@@ -584,55 +587,58 @@ export default function ChatInterface() {
                   📊 세무
                 </button>
               </div>
-              
-              {session && (
-                <Typography variant="body2" className="text-txt-tertiary hidden lg:block">
-                  {session.metadata.totalTokens} 토큰
-                </Typography>
-              )}
             </div>
             
             <div className="flex items-center gap-1">
               {chatType === 'rag' && (
                 <Button
-                  variant="outline"
+                  variant="ghost"
                   onClick={() => setShowDocumentPanel(true)}
-                  className="p-2 relative"
+                  className="p-1.5"
                   title="문서 관리"
                 >
                   <FileSearch className="w-4 h-4" />
                   {hasUploadedDocs && (
-                    <span className="absolute top-1 right-1 w-2 h-2 bg-green-500 rounded-full"></span>
+                    <span className="absolute top-0.5 right-0.5 w-2 h-2 bg-green-500 rounded-full"></span>
                   )}
                 </Button>
               )}
               
               <Button
-                variant="outline"
+                variant="ghost"
                 onClick={() => setShowHistory(!showHistory)}
-                className="p-2"
+                className="p-1.5"
                 title="대화 히스토리"
               >
                 <History className="w-4 h-4" />
               </Button>
               
               <Button
-                variant="outline"
+                variant="ghost"
                 onClick={startNewChat}
-                className="p-2"
+                className="p-1.5"
                 title="새 대화"
               >
                 <RefreshCw className="w-4 h-4" />
               </Button>
               
-              {/* 최소화 버튼 */}
+              {/* 최소화와 닫기 버튼 */}
               <Button
-                variant="outline"
+                variant="ghost"
                 onClick={() => setIsMaximized(false)}
-                className="p-2"
+                className="p-1.5"
                 title="최소화"
               >
                 <Minimize2 className="w-4 h-4" />
+              </Button>
+              
+              <Button
+                variant="ghost"
+                onClick={() => window.history.back()}
+                className="p-1.5"
+                title="닫기"
+              >
+                <X className="w-4 h-4" />
               </Button>
             </div>
           </div>
@@ -860,12 +866,14 @@ export default function ChatInterface() {
       {/* 메인 채팅 영역 */}
       <div className="flex-1 flex flex-col h-full min-h-0">
         {/* 헤더 */}
-        <div className="bg-white border-b border-border-light p-4">
+        <div className="bg-white border-b border-border-light px-4 py-2">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3 flex-1">
+            <div className="flex items-center gap-3">
+              {/* AI 업무비서 텍스트 - 작게 */}
+              <Typography variant="body2" className="text-sm font-medium text-txt-secondary">AI 업무비서</Typography>
               
               {/* 채팅 모드 선택 */}
-              <div className="flex gap-2 flex-wrap">
+              <div className="flex gap-1.5">
                 <button
                   onClick={() => {
                     setChatType('general');
@@ -873,9 +881,9 @@ export default function ChatInterface() {
                       startNewChat();
                     }
                   }}
-                  className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                  className={`px-2.5 py-1 rounded-md text-xs font-medium transition-all ${
                     chatType === 'general'
-                      ? 'bg-weave-primary text-white shadow-md'
+                      ? 'bg-weave-primary text-white'
                       : 'bg-bg-secondary text-txt-secondary hover:bg-bg-tertiary'
                   }`}
                   title="일반적인 업무 질문과 대화"
@@ -889,9 +897,9 @@ export default function ChatInterface() {
                       startNewChat();
                     }
                   }}
-                  className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all relative ${
+                  className={`px-2.5 py-1 rounded-md text-xs font-medium transition-all relative ${
                     chatType === 'rag'
-                      ? 'bg-weave-primary text-white shadow-md'
+                      ? 'bg-weave-primary text-white'
                       : 'bg-bg-secondary text-txt-secondary hover:bg-bg-tertiary'
                   }`}
                   title="업로드된 문서를 기반으로 한 지능형 검색"
@@ -908,9 +916,9 @@ export default function ChatInterface() {
                       startNewChat();
                     }
                   }}
-                  className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                  className={`px-2.5 py-1 rounded-md text-xs font-medium transition-all ${
                     chatType === 'tax'
-                      ? 'bg-weave-primary text-white shadow-md'
+                      ? 'bg-weave-primary text-white'
                       : 'bg-bg-secondary text-txt-secondary hover:bg-bg-tertiary'
                   }`}
                   title="한국 세무 전문 상담"
@@ -918,35 +926,29 @@ export default function ChatInterface() {
                   📊 세무
                 </button>
               </div>
-              
-              {session && (
-                <Typography variant="body2" className="text-txt-tertiary hidden lg:block">
-                  {session.metadata.totalTokens} 토큰
-                </Typography>
-              )}
             </div>
             
             <div className="flex items-center gap-1">
               {/* RAG 모드일 때만 문서 관리 버튼 표시 */}
               {chatType === 'rag' && (
                 <Button
-                  variant="outline"
+                  variant="ghost"
                   onClick={() => setShowDocumentPanel(true)}
-                  className="p-2 relative"
+                  className="p-1.5"
                   title="문서 관리"
                 >
                   <FileSearch className="w-4 h-4" />
                   {hasUploadedDocs && (
-                    <span className="absolute top-1 right-1 w-2 h-2 bg-green-500 rounded-full"></span>
+                    <span className="absolute top-0.5 right-0.5 w-2 h-2 bg-green-500 rounded-full"></span>
                   )}
                 </Button>
               )}
               
               {/* 히스토리 버튼 */}
               <Button
-                variant="outline"
+                variant="ghost"
                 onClick={() => setShowHistory(!showHistory)}
-                className="p-2"
+                className="p-1.5"
                 title="대화 히스토리"
               >
                 <History className="w-4 h-4" />
@@ -954,9 +956,9 @@ export default function ChatInterface() {
               
               {/* 새 대화 버튼 */}
               <Button
-                variant="outline"
+                variant="ghost"
                 onClick={startNewChat}
-                className="p-2"
+                className="p-1.5"
                 title="새 대화"
               >
                 <RefreshCw className="w-4 h-4" />
@@ -964,9 +966,9 @@ export default function ChatInterface() {
               
               {/* 최대화 버튼 */}
               <Button
-                variant="outline"
+                variant="ghost"
                 onClick={() => setIsMaximized(true)}
-                className="p-2"
+                className="p-1.5"
                 title="최대화"
               >
                 <Maximize2 className="w-4 h-4" />
