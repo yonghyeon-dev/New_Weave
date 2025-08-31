@@ -12,7 +12,7 @@ import { ToastContainer, useToast } from '@/components/ui/Toast';
 import { useReactions } from './EmojiReaction';
 import { chatService, ChatMessage, ChatSession } from '@/lib/services/chatService';
 import { chatService as chatSessionsService } from '@/lib/services/supabase/chat.service';
-import { Trash2, Download, RefreshCw, Menu, X, Search, Keyboard, History, FileSearch } from 'lucide-react';
+import { Trash2, Download, RefreshCw, Menu, X, Search, Keyboard, History, FileSearch, Maximize2, Minimize2 } from 'lucide-react';
 import DocumentUploadPanel from './DocumentUploadPanel';
 import ChatWelcome from './ChatWelcome';
 import { ContextBuilder } from '@/lib/chat/contextBuilder';
@@ -36,6 +36,7 @@ export default function ChatInterface() {
   const [showDocumentPanel, setShowDocumentPanel] = useState(false);
   const [hasUploadedDocs, setHasUploadedDocs] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [isMaximized, setIsMaximized] = useState(false);
   const { toasts, addToast, hideToast } = useToast();
   const { addReaction, getReactions } = useReactions();
   
@@ -521,6 +522,195 @@ export default function ChatInterface() {
     }
   };
   
+  // 최대화 모드일 때 모달로 표시
+  if (isMaximized) {
+    return (
+      <div className="fixed inset-0 z-50 bg-white flex flex-col">
+        {/* 최대화 헤더 */}
+        <div className="bg-white border-b border-border-light p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3 flex-1">
+              {/* 채팅 모드 선택 */}
+              <div className="flex gap-2 flex-wrap">
+                <button
+                  onClick={() => {
+                    setChatType('general');
+                    if (messages.length === 0 || confirm('모드를 변경하면 현재 대화가 초기화됩니다. 계속하시겠습니까?')) {
+                      startNewChat();
+                    }
+                  }}
+                  className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                    chatType === 'general'
+                      ? 'bg-weave-primary text-white shadow-md'
+                      : 'bg-bg-secondary text-txt-secondary hover:bg-bg-tertiary'
+                  }`}
+                  title="일반적인 업무 질문과 대화"
+                >
+                  💬 일반
+                </button>
+                <button
+                  onClick={() => {
+                    setChatType('rag');
+                    if (chatType !== 'rag' && (messages.length === 0 || confirm('모드를 변경하면 현재 대화가 초기화됩니다. 계속하시겠습니까?'))) {
+                      startNewChat();
+                    }
+                  }}
+                  className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all relative ${
+                    chatType === 'rag'
+                      ? 'bg-weave-primary text-white shadow-md'
+                      : 'bg-bg-secondary text-txt-secondary hover:bg-bg-tertiary'
+                  }`}
+                  title="업로드된 문서를 기반으로 한 지능형 검색"
+                >
+                  📚 RAG
+                  {hasUploadedDocs && (
+                    <span className="absolute -top-1 -right-1 w-2 h-2 bg-green-500 rounded-full"></span>
+                  )}
+                </button>
+                <button
+                  onClick={() => {
+                    setChatType('tax');
+                    if (messages.length === 0 || confirm('모드를 변경하면 현재 대화가 초기화됩니다. 계속하시겠습니까?')) {
+                      startNewChat();
+                    }
+                  }}
+                  className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                    chatType === 'tax'
+                      ? 'bg-weave-primary text-white shadow-md'
+                      : 'bg-bg-secondary text-txt-secondary hover:bg-bg-tertiary'
+                  }`}
+                  title="한국 세무 전문 상담"
+                >
+                  📊 세무
+                </button>
+              </div>
+              
+              {session && (
+                <Typography variant="body2" className="text-txt-tertiary hidden lg:block">
+                  {session.metadata.totalTokens} 토큰
+                </Typography>
+              )}
+            </div>
+            
+            <div className="flex items-center gap-1">
+              {chatType === 'rag' && (
+                <Button
+                  variant="outline"
+                  onClick={() => setShowDocumentPanel(true)}
+                  className="p-2 relative"
+                  title="문서 관리"
+                >
+                  <FileSearch className="w-4 h-4" />
+                  {hasUploadedDocs && (
+                    <span className="absolute top-1 right-1 w-2 h-2 bg-green-500 rounded-full"></span>
+                  )}
+                </Button>
+              )}
+              
+              <Button
+                variant="outline"
+                onClick={() => setShowHistory(!showHistory)}
+                className="p-2"
+                title="대화 히스토리"
+              >
+                <History className="w-4 h-4" />
+              </Button>
+              
+              <Button
+                variant="outline"
+                onClick={startNewChat}
+                className="p-2"
+                title="새 대화"
+              >
+                <RefreshCw className="w-4 h-4" />
+              </Button>
+              
+              {/* 최소화 버튼 */}
+              <Button
+                variant="outline"
+                onClick={() => setIsMaximized(false)}
+                className="p-2"
+                title="최소화"
+              >
+                <Minimize2 className="w-4 h-4" />
+              </Button>
+            </div>
+          </div>
+        </div>
+        
+        {/* 메시지 목록 */}
+        {messages.length === 0 && !isTyping ? (
+          <div className="flex-1 min-h-0 overflow-y-auto">
+            <ChatWelcome 
+              chatType={chatType}
+              onExampleClick={(text) => {
+                setInputMessage(text);
+                setTimeout(() => {
+                  const textarea = document.querySelector('textarea');
+                  if (textarea) {
+                    (textarea as HTMLTextAreaElement).focus();
+                  }
+                }, 100);
+              }}
+            />
+          </div>
+        ) : (
+          <div className="flex-1 min-h-0 overflow-y-auto">
+            <MessageList
+              messages={[
+                ...messages,
+                ...(currentResponse ? [{
+                  id: 'temp',
+                  role: 'assistant' as const,
+                  content: currentResponse,
+                  timestamp: new Date()
+                }] : [])
+              ]}
+              isTyping={isTyping && !currentResponse}
+              onExampleClick={(text) => setInputMessage(text)}
+              onRegenerate={regenerateMessage}
+              messageReactions={getMessageReactions()}
+              onReaction={handleReaction}
+            />
+          </div>
+        )}
+        
+        {/* 메시지 입력 */}
+        <MessageInput
+          onSendMessage={(msg) => {
+            sendMessage(msg);
+            setInputMessage('');
+          }}
+          onStopGeneration={stopGeneration}
+          isLoading={isLoading}
+          disabled={!session}
+          value={inputMessage}
+          onChange={setInputMessage}
+          placeholder={
+            chatType === 'rag' 
+              ? "문서 기반 질문을 입력하세요..." 
+              : chatType === 'tax'
+              ? "세무 관련 질문을 입력하세요..."
+              : "메시지를 입력하세요..."
+          }
+        />
+        
+        {/* 문서 업로드 패널 */}
+        <DocumentUploadPanel
+          isOpen={showDocumentPanel}
+          onClose={() => setShowDocumentPanel(false)}
+          onUploadSuccess={() => {
+            setHasUploadedDocs(true);
+            addToast('문서가 성공적으로 업로드되었습니다', 'success');
+          }}
+        />
+        
+        {/* Toast 알림 */}
+        <ToastContainer toasts={toasts} onClose={hideToast} />
+      </div>
+    );
+  }
+
   return (
     <div className="flex h-full relative">
       {/* 히스토리 패널 */}
@@ -770,6 +960,16 @@ export default function ChatInterface() {
                 title="새 대화"
               >
                 <RefreshCw className="w-4 h-4" />
+              </Button>
+              
+              {/* 최대화 버튼 */}
+              <Button
+                variant="outline"
+                onClick={() => setIsMaximized(true)}
+                className="p-2"
+                title="최대화"
+              >
+                <Maximize2 className="w-4 h-4" />
               </Button>
             </div>
           </div>

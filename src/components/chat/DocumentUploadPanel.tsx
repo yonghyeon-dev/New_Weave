@@ -141,7 +141,7 @@ export default function DocumentUploadPanel({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <Card className="w-full max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
+      <Card className="w-full max-w-4xl h-[90vh] overflow-hidden flex flex-col">
         {/* 헤더 */}
         <div className="p-4 border-b border-border-light flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -159,10 +159,10 @@ export default function DocumentUploadPanel({
         </div>
         
         {/* 업로드 영역 */}
-        <div className="p-4">
+        <div className="p-6">
           <div
             {...getRootProps()}
-            className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-all ${
+            className={`border-2 border-dashed rounded-lg p-12 text-center cursor-pointer transition-all ${
               isDragActive 
                 ? 'border-weave-primary bg-weave-primary/5' 
                 : 'border-border-light hover:border-weave-primary/50'
