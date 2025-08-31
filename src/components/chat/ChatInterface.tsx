@@ -12,7 +12,9 @@ import { ToastContainer, useToast } from '@/components/ui/Toast';
 import { useReactions } from './EmojiReaction';
 import { chatService, ChatMessage, ChatSession } from '@/lib/services/chatService';
 import { chatService as chatSessionsService } from '@/lib/services/supabase/chat.service';
-import { Trash2, Download, RefreshCw, Menu, X, Search, Keyboard, History } from 'lucide-react';
+import { Trash2, Download, RefreshCw, Menu, X, Search, Keyboard, History, FileSearch } from 'lucide-react';
+import DocumentUploadPanel from './DocumentUploadPanel';
+import { ContextBuilder } from '@/lib/chat/contextBuilder';
 
 export default function ChatInterface() {
   const [session, setSession] = useState<ChatSession | null>(null);
@@ -21,7 +23,7 @@ export default function ChatInterface() {
   const [isTyping, setIsTyping] = useState(false);
   const [currentResponse, setCurrentResponse] = useState('');
   const [abortController, setAbortController] = useState<AbortController | null>(null);
-  const [showSidebar, setShowSidebar] = useState(false);
+  const [showSidebar, setShowSidebar] = useState(false); // 기본값을 false로 설정
   const [showHistory, setShowHistory] = useState(false);
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [inputMessage, setInputMessage] = useState('');
@@ -29,7 +31,9 @@ export default function ChatInterface() {
   const [filteredSessions, setFilteredSessions] = useState<ChatSession[]>([]);
   const [showShortcuts, setShowShortcuts] = useState(false);
   const [dbSessionId, setDbSessionId] = useState<string | null>(null);
-  const [chatType, setChatType] = useState<'general' | 'tax' | 'rag'>('general');
+  const [chatType, setChatType] = useState<'general' | 'tax' | 'rag'>('rag'); // RAG를 기본값으로 설정
+  const [showDocumentPanel, setShowDocumentPanel] = useState(false);
+  const [hasUploadedDocs, setHasUploadedDocs] = useState(false);
   const { toasts, addToast, hideToast } = useToast();
   const { addReaction, getReactions } = useReactions();
   
@@ -160,20 +164,57 @@ export default function ChatInterface() {
       // 컨텍스트 메시지 가져오기
       const contextMessages = chatService.getContextMessages(session.id);
       
+      // 개인화된 컨텍스트 구축
+      const userContext = {
+        id: 'system',
+        name: '사용자',
+        company: 'WEAVE',
+        preferences: {
+          language: 'ko',
+          tone: 'professional' as const,
+          expertise: ['비즈니스', '프로젝트 관리']
+        }
+      };
+      
+      const { systemPrompt, enhancedMessage } = ContextBuilder.buildPersonalizedContext(
+        content,
+        {
+          mode: chatType,
+          userContext,
+          sessionHistory: contextMessages.slice(-5).map(m => ({
+            role: m.role as 'user' | 'assistant',
+            content: m.content,
+            timestamp: m.timestamp
+          }))
+        }
+      );
+      
+      // 채팅 타입에 따라 다른 API 엔드포인트 사용
+      const apiEndpoint = chatType === 'rag' 
+        ? '/api/ai-assistant/rag-chat'
+        : chatType === 'tax' 
+        ? '/api/ai-assistant/tax-chat'
+        : '/api/ai-assistant/chat';
+      
       // API 요청
-      const response = await fetch('/api/ai-assistant/chat', {
+      const response = await fetch(apiEndpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'text/event-stream',
         },
         body: JSON.stringify({
-          message: content,
-          messages: contextMessages.map(m => ({
-            role: m.role,
-            content: m.content
-          })),
-          sessionId: session.id
+          message: enhancedMessage,
+          messages: [
+            { role: 'system', content: systemPrompt },
+            ...contextMessages.map(m => ({
+              role: m.role,
+              content: m.content
+            }))
+          ],
+          sessionId: session.id,
+          chatType,
+          userContext
         }),
         signal: controller.signal
       });
@@ -491,7 +532,8 @@ export default function ChatInterface() {
         </div>
       )}
       
-      {/* 사이드바 - 대화 목록 (모바일에서는 오버레이) */}
+      {/* 사이드바 - 삭제 또는 숨김 처리 */}
+      {false && (
       <div className={`
         fixed lg:relative inset-y-0 left-0 z-40 w-72 bg-gradient-to-b from-bg-secondary to-white border-r border-border-light
         transform transition-transform duration-200 ease-in-out shadow-xl lg:shadow-none
@@ -613,9 +655,10 @@ export default function ChatInterface() {
           </div>
         </div>
       </div>
+      )}
       
-      {/* 모바일 사이드바 오버레이 */}
-      {showSidebar && (
+      {/* 모바일 사이드바 오버레이 - 사이드바와 함께 숨김 */}
+      {false && showSidebar && (
         <div
           className="fixed inset-0 bg-black/50 z-30 lg:hidden"
           onClick={() => setShowSidebar(false)}
@@ -627,64 +670,72 @@ export default function ChatInterface() {
         {/* 헤더 */}
         <div className="bg-white border-b border-border-light p-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => setShowSidebar(!showSidebar)}
-                className="lg:hidden p-2 hover:bg-bg-secondary rounded-lg transition-colors"
-              >
-                {showSidebar ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-              </button>
+            <div className="flex items-center gap-3 flex-1">
               
-              <Typography variant="h3" className="text-lg font-semibold">
-                AI 챗봇
-              </Typography>
+              {/* 채팅 모드 선택 */}
+              <div className="flex gap-2 flex-wrap">
+                <button
+                  onClick={() => setChatType('general')}
+                  className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                    chatType === 'general'
+                      ? 'bg-weave-primary text-white shadow-md'
+                      : 'bg-bg-secondary text-txt-secondary hover:bg-bg-tertiary'
+                  }`}
+                  title="일반적인 업무 질문과 대화"
+                >
+                  💬 일반
+                </button>
+                <button
+                  onClick={() => setChatType('rag')}
+                  className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all relative ${
+                    chatType === 'rag'
+                      ? 'bg-weave-primary text-white shadow-md'
+                      : 'bg-bg-secondary text-txt-secondary hover:bg-bg-tertiary'
+                  }`}
+                  title="업로드된 문서를 기반으로 한 지능형 검색"
+                >
+                  📚 RAG
+                  {hasUploadedDocs && (
+                    <span className="absolute -top-1 -right-1 w-2 h-2 bg-green-500 rounded-full"></span>
+                  )}
+                </button>
+                <button
+                  onClick={() => setChatType('tax')}
+                  className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                    chatType === 'tax'
+                      ? 'bg-weave-primary text-white shadow-md'
+                      : 'bg-bg-secondary text-txt-secondary hover:bg-bg-tertiary'
+                  }`}
+                  title="한국 세무 전문 상담"
+                >
+                  📊 세무
+                </button>
+              </div>
               
               {session && (
-                <Typography variant="body2" className="text-txt-tertiary">
-                  {session.metadata.totalTokens} 토큰 사용
+                <Typography variant="body2" className="text-txt-tertiary hidden lg:block">
+                  {session.metadata.totalTokens} 토큰
                 </Typography>
               )}
             </div>
             
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                onClick={() => setShowShortcuts(!showShortcuts)}
-                className="p-2"
-                title="키보드 단축키"
-              >
-                <Keyboard className="w-4 h-4" />
-              </Button>
+            <div className="flex items-center gap-1">
+              {/* RAG 모드일 때만 문서 관리 버튼 표시 */}
+              {chatType === 'rag' && (
+                <Button
+                  variant="outline"
+                  onClick={() => setShowDocumentPanel(true)}
+                  className="p-2 relative"
+                  title="문서 관리"
+                >
+                  <FileSearch className="w-4 h-4" />
+                  {hasUploadedDocs && (
+                    <span className="absolute top-1 right-1 w-2 h-2 bg-green-500 rounded-full"></span>
+                  )}
+                </Button>
+              )}
               
-              <Button
-                variant="outline"
-                onClick={exportChat}
-                disabled={!messages.length}
-                className="p-2"
-                title="대화 내보내기"
-              >
-                <Download className="w-4 h-4" />
-              </Button>
-              
-              <Button
-                variant="outline"
-                onClick={clearCurrentChat}
-                disabled={!messages.length}
-                className="p-2"
-                title="대화 삭제"
-              >
-                <Trash2 className="w-4 h-4" />
-              </Button>
-              
-              <Button
-                variant="outline"
-                onClick={startNewChat}
-                className="p-2"
-                title="새 대화"
-              >
-                <RefreshCw className="w-4 h-4" />
-              </Button>
-              
+              {/* 히스토리 버튼 */}
               <Button
                 variant="outline"
                 onClick={() => setShowHistory(!showHistory)}
@@ -692,6 +743,16 @@ export default function ChatInterface() {
                 title="대화 히스토리"
               >
                 <History className="w-4 h-4" />
+              </Button>
+              
+              {/* 새 대화 버튼 */}
+              <Button
+                variant="outline"
+                onClick={startNewChat}
+                className="p-2"
+                title="새 대화"
+              >
+                <RefreshCw className="w-4 h-4" />
               </Button>
             </div>
           </div>
@@ -729,8 +790,8 @@ export default function ChatInterface() {
         />
       </div>
       
-      {/* 키보드 단축키 팝업 */}
-      {showShortcuts && (
+      {/* 키보드 단축키 팝업 - 숨김 */}
+      {false && showShortcuts && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
              onClick={() => setShowShortcuts(false)}>
           <div className="bg-white rounded-lg p-6 max-w-sm" onClick={(e) => e.stopPropagation()}>
@@ -799,6 +860,16 @@ export default function ChatInterface() {
           </div>
         </div>
       )}
+      
+      {/* 문서 업로드 패널 */}
+      <DocumentUploadPanel
+        isOpen={showDocumentPanel}
+        onClose={() => setShowDocumentPanel(false)}
+        onUploadSuccess={() => {
+          setHasUploadedDocs(true);
+          addToast('문서가 성공적으로 업로드되었습니다', 'success');
+        }}
+      />
       
       {/* Toast 알림 */}
       <ToastContainer toasts={toasts} onClose={hideToast} />
