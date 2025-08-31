@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, forwardRef, useImperativeHandle, useRef } from 'react';
 import { Card } from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Typography from '@/components/ui/Typography';
@@ -37,9 +37,10 @@ interface DocumentGeneratorV2Props {
   onError?: (error: Error) => void;
   hideHeader?: boolean;
   autoGenerate?: boolean;
+  stopAutoGenerate?: boolean;
 }
 
-export default function DocumentGeneratorV2({
+const DocumentGeneratorV2 = forwardRef(({
   workflow,
   preselectedTemplate,
   projectContext,
@@ -49,8 +50,9 @@ export default function DocumentGeneratorV2({
   onExport,
   onError,
   hideHeader = false,
-  autoGenerate = false
-}: DocumentGeneratorV2Props) {
+  autoGenerate = false,
+  stopAutoGenerate = false
+}: DocumentGeneratorV2Props, ref) => {
   const [generatedDocument, setGeneratedDocument] = useState<string>('');
   const [editedDocument, setEditedDocument] = useState<string>('');
   const [isGenerating, setIsGenerating] = useState(false);
@@ -60,6 +62,14 @@ export default function DocumentGeneratorV2({
   const [copied, setCopied] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<DocumentTemplate | null>(null);
   const [remainingTime, setRemainingTime] = useState<number>(0);
+
+  // ref로 생성 함수 노출
+  useImperativeHandle(ref, () => ({
+    generateDocument: () => {
+      console.log('generateDocument called via ref');
+      generateDocumentWithAI();
+    }
+  }));
 
   // 템플릿 가져오기
   useEffect(() => {
@@ -226,32 +236,62 @@ export default function DocumentGeneratorV2({
     setEditedDocument(document);
   };
 
-  // 컴포넌트 마운트시 자동 생성
+  // 컴포넌트 마운트시 자동 생성 - workflow가 있고 autoGenerate가 false일 때만
   useEffect(() => {
     const client = workflow?.client || clientContext;
     const project = workflow?.project || projectContext;
     
-    console.log('useEffect triggered:', {
+    console.log('Mount useEffect triggered:', {
       selectedTemplate: !!selectedTemplate,
       client: !!client,
       project: !!project,
       generatedDocument: !!generatedDocument,
-      autoGenerate
+      autoGenerate,
+      hideHeader,
+      hasWorkflow: !!workflow
     });
     
-    if (selectedTemplate && client && project && !generatedDocument) {
-      console.log('Calling generateDocumentWithAI from useEffect');
+    // workflow가 있고 autoGenerate가 false일 때만 자동 생성 (수동 모드)
+    // AIDocumentModal에서는 workflow가 없고 autoGenerate로 제어
+    if (workflow && !autoGenerate && selectedTemplate && client && project && !generatedDocument) {
+      console.log('Calling generateDocumentWithAI from mount useEffect (workflow mode)');
       generateDocumentWithAI();
     }
   }, [selectedTemplate?.id, workflow?.client?.id, workflow?.project?.id, clientContext?.id, projectContext?.id]); // ID로 의존성 체크
 
+  // 컴포넌트 마운트 후 한 번만 생성
+  const hasGeneratedRef = useRef(false);
+  
   // autoGenerate prop이 true로 변경되면 문서 생성 실행
   useEffect(() => {
+    console.log('autoGenerate useEffect triggered:', {
+      autoGenerate,
+      stopAutoGenerate,
+      selectedTemplate: !!selectedTemplate,
+      isGenerating,
+      generatedDocument: !!generatedDocument,
+      hasGenerated: hasGeneratedRef.current
+    });
+    
+    // stopAutoGenerate가 true면 자동 생성 중단
+    if (stopAutoGenerate) {
+      console.log('Auto-generation stopped by stopAutoGenerate prop');
+      return;
+    }
+    
+    // 이미 생성했으면 중단
+    if (hasGeneratedRef.current) {
+      console.log('Already generated, skipping');
+      return;
+    }
+    
+    // autoGenerate가 true이고, 템플릿이 있고, 현재 생성 중이 아니며, 아직 생성된 문서가 없을 때만
     if (autoGenerate && selectedTemplate && !isGenerating && !generatedDocument) {
       console.log('Auto-generating document due to autoGenerate prop');
+      hasGeneratedRef.current = true;
       generateDocumentWithAI();
     }
-  }, [autoGenerate]);
+  }, [autoGenerate, selectedTemplate, stopAutoGenerate]); // 템플릿이 선택되면 실행
 
   // 문서 복사
   const copyToClipboard = async () => {
@@ -608,4 +648,8 @@ export default function DocumentGeneratorV2({
       </Card>
     </div>
   );
-}
+});
+
+DocumentGeneratorV2.displayName = 'DocumentGeneratorV2';
+
+export default DocumentGeneratorV2;

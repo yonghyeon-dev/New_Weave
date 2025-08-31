@@ -1,12 +1,12 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Card } from '@/components/ui/Card';
 import Typography from '@/components/ui/Typography';
 import Button from '@/components/ui/Button';
 import { X, Wand2, Sparkles } from 'lucide-react';
 import DocumentGeneratorV2 from '@/components/ai-assistant/DocumentGeneratorV2';
-import { DocumentTemplate } from '@/templates/document-templates';
+import { DocumentTemplate, documentTemplates } from '@/templates/document-templates';
 
 interface AIDocumentModalProps {
   isOpen: boolean;
@@ -38,10 +38,30 @@ const documentTypeLabels = {
 };
 
 const documentTypeTemplates: Record<string, string[]> = {
-  quotation: ['basic_quotation', 'detailed_quotation', 'service_quotation'],
-  contract: ['service_contract', 'project_contract', 'maintenance_contract'],
-  invoice: ['tax_invoice', 'simple_invoice', 'detailed_invoice'],
-  report: ['progress_report', 'completion_report', 'monthly_report']
+  quotation: ['quotation-001', 'quotation-002', 'quotation-003'],
+  contract: ['contract-001', 'contract-002', 'contract-003'],
+  invoice: ['invoice-001', 'invoice-002', 'invoice-003'],
+  report: ['report-001', 'report-002', 'report-003']
+};
+
+// 템플릿 이름 매핑
+const templateNames: Record<string, string> = {
+  // 견적서 템플릿
+  'quotation-001': '기본 견적서',
+  'quotation-002': '상세 견적서',
+  'quotation-003': '서비스 견적서',
+  // 계약서 템플릿
+  'contract-001': '서비스 계약서',
+  'contract-002': '프로젝트 계약서',
+  'contract-003': '유지보수 계약서',
+  // 청구서 템플릿
+  'invoice-001': '세금계산서',
+  'invoice-002': '간편 청구서',
+  'invoice-003': '상세 청구서',
+  // 보고서 템플릿
+  'report-001': '진행 보고서',
+  'report-002': '완료 보고서',
+  'report-003': '월간 보고서'
 };
 
 export default function AIDocumentModal({
@@ -56,16 +76,16 @@ export default function AIDocumentModal({
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedDocument, setGeneratedDocument] = useState<any>(null);
   const [generationTime, setGenerationTime] = useState<string>('');
+  const [showGenerator, setShowGenerator] = useState(false);
+  const documentGeneratorRef = useRef<any>(null);
 
-  // 문서 타입에 따라 추천 템플릿 자동 선택
+  // 문서 타입에 따라 추천 템플릿 자동 선택 (선택만 하고 생성은 하지 않음)
   useEffect(() => {
     if (documentType && documentTypeTemplates[documentType]) {
-      // 프로젝트 데이터가 있으면 첫 번째 템플릿 자동 선택
-      if (projectData) {
-        setSelectedTemplate(documentTypeTemplates[documentType][0]);
-      }
+      // 첫 번째 템플릿을 기본 선택
+      setSelectedTemplate(documentTypeTemplates[documentType][0]);
     }
-  }, [documentType, projectData]);
+  }, [documentType]);
 
   if (!isOpen) return null;
 
@@ -86,13 +106,30 @@ export default function AIDocumentModal({
       generatedAt: now.toISOString(),
       generationTime: timeString
     });
+    setIsGenerating(false);
     
-    if (onDocumentGenerated) {
-      onDocumentGenerated({
-        ...doc,
-        generatedAt: now.toISOString(),
-        generationTime: timeString
-      });
+    // onDocumentGenerated 콜백은 "문서 사용하기" 버튼을 클릭할 때만 호출
+    // 생성 완료 후에도 모달은 열려 있어 사용자가 문서를 확인할 수 있음
+  };
+
+  const handleGenerateClick = () => {
+    console.log('AI 생성 시작 버튼 클릭');
+    console.log('selectedTemplate:', selectedTemplate);
+    
+    // 이미 생성된 문서가 있다면 초기화
+    if (generatedDocument) {
+      setGeneratedDocument(null);
+      setGenerationTime('');
+      setShowGenerator(false);
+      // 잠시 대기 후 다시 표시
+      setTimeout(() => {
+        setIsGenerating(true);
+        setShowGenerator(true);
+      }, 100);
+    } else {
+      // 생성 상태 설정
+      setIsGenerating(true);
+      setShowGenerator(true);
     }
   };
 
@@ -187,11 +224,11 @@ export default function AIDocumentModal({
                   }`}
                 >
                   <Typography variant="body2" className="font-medium text-txt-primary">
-                    {template.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                    {templateNames[template] || template}
                   </Typography>
-                  {selectedTemplate === template && projectData && (
+                  {selectedTemplate === template && (
                     <Typography variant="caption" className="text-weave-primary mt-1">
-                      추천 템플릿
+                      ✓ 선택됨
                     </Typography>
                   )}
                 </button>
@@ -199,16 +236,19 @@ export default function AIDocumentModal({
             </div>
           </div>
 
-          {/* DocumentGeneratorV2 컴포넌트 임베드 - 템플릿이 선택된 경우에만 표시 */}
-          {selectedTemplate && (
+          {/* DocumentGeneratorV2 컴포넌트 임베드 - showGenerator가 true일 때만 표시 */}
+          {showGenerator && selectedTemplate && (
             <div className="border border-border-light rounded-lg p-4">
               <DocumentGeneratorV2
+                key={`generator-${selectedTemplate}-${showGenerator ? 'show' : 'hide'}`}
+                ref={documentGeneratorRef}
                 preselectedTemplate={selectedTemplate}
                 projectContext={projectData}
                 clientContext={clientData}
                 onGenerated={handleDocumentGenerated}
                 hideHeader={true}
                 autoGenerate={isGenerating}
+                stopAutoGenerate={!!generatedDocument}
               />
             </div>
           )}
@@ -235,11 +275,27 @@ export default function AIDocumentModal({
                 onClick={onClose}
                 disabled={isGenerating}
               >
-                취소
+                닫기
               </Button>
+              {generatedDocument && (
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    // 문서를 저장하고 모달 닫기
+                    if (onDocumentGenerated) {
+                      onDocumentGenerated(generatedDocument);
+                    }
+                    onClose();
+                  }}
+                  className="flex items-center gap-2"
+                >
+                  <Sparkles className="w-4 h-4" />
+                  문서 사용하기
+                </Button>
+              )}
               <Button
                 variant="primary"
-                onClick={() => setIsGenerating(true)}
+                onClick={handleGenerateClick}
                 disabled={!selectedTemplate || isGenerating}
                 className="flex items-center gap-2"
               >
@@ -247,6 +303,11 @@ export default function AIDocumentModal({
                   <>
                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                     생성 중...
+                  </>
+                ) : generatedDocument ? (
+                  <>
+                    <Sparkles className="w-4 h-4" />
+                    다시 생성
                   </>
                 ) : (
                   <>
