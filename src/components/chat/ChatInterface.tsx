@@ -522,10 +522,10 @@ export default function ChatInterface() {
   };
   
   return (
-    <div className="flex h-full">
+    <div className="flex h-full relative">
       {/* 히스토리 패널 */}
       {showHistory && (
-        <div className="w-80 border-r border-border-light bg-bg-secondary">
+        <div className="w-80 border-r border-border-light bg-bg-secondary flex-shrink-0">
           <ChatHistory
             onSessionSelect={loadSession}
             currentSessionId={dbSessionId || undefined}
@@ -668,7 +668,7 @@ export default function ChatInterface() {
       )}
       
       {/* 메인 채팅 영역 */}
-      <div className="flex-1 flex flex-col h-full overflow-hidden">
+      <div className="flex-1 flex flex-col h-full min-h-0">
         {/* 헤더 */}
         <div className="bg-white border-b border-border-light p-4">
           <div className="flex items-center justify-between">
@@ -776,8 +776,8 @@ export default function ChatInterface() {
         </div>
         
         {/* 메시지 목록 또는 환영 화면 */}
-        <div className="flex-1 overflow-hidden">
-          {messages.length === 0 && !isTyping ? (
+        {messages.length === 0 && !isTyping ? (
+          <div className="flex-1 min-h-0 overflow-y-auto">
             <ChatWelcome 
               chatType={chatType}
               onExampleClick={(text) => {
@@ -791,7 +791,9 @@ export default function ChatInterface() {
                 }, 100);
               }}
             />
-          ) : (
+          </div>
+        ) : (
+          <div className="flex-1 min-h-0 overflow-y-auto">
             <MessageList
               messages={[
                 ...messages,
@@ -808,8 +810,8 @@ export default function ChatInterface() {
               messageReactions={getMessageReactions()}
               onReaction={handleReaction}
             />
-          )}
-        </div>
+          </div>
+        )}
         
         {/* 메시지 입력 */}
         <MessageInput

@@ -61,7 +61,7 @@ export default function ChatWelcome({ chatType, onExampleClick }: ChatWelcomePro
   const modeInfo = getModeInfo();
 
   return (
-    <div className="flex-1 flex items-center justify-center p-4">
+    <div className="h-full flex items-center justify-center p-4 overflow-y-auto">
       <div className="max-w-2xl w-full">
         {/* 모드 안내 */}
         <Card className="p-6 mb-6 text-center">

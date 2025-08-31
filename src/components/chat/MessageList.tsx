@@ -75,7 +75,7 @@ export default function MessageList({ messages, isTyping = false, onExampleClick
   }
   
   return (
-    <div className="flex-1 overflow-y-auto p-4 space-y-4">
+    <div className="h-full p-4 space-y-4">
       {/* 메시지 목록 */}
       {messages.map((message, index) => (
         <MessageBubble 
