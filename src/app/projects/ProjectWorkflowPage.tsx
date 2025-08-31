@@ -816,6 +816,37 @@ function ReportsTab({ reports, projects, onOpenAIModal }: { reports: any[], proj
 
 // 설정 탭
 function SettingsTab() {
+  const [reminderSettings, setReminderSettings] = useState({
+    // 알림 활성화
+    enableReminders: true,
+    emailNotifications: true,
+    pushNotifications: false,
+    
+    // 리마인더 시기
+    reminderTiming: '3days',
+    reminderTime: '09:00',
+    
+    // 알림 항목
+    projectDeadline: true,
+    invoicePayment: true,
+    taxDeadline: true,
+    contractRenewal: true,
+    
+    // 워크플로우
+    autoStatusUpdate: false,
+    aiDocumentGeneration: true
+  });
+
+  const handleSettingChange = (key: string, value: any) => {
+    setReminderSettings(prev => ({ ...prev, [key]: value }));
+  };
+
+  const handleSaveSettings = () => {
+    console.log('Settings saved:', reminderSettings);
+    // TODO: Supabase에 설정 저장
+    alert('설정이 저장되었습니다.');
+  };
+
   return (
     <div className="p-4 sm:p-6">
       <Typography variant="h4" className="text-txt-primary mb-6">
@@ -823,44 +854,231 @@ function SettingsTab() {
       </Typography>
       
       <div className="space-y-6">
-        <div>
-          <Typography variant="body1" className="font-medium text-txt-primary mb-2">
-            기본 설정
+        {/* 기본 알림 설정 */}
+        <div className="bg-bg-secondary rounded-lg p-4">
+          <Typography variant="body1" className="font-medium text-txt-primary mb-4">
+            기본 알림 설정
           </Typography>
           <div className="space-y-3">
             <label className="flex items-center justify-between">
-              <span className="text-sm text-txt-secondary">자동 알림 활성화</span>
-              <input type="checkbox" className="toggle" defaultChecked />
+              <div>
+                <span className="text-sm text-txt-primary">자동 알림 활성화</span>
+                <span className="block text-xs text-txt-tertiary mt-0.5">
+                  프로젝트 관련 모든 알림을 받습니다
+                </span>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={reminderSettings.enableReminders}
+                  onChange={(e) => handleSettingChange('enableReminders', e.target.checked)}
+                  className="sr-only peer"
+                />
+                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-weave-primary"></div>
+              </label>
             </label>
+            
             <label className="flex items-center justify-between">
-              <span className="text-sm text-txt-secondary">이메일 알림</span>
-              <input type="checkbox" className="toggle" defaultChecked />
+              <div>
+                <span className="text-sm text-txt-primary">이메일 알림</span>
+                <span className="block text-xs text-txt-tertiary mt-0.5">
+                  등록된 이메일로 알림을 발송합니다
+                </span>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={reminderSettings.emailNotifications}
+                  onChange={(e) => handleSettingChange('emailNotifications', e.target.checked)}
+                  className="sr-only peer"
+                />
+                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-weave-primary"></div>
+              </label>
+            </label>
+            
+            <label className="flex items-center justify-between">
+              <div>
+                <span className="text-sm text-txt-primary">푸시 알림</span>
+                <span className="block text-xs text-txt-tertiary mt-0.5">
+                  브라우저 푸시 알림을 받습니다
+                </span>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={reminderSettings.pushNotifications}
+                  onChange={(e) => handleSettingChange('pushNotifications', e.target.checked)}
+                  className="sr-only peer"
+                />
+                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-weave-primary"></div>
+              </label>
             </label>
           </div>
         </div>
 
-        <div>
-          <Typography variant="body1" className="font-medium text-txt-primary mb-2">
+        {/* 결제 리마인더 설정 */}
+        <div className="bg-bg-secondary rounded-lg p-4">
+          <Typography variant="body1" className="font-medium text-txt-primary mb-4">
+            결제 리마인더 설정
+          </Typography>
+          
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm text-txt-secondary mb-2">
+                  리마인더 시기
+                </label>
+                <select
+                  value={reminderSettings.reminderTiming}
+                  onChange={(e) => handleSettingChange('reminderTiming', e.target.value)}
+                  className="w-full px-3 py-2 border border-border-light rounded-lg focus:outline-none focus:ring-2 focus:ring-weave-primary text-sm"
+                >
+                  <option value="1day">1일 전</option>
+                  <option value="3days">3일 전</option>
+                  <option value="7days">7일 전</option>
+                  <option value="14days">14일 전</option>
+                  <option value="30days">30일 전</option>
+                </select>
+              </div>
+              
+              <div>
+                <label className="block text-sm text-txt-secondary mb-2">
+                  알림 시간
+                </label>
+                <select
+                  value={reminderSettings.reminderTime}
+                  onChange={(e) => handleSettingChange('reminderTime', e.target.value)}
+                  className="w-full px-3 py-2 border border-border-light rounded-lg focus:outline-none focus:ring-2 focus:ring-weave-primary text-sm"
+                >
+                  <option value="09:00">오전 9시</option>
+                  <option value="12:00">오후 12시</option>
+                  <option value="15:00">오후 3시</option>
+                  <option value="18:00">오후 6시</option>
+                  <option value="21:00">오후 9시</option>
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm text-txt-secondary mb-3">
+                알림 받을 항목
+              </label>
+              <div className="space-y-2">
+                <label className="flex items-center">
+                  <input
+                    type="checkbox"
+                    checked={reminderSettings.projectDeadline}
+                    onChange={(e) => handleSettingChange('projectDeadline', e.target.checked)}
+                    className="w-4 h-4 text-weave-primary rounded focus:ring-weave-primary"
+                  />
+                  <span className="ml-3 text-sm text-txt-primary">프로젝트 마감일</span>
+                </label>
+                
+                <label className="flex items-center">
+                  <input
+                    type="checkbox"
+                    checked={reminderSettings.invoicePayment}
+                    onChange={(e) => handleSettingChange('invoicePayment', e.target.checked)}
+                    className="w-4 h-4 text-weave-primary rounded focus:ring-weave-primary"
+                  />
+                  <span className="ml-3 text-sm text-txt-primary">인보이스 결제 기한</span>
+                </label>
+                
+                <label className="flex items-center">
+                  <input
+                    type="checkbox"
+                    checked={reminderSettings.taxDeadline}
+                    onChange={(e) => handleSettingChange('taxDeadline', e.target.checked)}
+                    className="w-4 h-4 text-weave-primary rounded focus:ring-weave-primary"
+                  />
+                  <span className="ml-3 text-sm text-txt-primary">세금 신고 기한</span>
+                </label>
+                
+                <label className="flex items-center">
+                  <input
+                    type="checkbox"
+                    checked={reminderSettings.contractRenewal}
+                    onChange={(e) => handleSettingChange('contractRenewal', e.target.checked)}
+                    className="w-4 h-4 text-weave-primary rounded focus:ring-weave-primary"
+                  />
+                  <span className="ml-3 text-sm text-txt-primary">계약 갱신 알림</span>
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* 워크플로우 설정 */}
+        <div className="bg-bg-secondary rounded-lg p-4">
+          <Typography variant="body1" className="font-medium text-txt-primary mb-4">
             워크플로우 설정
           </Typography>
           <div className="space-y-3">
             <label className="flex items-center justify-between">
-              <span className="text-sm text-txt-secondary">자동 상태 업데이트</span>
-              <input type="checkbox" className="toggle" />
+              <div>
+                <span className="text-sm text-txt-primary">자동 상태 업데이트</span>
+                <span className="block text-xs text-txt-tertiary mt-0.5">
+                  프로젝트 진행 상태를 자동으로 업데이트합니다
+                </span>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={reminderSettings.autoStatusUpdate}
+                  onChange={(e) => handleSettingChange('autoStatusUpdate', e.target.checked)}
+                  className="sr-only peer"
+                />
+                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-weave-primary"></div>
+              </label>
             </label>
+            
             <label className="flex items-center justify-between">
-              <span className="text-sm text-txt-secondary">AI 문서 생성</span>
-              <input type="checkbox" className="toggle" defaultChecked />
+              <div>
+                <span className="text-sm text-txt-primary">AI 문서 생성</span>
+                <span className="block text-xs text-txt-tertiary mt-0.5">
+                  AI를 활용한 문서 자동 생성 기능을 사용합니다
+                </span>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={reminderSettings.aiDocumentGeneration}
+                  onChange={(e) => handleSettingChange('aiDocumentGeneration', e.target.checked)}
+                  className="sr-only peer"
+                />
+                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-weave-primary"></div>
+              </label>
             </label>
           </div>
         </div>
 
-        <div>
-          <Typography variant="body1" className="font-medium text-txt-primary mb-2">
+        {/* 템플릿 관리 */}
+        <div className="bg-bg-secondary rounded-lg p-4">
+          <Typography variant="body1" className="font-medium text-txt-primary mb-3">
             템플릿 관리
           </Typography>
-          <Button variant="outline" size="sm">
-            템플릿 설정
+          <Typography variant="caption" className="text-txt-tertiary block mb-3">
+            프로젝트에서 사용할 문서 템플릿을 관리합니다
+          </Typography>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm">
+              템플릿 설정
+            </Button>
+            <Button variant="outline" size="sm">
+              템플릿 가져오기
+            </Button>
+          </div>
+        </div>
+
+        {/* 저장 버튼 */}
+        <div className="flex justify-end pt-4">
+          <Button 
+            variant="primary"
+            onClick={handleSaveSettings}
+            className="flex items-center gap-2"
+          >
+            <CheckCircle className="w-4 h-4" />
+            설정 저장
           </Button>
         </div>
       </div>
