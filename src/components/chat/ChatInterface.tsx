@@ -14,6 +14,7 @@ import { chatService, ChatMessage, ChatSession } from '@/lib/services/chatServic
 import { chatService as chatSessionsService } from '@/lib/services/supabase/chat.service';
 import { Trash2, Download, RefreshCw, Menu, X, Search, Keyboard, History, FileSearch } from 'lucide-react';
 import DocumentUploadPanel from './DocumentUploadPanel';
+import ChatWelcome from './ChatWelcome';
 import { ContextBuilder } from '@/lib/chat/contextBuilder';
 
 export default function ChatInterface() {
@@ -34,6 +35,7 @@ export default function ChatInterface() {
   const [chatType, setChatType] = useState<'general' | 'tax' | 'rag'>('rag'); // RAG를 기본값으로 설정
   const [showDocumentPanel, setShowDocumentPanel] = useState(false);
   const [hasUploadedDocs, setHasUploadedDocs] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
   const { toasts, addToast, hideToast } = useToast();
   const { addReaction, getReactions } = useReactions();
   
@@ -666,7 +668,7 @@ export default function ChatInterface() {
       )}
       
       {/* 메인 채팅 영역 */}
-      <div className="flex-1 flex flex-col h-full">
+      <div className="flex-1 flex flex-col h-full overflow-hidden">
         {/* 헤더 */}
         <div className="bg-white border-b border-border-light p-4">
           <div className="flex items-center justify-between">
@@ -675,7 +677,12 @@ export default function ChatInterface() {
               {/* 채팅 모드 선택 */}
               <div className="flex gap-2 flex-wrap">
                 <button
-                  onClick={() => setChatType('general')}
+                  onClick={() => {
+                    setChatType('general');
+                    if (messages.length === 0 || confirm('모드를 변경하면 현재 대화가 초기화됩니다. 계속하시겠습니까?')) {
+                      startNewChat();
+                    }
+                  }}
                   className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
                     chatType === 'general'
                       ? 'bg-weave-primary text-white shadow-md'
@@ -686,7 +693,12 @@ export default function ChatInterface() {
                   💬 일반
                 </button>
                 <button
-                  onClick={() => setChatType('rag')}
+                  onClick={() => {
+                    setChatType('rag');
+                    if (chatType !== 'rag' && (messages.length === 0 || confirm('모드를 변경하면 현재 대화가 초기화됩니다. 계속하시겠습니까?'))) {
+                      startNewChat();
+                    }
+                  }}
                   className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all relative ${
                     chatType === 'rag'
                       ? 'bg-weave-primary text-white shadow-md'
@@ -700,7 +712,12 @@ export default function ChatInterface() {
                   )}
                 </button>
                 <button
-                  onClick={() => setChatType('tax')}
+                  onClick={() => {
+                    setChatType('tax');
+                    if (messages.length === 0 || confirm('모드를 변경하면 현재 대화가 초기화됩니다. 계속하시겠습니까?')) {
+                      startNewChat();
+                    }
+                  }}
                   className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
                     chatType === 'tax'
                       ? 'bg-weave-primary text-white shadow-md'
@@ -758,23 +775,41 @@ export default function ChatInterface() {
           </div>
         </div>
         
-        {/* 메시지 목록 */}
-        <MessageList
-          messages={[
-            ...messages,
-            ...(currentResponse ? [{
-              id: 'temp',
-              role: 'assistant' as const,
-              content: currentResponse,
-              timestamp: new Date()
-            }] : [])
-          ]}
-          isTyping={isTyping && !currentResponse}
-          onExampleClick={(text) => setInputMessage(text)}
-          onRegenerate={regenerateMessage}
-          messageReactions={getMessageReactions()}
-          onReaction={handleReaction}
-        />
+        {/* 메시지 목록 또는 환영 화면 */}
+        <div className="flex-1 overflow-hidden">
+          {messages.length === 0 && !isTyping ? (
+            <ChatWelcome 
+              chatType={chatType}
+              onExampleClick={(text) => {
+                setInputMessage(text);
+                // 입력 필드에 포커스
+                setTimeout(() => {
+                  const textarea = document.querySelector('textarea');
+                  if (textarea) {
+                    (textarea as HTMLTextAreaElement).focus();
+                  }
+                }, 100);
+              }}
+            />
+          ) : (
+            <MessageList
+              messages={[
+                ...messages,
+                ...(currentResponse ? [{
+                  id: 'temp',
+                  role: 'assistant' as const,
+                  content: currentResponse,
+                  timestamp: new Date()
+                }] : [])
+              ]}
+              isTyping={isTyping && !currentResponse}
+              onExampleClick={(text) => setInputMessage(text)}
+              onRegenerate={regenerateMessage}
+              messageReactions={getMessageReactions()}
+              onReaction={handleReaction}
+            />
+          )}
+        </div>
         
         {/* 메시지 입력 */}
         <MessageInput
@@ -787,6 +822,13 @@ export default function ChatInterface() {
           disabled={!session}
           value={inputMessage}
           onChange={setInputMessage}
+          placeholder={
+            chatType === 'rag' 
+              ? "문서 기반 질문을 입력하세요..." 
+              : chatType === 'tax'
+              ? "세무 관련 질문을 입력하세요..."
+              : "메시지를 입력하세요..."
+          }
         />
       </div>
       

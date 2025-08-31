@@ -17,6 +17,7 @@ interface MessageListProps {
 
 export default function MessageList({ messages, isTyping = false, onExampleClick, onRegenerate, messageReactions, onReaction }: MessageListProps) {
   const bottomRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   
   // 새 메시지가 추가되면 스크롤
   useEffect(() => {
