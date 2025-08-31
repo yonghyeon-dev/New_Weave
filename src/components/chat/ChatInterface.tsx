@@ -869,8 +869,6 @@ export default function ChatInterface() {
         <div className="bg-white border-b border-border-light px-4 py-2">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              {/* AI 업무비서 텍스트 - 작게 */}
-              <Typography variant="body2" className="text-sm font-medium text-txt-secondary">AI 업무비서</Typography>
               
               {/* 채팅 모드 선택 */}
               <div className="flex gap-1.5">

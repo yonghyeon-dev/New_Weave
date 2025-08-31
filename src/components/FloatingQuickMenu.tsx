@@ -139,12 +139,12 @@ export default function FloatingQuickMenu() {
 
       {/* AI 챗봇 패널 */}
       {isChatOpen && (
-        <div className="fixed right-6 bottom-6 z-50 w-96 h-[600px] bg-bg-secondary rounded-2xl shadow-2xl border border-border-light overflow-hidden flex flex-col">
+        <div className="fixed right-6 bottom-6 z-50 w-96 h-[650px] bg-bg-secondary rounded-2xl shadow-2xl border border-border-light overflow-hidden flex flex-col">
           {/* 챗봇 헤더 */}
-          <div className="flex items-center justify-between p-4 border-b border-border-light bg-gradient-to-r from-blue-500 to-purple-600 text-white">
-            <div className="flex items-center gap-3">
+          <div className="flex items-center justify-between p-2 border-b border-border-light bg-gradient-to-r from-blue-500 to-purple-600 text-white">
+            <div className="flex items-center gap-3 pl-4">
               <MessageCircle className="w-5 h-5" />
-              <Typography variant="h3" className="text-white">
+              <Typography variant="h4" className="text-white">
                 AI 업무비서
               </Typography>
             </div>
