@@ -587,9 +587,9 @@ function ProjectsContent() {
   );
 }
 
-// 새로운 워크플로우 기반 페이지를 기본으로 사용
-import ProjectWorkflowPage from './ProjectWorkflowPage';
+// 새로운 프로젝트 테이블 페이지를 기본으로 사용
+import NewProjectsPage from './new-projects-page';
 
 export default function ProjectsPage() {
-  return <ProjectWorkflowPage />;
+  return <NewProjectsPage />;
 }
