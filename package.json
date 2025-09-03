@@ -3,18 +3,31 @@
   "version": "1.3.0",
   "description": "Weave - 업무 관리 통합 플랫폼",
   "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=18.17.0",
+    "npm": ">=9.0.0"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "lint:fix": "next lint --fix",
+    "type-check": "tsc --noEmit",
+    "test": "echo \"No tests specified\" && exit 0",
+    "audit:fix": "npm audit fix",
+    "clean": "rm -rf .next out dist",
+    "analyze": "cross-env ANALYZE=true next build"
   },
   "devDependencies": {
+    "@next/bundle-analyzer": "^14.2.32",
     "@tailwindcss/postcss": "^4.1.12",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "autoprefixer": "^10.0.1",
+    "cross-env": "^7.0.3",
     "eslint": "^8",
     "eslint-config-next": "14.0.4",
     "next": "^14.2.32",
@@ -49,7 +62,38 @@
     "marked": "^16.2.0",
     "react-dropzone": "^14.3.8",
     "react-markdown": "^10.1.0",
-    "react-syntax-highlighter": "^15.6.6",
+    "react-syntax-highlighter": "^13.5.3",
     "tailwind-merge": "^2.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yonghyeon-dev/New_Weave.git"
+  },
+  "keywords": [
+    "weave",
+    "ai",
+    "erp",
+    "business-management",
+    "next.js",
+    "typescript",
+    "supabase",
+    "independent-business"
+  ],
+  "author": {
+    "name": "Team Jane",
+    "url": "https://github.com/yonghyeon-dev"
+  },
+  "license": "MIT",
+  "browserslist": {
+    "production": [
+      ">0.3%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
   }
 }

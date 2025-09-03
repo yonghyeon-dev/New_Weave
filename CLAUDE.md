@@ -46,12 +46,14 @@
 ### 🏷️ 버전명 결정 로직
 
 **배포 버전 조건** (사용자가 명시적으로 요청한 경우):
+
 - 사용자가 "배포 버전으로 커밋" 명시적 요청
 - production 환경 배포 준비 명시
 - 주요 기능 완성 및 릴리즈 준비 완료 요청
 - 사용자 대면 기능 릴리즈 명시
 
 **개발 버전 조건** (기본값):
+
 - 일반적인 개발 진행
 - 기능 구현 및 개선 작업
 - 버그 수정 및 리팩토링
@@ -60,18 +62,21 @@
 ### 🔄 자동 버전명 생성
 
 **배포 버전 형식**:
+
 ```
 V{Major}.{Minor}.{Patch}_{YYMMDD}
 예: V1.3.0_250827
 ```
 
 **개발 버전 형식**:
+
 ```
 V{Major}.{Minor}.{Patch}_{YYMMDD}_REV{순차번호}
 예: V1.3.0_250827_REV003
 ```
 
 **REV 번호 관리**:
+
 - 동일 날짜 내 순차적으로 증가 (001, 002, 003...)
 - 배포 버전 릴리즈 후 REV001로 초기화
 - 개발 진행 상황을 명확하게 추적
@@ -90,6 +95,7 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 **커밋 메시지 예시**:
 
 **배포 버전**:
+
 ```
 feat(ui): [V1.3.0_250827] implement user dashboard enhancement
 
@@ -103,6 +109,7 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 ```
 
 **개발 버전**:
+
 ```
 fix(api): [V1.3.0_250827_REV002] resolve authentication timeout issue
 
@@ -118,6 +125,7 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 ## 🚀 빌드테스트 트리거 명령어
 
 **빌드테스트 실행 키워드**:
+
 - "빌드 테스트 실행해줘"
 - "npm run build 해줘"
 - "빌드 확인 필요"
@@ -244,6 +252,7 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 ```
 
 **버전명 포함 규칙**:
+
 - **배포 버전**: `[V1.3.0_250827]` 형식
 - **개발 버전**: `[V1.3.0_250827_REV002]` 형식
 - 모든 커밋 메시지에 버전명 필수 포함
@@ -325,16 +334,19 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 ### 🎯 핵심 원칙
 
 #### 1. 중앙화 (Centralization)
+
 - **단일 진실의 원천(Single Source of Truth)**
 - **재사용 가능한 컴포넌트 우선**
 - **중복 코드 제거**
 
-#### 2. 시스템화 (Systematization)  
+#### 2. 시스템화 (Systematization)
+
 - **일관된 패턴 적용**
 - **예측 가능한 구조**
 - **명확한 책임 분리**
 
 #### 3. 표준 준수 (Standards Compliance)
+
 - **기존 UI 컴포넌트 사용 필수**
 - **글로벌 CSS 변수 활용**
 - **Tailwind 디자인 시스템 준수**
@@ -369,6 +381,7 @@ src/
 #### 필수 사용 요소
 
 **Typography 컴포넌트**
+
 ```tsx
 // ✅ 올바른 사용
 <Typography variant="h1">제목</Typography>
@@ -380,6 +393,7 @@ src/
 ```
 
 **Card 컴포넌트**
+
 ```tsx
 // ✅ 올바른 사용
 <Card className="p-6">컨텐츠</Card>
@@ -389,6 +403,7 @@ src/
 ```
 
 **Button 컴포넌트**
+
 ```tsx
 // ✅ 올바른 사용
 <Button variant="primary">확인</Button>
@@ -401,6 +416,7 @@ src/
 #### 색상 시스템
 
 **글로벌 CSS 변수 (필수 사용)**
+
 ```css
 /* 배경 색상 */
 --bg-primary: 기본 배경
@@ -423,6 +439,7 @@ src/
 ```
 
 **Tailwind 클래스 사용법**
+
 ```tsx
 // ✅ 올바른 사용 - CSS 변수 활용
 <div className="bg-bg-primary text-txt-primary border-border-light">
@@ -436,25 +453,29 @@ src/
 #### 필수 레이아웃 컴포넌트 사용
 
 **PageContainer 컴포넌트** (모든 페이지에 필수 적용)
+
 ```tsx
 import { WorkspacePageContainer, DataPageContainer, FormPageContainer } from '@/components/layout/PageContainer';
 
 // 페이지 타입별 적용
 <WorkspacePageContainer>  // 대시보드, AI 업무비서, 리마인더
-<DataPageContainer>       // 프로젝트 (테이블/목록 위주)  
+<DataPageContainer>       // 프로젝트 (테이블/목록 위주)
 <FormPageContainer>       // 설정, 사업자 조회 (폼 위주)
 ```
 
 #### 표준 H1 헤더 구조
 
 **아이콘 + 제목 패턴** (모든 페이지 공통)
+
 ```tsx
 <div className="flex items-center gap-3 mb-4">
   <div className="p-3 bg-weave-primary-light rounded-lg">
     <NavigationIcon className="w-6 h-6 text-weave-primary" />
   </div>
   <div>
-    <Typography variant="h2" className="text-2xl mb-1 text-txt-primary">페이지 제목</Typography>
+    <Typography variant="h2" className="text-2xl mb-1 text-txt-primary">
+      페이지 제목
+    </Typography>
     <Typography variant="body1" className="text-txt-secondary">
       페이지 설명
     </Typography>
@@ -463,9 +484,10 @@ import { WorkspacePageContainer, DataPageContainer, FormPageContainer } from '@/
 ```
 
 **네비게이션 아이콘 매핑** (Navigation에서 사용하는 동일한 아이콘)
+
 - 대시보드: `LayoutDashboard`
 - 프로젝트: `Briefcase`
-- AI 업무비서 & 하위페이지: `BrainCircuit`  
+- AI 업무비서 & 하위페이지: `BrainCircuit`
 - 리마인더: `Bell`
 - 사업자 조회: `Search`
 - 설정: `Settings`
@@ -473,11 +495,12 @@ import { WorkspacePageContainer, DataPageContainer, FormPageContainer } from '@/
 #### 고정 레이아웃 규칙
 
 **여백 시스템** (자동 적용됨)
+
 ```css
 /* 좌우 고정 여백 - 콘텐츠 확장형 */
 padding-x: px-12 (기본) → px-8 (모바일) ~ px-24 (대형화면)
 
-/* 상하 고정 여백 */  
+/* 상하 고정 여백 */
 padding-y: py-12 (기본) → py-8 (모바일) ~ py-24 (대형화면)
 
 /* 최대 너비 제거 - 전체 화면 활용 */
@@ -487,6 +510,7 @@ max-width: 제한 없음 (콘텐츠가 사용 가능한 공간을 최대 활용)
 ### 🚫 금지 사항
 
 #### 절대 금지
+
 1. ❌ 인라인 스타일 사용
 2. ❌ 하드코딩된 색상값 사용
 3. ❌ 중복 컴포넌트 생성
@@ -497,6 +521,7 @@ max-width: 제한 없음 (콘텐츠가 사용 가능한 공간을 최대 활용)
 8. ❌ max-width 직접 설정
 
 #### 예외 처리
+
 - 불가피한 경우 반드시 사용자 승인 필요
 - 승인 시 이유를 코드 주석으로 명시
 
@@ -512,10 +537,12 @@ max-width: 제한 없음 (콘텐츠가 사용 가능한 공간을 최대 활용)
 #### 새 컴포넌트 생성 프로세스
 
 1. **필요성 검증**
+
    - 기존 컴포넌트로 불가능함을 증명
    - 3개 이상의 위치에서 재사용 예정
 
 2. **사용자 승인**
+
    ```
    "새로운 [컴포넌트명] 컴포넌트가 필요합니다.
    이유: [구체적 이유]
