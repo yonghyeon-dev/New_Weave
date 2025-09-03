@@ -347,16 +347,16 @@ export class ContextManager {
    * 프로젝트 목록 가져오기
    */
   private async getProjects(userId: string, limit?: number): Promise<ProjectSummary[]> {
-    // TODO: 실제 데이터베이스에서 프로젝트 가져오기
-    return [];
+    const { ProjectService } = await import('../services/projectService');
+    return await ProjectService.getProjectsByUserId(userId, limit);
   }
 
   /**
    * 클라이언트 목록 가져오기
    */
   private async getClients(userId: string): Promise<ClientSummary[]> {
-    // TODO: 실제 데이터베이스에서 클라이언트 가져오기
-    return [];
+    const { ClientService } = await import('../services/clientService');
+    return await ClientService.getClientsByUserId(userId);
   }
 
   /**
@@ -402,8 +402,19 @@ export class ContextManager {
    * 세무 지식 검색
    */
   private async searchTaxKnowledge(query: string): Promise<TaxKnowledge[]> {
-    // TODO: 세무 지식 베이스에서 검색
-    return [];
+    const { TaxKnowledgeSearch } = await import('./knowledgeBase/taxKnowledge');
+    const taxSearch = new TaxKnowledgeSearch();
+    const keywords = query.split(/\s+/).filter(w => w.length > 2);
+    const results = taxSearch.searchByKeywords(keywords);
+    
+    return results.map(item => ({
+      id: item.id,
+      title: item.title,
+      content: item.content,
+      category: item.category,
+      effectiveDate: item.effectiveDate ? new Date(item.effectiveDate) : undefined,
+      relevanceScore: 0.8
+    }));
   }
 
   /**
