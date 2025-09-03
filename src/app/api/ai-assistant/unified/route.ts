@@ -4,7 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { UnifiedAIOrchestratorV2 } from '@/lib/ai/unifiedAIOrchestratorV2';
+import { UnifiedAIOrchestratorV3 } from '@/lib/ai/unifiedAIOrchestratorV3';
 
 // 스트리밍 응답을 위한 헤더 설정
 const headers = {
@@ -29,8 +29,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 통합 AI 오케스트레이터 V2 초기화 (Phase 3)
-    const orchestrator = new UnifiedAIOrchestratorV2();
+    // 통합 AI 오케스트레이터 V3 초기화 (Phase 4: 최종)
+    const orchestrator = new UnifiedAIOrchestratorV3();
 
     // 스트리밍 응답 처리
     if (stream) {

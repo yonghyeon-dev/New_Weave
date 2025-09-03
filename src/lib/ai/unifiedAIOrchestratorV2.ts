@@ -300,9 +300,9 @@ export class UnifiedAIOrchestratorV2 {
       personalization
     );
 
-    // Gemini 모델 초기화
+    // Gemini 모델 초기화 (gemini-2.5-flash-lite 고정)
     const model = genAI.getGenerativeModel({ 
-      model: 'gemini-2.0-flash-exp',
+      model: 'gemini-2.5-flash-lite',
       generationConfig: {
         temperature,
         topP: 0.8,
@@ -338,7 +338,7 @@ export class UnifiedAIOrchestratorV2 {
         metadata: {
           processingTime: 0,
           tokensUsed: this.estimateTokens(message, content),
-          modelUsed: 'gemini-2.0-flash-exp'
+          modelUsed: 'gemini-2.5-flash-lite'
         }
       };
     } catch (error) {
@@ -370,7 +370,7 @@ export class UnifiedAIOrchestratorV2 {
     );
 
     const model = genAI.getGenerativeModel({ 
-      model: 'gemini-2.0-flash-exp'
+      model: 'gemini-2.5-flash-lite'
     });
 
     try {
