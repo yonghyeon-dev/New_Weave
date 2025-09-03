@@ -4,7 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { UnifiedAIOrchestrator } from '@/lib/ai/unifiedAIOrchestrator';
+import { UnifiedAIOrchestratorV2 } from '@/lib/ai/unifiedAIOrchestratorV2';
 
 // 스트리밍 응답을 위한 헤더 설정
 const headers = {
@@ -29,8 +29,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 통합 AI 오케스트레이터 초기화
-    const orchestrator = new UnifiedAIOrchestrator();
+    // 통합 AI 오케스트레이터 V2 초기화 (Phase 3)
+    const orchestrator = new UnifiedAIOrchestratorV2();
 
     // 스트리밍 응답 처리
     if (stream) {
@@ -47,11 +47,12 @@ export async function POST(request: NextRequest) {
               })}\n\n`)
             );
 
-            // 메시지 처리
+            // 메시지 처리 (Phase 3: 동적 컨텍스트, 학습, 개인화)
             const response = await orchestrator.processMessage(
               message,
               userId,
-              sessionId
+              sessionId,
+              { stream: true, chatHistory: [] }
             );
 
             // 소스 정보 전송
@@ -123,11 +124,12 @@ export async function POST(request: NextRequest) {
       return new Response(customReadable, { headers });
     }
 
-    // 일반 응답 처리
+    // 일반 응답 처리 (Phase 3: 동적 컨텍스트, 학습, 개인화)
     const response = await orchestrator.processMessage(
       message,
       userId,
-      sessionId
+      sessionId,
+      { stream: false, chatHistory: [] }
     );
 
     return NextResponse.json(response);
