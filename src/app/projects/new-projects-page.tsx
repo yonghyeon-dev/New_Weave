@@ -95,16 +95,6 @@ export default function NewProjectsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  // LCP 개선을 위한 메모화된 통계 계산
-  const stats = useMemo(() => {
-    if (loading) return { inProgress: 0, completed: 0, avgProgress: 0 };
-    return {
-      inProgress: filteredData.filter(p => p.status === 'in_progress').length,
-      completed: filteredData.filter(p => p.status === 'completed').length,
-      avgProgress: Math.round(filteredData.reduce((acc, p) => acc + p.progress, 0) / filteredData.length || 0)
-    };
-  }, [filteredData, loading]);
-
   const {
     data: filteredData,
     paginatedData,
@@ -116,6 +106,16 @@ export default function NewProjectsPage() {
     resetColumnConfig,
     resetFilters
   } = useProjectTable(mockData);
+
+  // LCP 개선을 위한 메모화된 통계 계산
+  const stats = useMemo(() => {
+    if (loading) return { inProgress: 0, completed: 0, avgProgress: 0 };
+    return {
+      inProgress: filteredData.filter(p => p.status === 'in_progress').length,
+      completed: filteredData.filter(p => p.status === 'completed').length,
+      avgProgress: Math.round(filteredData.reduce((acc, p) => acc + p.progress, 0) / filteredData.length || 0)
+    };
+  }, [filteredData, loading]);
 
   // 초기 데이터 로딩
   useEffect(() => {
