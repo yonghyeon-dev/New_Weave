@@ -135,6 +135,16 @@ const STORAGE_KEY = 'weave-project-table-config';
 export function useProjectTable(initialData: ProjectTableRow[] = []) {
   // 저장된 설정 불러오기 (중앙화된 설정 관리)
   const loadSavedConfig = useCallback((): ProjectTableConfig => {
+    // SSR 호환성: 브라우저 환경에서만 localStorage 접근
+    if (typeof window === 'undefined') {
+      return {
+        columns: DEFAULT_COLUMNS,
+        filters: DEFAULT_FILTERS,
+        sort: DEFAULT_SORT,
+        pagination: DEFAULT_PAGINATION
+      };
+    }
+
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
@@ -158,11 +168,16 @@ export function useProjectTable(initialData: ProjectTableRow[] = []) {
     };
   }, []);
 
-  const [config, setConfig] = useState<ProjectTableConfig>(loadSavedConfig);
+  const [config, setConfig] = useState<ProjectTableConfig>(() => loadSavedConfig());
   const [data, setData] = useState<ProjectTableRow[]>(initialData);
 
   // 설정 저장 (중앙화된 설정 영속화)
   const saveConfig = useCallback((newConfig: ProjectTableConfig) => {
+    // SSR 호환성: 브라우저 환경에서만 localStorage 접근
+    if (typeof window === 'undefined') {
+      return;
+    }
+
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(newConfig));
     } catch (error) {

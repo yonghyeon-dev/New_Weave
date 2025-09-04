@@ -7,6 +7,16 @@ export async function updateSession(request: NextRequest) {
     request,
   })
 
+  // 모의 데이터 모드에서는 Supabase 인증 스킵
+  if (process.env.USE_MOCK_DATA === 'true') {
+    return supabaseResponse
+  }
+
+  // Supabase 설정이 없는 경우 스킵
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+    return supabaseResponse
+  }
+
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,

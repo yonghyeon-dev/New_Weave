@@ -45,9 +45,12 @@ export async function middleware(request: NextRequest) {
   // Supabase 인증 세션 업데이트
   const response = await updateSession(request);
   
+  // 모의 데이터 모드에서는 모든 접근을 허용 (인증 우회)
+  const isMockMode = process.env.USE_MOCK_DATA === 'true';
+  
   // 세션 확인을 위해 쿠키에서 Supabase 토큰 확인
-  // auth-token이 있고 실제 값이 있는 경우만 세션이 있다고 판단
-  const hasSession = request.cookies.getAll().some(cookie => 
+  // 모의 데이터 모드에서는 항상 세션이 있다고 간주
+  const hasSession = isMockMode || request.cookies.getAll().some(cookie => 
     cookie.name.includes('sb-') && 
     cookie.name.includes('auth-token') && 
     cookie.value && 

@@ -20,10 +20,10 @@ export function PerformanceMonitor({
   const { metrics, measureNow } = usePerformanceMonitor({
     enableMonitoring: true,
     thresholds: {
-      LCP: 2500,
+      LCP: 2000,  // CLS/LCP 최적화 후 더 엄격한 임계값
       FID: 100,
-      CLS: 0.1,
-      TTFB: 800
+      CLS: 0.05,  // 디자인 시스템 최적화로 더 엄격하게
+      TTFB: 600   // Next.js 14 App Router 성능 개선 고려
     },
     onThresholdExceeded: (metric, value, threshold) => {
       console.warn(`Performance threshold exceeded: ${metric} = ${value}ms (threshold: ${threshold}ms)`);
@@ -69,7 +69,7 @@ export function PerformanceMonitor({
           <div className="flex items-center gap-3 text-xs">
             <div className="flex items-center gap-1">
               <span className="font-medium">LCP:</span>
-              <span className={getStatusColor(getMetricStatus(metrics.webVitals.LCP, 2500))}>
+              <span className={getStatusColor(getMetricStatus(metrics.webVitals.LCP, 2000))}>
                 {metrics.webVitals.LCP ? `${Math.round(metrics.webVitals.LCP)}ms` : '...'}
               </span>
             </div>
@@ -81,7 +81,7 @@ export function PerformanceMonitor({
             </div>
             <div className="flex items-center gap-1">
               <span className="font-medium">CLS:</span>
-              <span className={getStatusColor(getMetricStatus(metrics.webVitals.CLS, 0.1))}>
+              <span className={getStatusColor(getMetricStatus(metrics.webVitals.CLS, 0.05))}>
                 {metrics.webVitals.CLS ? metrics.webVitals.CLS.toFixed(3) : '...'}
               </span>
             </div>
@@ -117,7 +117,7 @@ export function PerformanceMonitor({
                 label="LCP"
                 value={metrics.webVitals.LCP}
                 unit="ms"
-                threshold={2500}
+                threshold={2000}
                 description="Largest Contentful Paint"
               />
               <MetricRow
@@ -131,7 +131,7 @@ export function PerformanceMonitor({
                 label="CLS"
                 value={metrics.webVitals.CLS}
                 unit=""
-                threshold={0.1}
+                threshold={0.05}
                 format={(v) => v.toFixed(3)}
                 description="Cumulative Layout Shift"
               />
@@ -139,7 +139,7 @@ export function PerformanceMonitor({
                 label="TTFB"
                 value={metrics.webVitals.TTFB}
                 unit="ms"
-                threshold={800}
+                threshold={600}
                 description="Time to First Byte"
               />
             </div>

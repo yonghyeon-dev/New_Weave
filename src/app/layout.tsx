@@ -5,6 +5,17 @@ import { ThemeProvider } from "@/lib/theme/ThemeContext";
 import { ClientThemeProvider } from "@/lib/theme/ClientThemeProvider";
 import { AccessibilityProvider } from "@/components/ui";
 import { PerformanceMonitor } from "@/components/PerformanceMonitor";
+import { AuthProvider } from "@/lib/auth";
+import { GlobalErrorBoundary } from "@/components/ErrorBoundary/GlobalErrorBoundary";
+
+// Next.js 14+ 권장: viewport 별도 export
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  viewportFit: "cover" as const
+};
 
 export const metadata: Metadata = {
   title: "Weave - AI 기반 비즈니스 ERP",
@@ -15,13 +26,7 @@ export const metadata: Metadata = {
     shortcut: "/logo.png",
     apple: "/logo.png",
   },
-  viewport: {
-    width: "device-width",
-    initialScale: 1,
-    maximumScale: 1,
-    userScalable: false,
-    viewportFit: "cover"
-  },
+  // viewport는 별도 export로 분리됨
   themeColor: "#3B82F6",
   appleWebApp: {
     capable: true,
@@ -38,14 +43,23 @@ export default function RootLayout({
   return (
     <html lang="ko" className="dark">
       <body className="antialiased font-primary">
-        <AccessibilityProvider>
-          <ClientThemeProvider>
-            {children}
-            {process.env.NODE_ENV === 'development' && (
-              <PerformanceMonitor compact position="bottom-right" />
-            )}
-          </ClientThemeProvider>
-        </AccessibilityProvider>
+        <GlobalErrorBoundary
+          level="global"
+          enableRetry={true}
+          maxRetries={3}
+          autoRecover={false}
+        >
+          <AccessibilityProvider>
+            <ClientThemeProvider>
+              <AuthProvider>
+                {children}
+                {process.env.NODE_ENV === 'development' && (
+                  <PerformanceMonitor compact position="bottom-right" />
+                )}
+              </AuthProvider>
+            </ClientThemeProvider>
+          </AccessibilityProvider>
+        </GlobalErrorBoundary>
       </body>
     </html>
   );

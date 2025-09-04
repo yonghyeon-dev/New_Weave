@@ -44,6 +44,9 @@ const mainNavItems: NavItem[] = [
   },
 ];
 
+// 개발자 전용 관리자 메뉴 (제거됨)
+// const adminNavItems: NavItem[] = [];
+
 export default function SimpleHeaderNavigation() {
   const pathname = usePathname();
   const router = useRouter();
@@ -59,6 +62,13 @@ export default function SimpleHeaderNavigation() {
   // 사용자 정보 가져오기
   useEffect(() => {
     const supabase = createClient();
+    
+    // Mock 모드에서는 supabase가 null일 수 있음
+    if (!supabase) {
+      console.log('Mock mode - skipping auth check');
+      setIsLoading(false);
+      return;
+    }
     
     const getUser = async () => {
       setIsLoading(true);
@@ -88,7 +98,9 @@ export default function SimpleHeaderNavigation() {
     
     getUser();
     
-    // Auth 상태 변경 리스너
+    // Auth 상태 변경 리스너 (Mock 모드가 아닐 때만)
+    if (!supabase) return;
+    
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       console.log('Auth state changed:', event, session?.user?.email);
       
@@ -251,7 +263,9 @@ export default function SimpleHeaderNavigation() {
               <button
                 onClick={async () => {
                   const supabase = createClient();
-                  await supabase.auth.signOut();
+                  if (supabase) {
+                    await supabase.auth.signOut();
+                  }
                   localStorage.clear();
                   sessionStorage.clear();
                   window.location.href = '/login';

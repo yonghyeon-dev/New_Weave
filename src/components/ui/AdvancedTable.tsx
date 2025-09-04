@@ -362,26 +362,46 @@ export function AdvancedTable({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {sortedData.map((row) => (
-              <TableRow 
-                key={row.id}
-                onClick={() => onRowClick?.(row)}
-                className="cursor-pointer"
-              >
-                {visibleColumns.map((column) => (
-                  <TableCell key={column.id}>
-                    {formatCellValue(row[column.key], column)}
-                  </TableCell>
-                ))}
-              </TableRow>
-            ))}
+            {loading ? (
+              // 로딩 스켈레톤 행들
+              Array.from({ length: 8 }, (_, index) => (
+                <TableRow key={`loading-${index}`}>
+                  {visibleColumns.map((column) => (
+                    <TableCell key={`loading-${column.id}-${index}`}>
+                      <div className="animate-pulse">
+                        <div className="h-4 bg-gray-200 rounded" style={{ 
+                          width: column.type === 'progress' ? '100px' : 
+                                 column.type === 'status' ? '60px' :
+                                 column.type === 'date' ? '80px' :
+                                 column.type === 'currency' ? '90px' : '120px' 
+                        }}></div>
+                      </div>
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
+            ) : (
+              sortedData.map((row) => (
+                <TableRow 
+                  key={row.id}
+                  onClick={() => onRowClick?.(row)}
+                  className="cursor-pointer"
+                >
+                  {visibleColumns.map((column) => (
+                    <TableCell key={column.id}>
+                      {formatCellValue(row[column.key], column)}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
 
-        {sortedData.length === 0 && (
+        {!loading && sortedData.length === 0 && (
           <div className="text-center py-12">
             <Typography variant="body1" className="text-txt-secondary">
-              {loading ? '데이터를 불러오는 중...' : '검색 결과가 없습니다.'}
+              검색 결과가 없습니다.
             </Typography>
           </div>
         )}
