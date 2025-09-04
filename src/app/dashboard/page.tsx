@@ -54,12 +54,25 @@ export default function Dashboard() {
   const [realtimeChannel, setRealtimeChannel] = useState<RealtimeChannel | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
 
-  // Supabase에서 실시간 데이터 로딩
+  // 데이터 로딩 - 모의 데이터 모드 지원
   useEffect(() => {
     const checkAuthAndFetchData = async () => {
       setIsLoading(true);
       
-      // 사용자 인증 확인 - getSession 사용
+      // 모의 데이터 모드 확인
+      const isUsingMockData = 
+        process.env.NEXT_PUBLIC_USE_MOCK_DATA === 'true' || 
+        !process.env.NEXT_PUBLIC_SUPABASE_URL;
+      
+      if (isUsingMockData) {
+        // 모의 데이터 모드: Mock 사용자 ID 사용
+        console.log('Using mock data mode for dashboard');
+        setUserId('mock-user-id');
+        await fetchDashboardData('mock-user-id');
+        return;
+      }
+      
+      // 실제 Supabase 인증 모드
       const { data: { session }, error } = await supabaseClient.auth.getSession();
       
       if (error || !session || !session.user) {
@@ -346,7 +359,12 @@ export default function Dashboard() {
       setRealtimeChannel(channel);
     };
     
-    if (userId) {
+    // 모의 데이터 모드에서는 실시간 구독 사용 안 함
+    const isUsingMockData = 
+      process.env.NEXT_PUBLIC_USE_MOCK_DATA === 'true' || 
+      !process.env.NEXT_PUBLIC_SUPABASE_URL;
+      
+    if (userId && !isUsingMockData) {
       setupRealtimeSubscription(userId);
     }
     

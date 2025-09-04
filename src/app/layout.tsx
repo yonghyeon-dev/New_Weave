@@ -14,7 +14,8 @@ export const viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
-  viewportFit: "cover" as const
+  viewportFit: "cover" as const,
+  themeColor: "#3B82F6"
 };
 
 export const metadata: Metadata = {
@@ -27,7 +28,6 @@ export const metadata: Metadata = {
     apple: "/logo.png",
   },
   // viewport는 별도 export로 분리됨
-  themeColor: "#3B82F6",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",

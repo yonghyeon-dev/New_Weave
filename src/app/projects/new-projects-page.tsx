@@ -1,12 +1,11 @@
 'use client';
 
-import React, { useState, useEffect, lazy, Suspense, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import AppLayout from '@/components/layout/AppLayout';
 import { DataPageContainer } from '@/components/layout/PageContainer';
 import { AdvancedTable } from '@/components/ui/AdvancedTable';
-// LCP 개선을 위해 모달을 지연 로딩으로 처리
-const ProjectDetailModal = lazy(() => import('@/components/ui/ProjectDetailModal').then(module => ({ default: module.ProjectDetailModal })));
+import { ProjectDetailModal } from '@/components/ui/ProjectDetailModal';
 import Button from '@/components/ui/Button';
 import Typography from '@/components/ui/Typography';
 import { useProjectTable } from '@/lib/hooks/useProjectTable';
@@ -318,14 +317,12 @@ size="sm"
           </div>
         )}
 
-        {/* 프로젝트 상세 모달 - LCP 개선을 위해 Suspense 적용 */}
-        <Suspense fallback={<div>모달 로딩 중...</div>}>
-          <ProjectDetailModal
-            project={selectedProject}
-            isOpen={isModalOpen}
-            onClose={handleCloseModal}
-          />
-        </Suspense>
+        {/* 프로젝트 상세 모달 */}
+        <ProjectDetailModal
+          project={selectedProject}
+          isOpen={isModalOpen}
+          onClose={handleCloseModal}
+        />
       </DataPageContainer>
     </AppLayout>
   );
