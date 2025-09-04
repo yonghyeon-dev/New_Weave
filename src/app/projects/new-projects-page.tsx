@@ -130,7 +130,7 @@ export default function NewProjectsPage() {
     };
 
     loadData();
-  }, [updateData]);
+  }, []); // 컴포넌트 마운트 시에만 실행
 
   // 행 클릭 핸들러
   const handleRowClick = (project: ProjectTableRow) => {
