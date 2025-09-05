@@ -1,6 +1,6 @@
-// 프로젝트 목록 테이블 페이지 (기존 유지)
-import NewProjectsPage from './new-projects-page';
+// 통합 프로젝트 페이지 - List View와 Detail View 전환 가능
+import UnifiedProjectsPage from './unified-page';
 
 export default function ProjectsPage() {
-  return <NewProjectsPage />;
+  return <UnifiedProjectsPage />;
 }

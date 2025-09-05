@@ -223,7 +223,7 @@ export function ProjectMasterDetailLayout({
 
         {/* 우측: 디테일 (상세 정보) */}
         <Card className="flex-1 flex flex-col min-h-0">
-          <div className="flex-1 overflow-hidden">
+          <div className="flex-1 min-h-0">
             {detailContent}
           </div>
         </Card>
@@ -234,7 +234,7 @@ export function ProjectMasterDetailLayout({
       
       {/* 키보드 단축키 안내 (개발 모드에서만) */}
       {process.env.NODE_ENV === 'development' && (
-        <div className="fixed bottom-4 right-4 p-3 bg-gray-800 text-white text-xs rounded-lg opacity-75 z-40">
+        <div className="fixed bottom-4 left-4 p-3 bg-gray-800 text-white text-xs rounded-lg opacity-75 z-10 pointer-events-none">
           <div>↑/↓: 프로젝트 탐색</div>
           <div>Enter: 프로젝트 선택</div>
           <div>Ctrl+N: 새 프로젝트</div>

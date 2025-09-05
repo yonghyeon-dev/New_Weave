@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import AppLayout from '@/components/layout/AppLayout';
 import { DataPageContainer } from '@/components/layout/PageContainer';
 import { ProjectMasterDetailLayout, useKeyboardNavigation } from './ProjectMasterDetailLayout';
@@ -90,6 +90,8 @@ const generateMockData = (): ProjectTableRow[] => {
 
 export interface ProjectMasterDetailPageProps {
   initialProjectId?: string; // URL에서 전달받은 프로젝트 ID
+  hideWrapper?: boolean; // AppLayout과 DataPageContainer를 숨길지 여부
+  hideTitle?: boolean; // 프로젝트 관리 타이틀을 숨길지 여부
 }
 
 /**
@@ -105,7 +107,9 @@ export interface ProjectMasterDetailPageProps {
  * - URL 기반 초기 프로젝트 선택
  */
 export function ProjectMasterDetailPage({ 
-  initialProjectId 
+  initialProjectId,
+  hideWrapper = false,
+  hideTitle = false
 }: ProjectMasterDetailPageProps) {
   const [initialLoading, setInitialLoading] = useState(true);
   
@@ -137,6 +141,9 @@ export function ProjectMasterDetailPage({
     loadData();
   }, []); // 빈 의존성 배열로 한 번만 실행
 
+  // 초기 선택 여부를 추적하는 ref
+  const hasInitiallySelected = useRef(false);
+
   // 프로젝트 자동 선택 (최적화된 useEffect)
   useEffect(() => {
     // initialProjectId가 없거나 프로젝트 목록이 비어있으면 실행하지 않음
@@ -144,9 +151,15 @@ export function ProjectMasterDetailPage({
       return;
     }
     
+    // 이미 초기 선택이 완료되었으면 실행하지 않음
+    if (hasInitiallySelected.current) {
+      return;
+    }
+    
     // 이미 올바른 프로젝트가 선택되어 있다면 실행하지 않음
     if (state.selectedProject?.no === initialProjectId) {
       console.log('✅ Target project already selected:', initialProjectId);
+      hasInitiallySelected.current = true;
       return;
     }
     
@@ -166,10 +179,11 @@ export function ProjectMasterDetailPage({
         name: targetProject.name
       });
       actions.selectProject(targetProject);
+      hasInitiallySelected.current = true; // 초기 선택 완료 표시
     } else {
       console.warn('⚠️ Initial project not found:', initialProjectId);
     }
-  }, [initialProjectId, state.projects, state.selectedProject?.no, actions.selectProject]);
+  }, [initialProjectId, state.projects, actions.selectProject]); // state.selectedProject?.no 의존성 제거
 
   // 데이터 새로고침
   const handleRefresh = useCallback(() => {
@@ -224,13 +238,12 @@ export function ProjectMasterDetailPage({
     };
   }, [state.projects]);
 
-  return (
-    <AppLayout>
-      <DataPageContainer>
-        <ProjectMasterDetailLayout
+  const content = (
+    <>
+      <ProjectMasterDetailLayout
           // Header props
-          title="프로젝트 관리"
-          subtitle={`${state.projects.length}개 프로젝트 중 ${state.filteredProjects.length}개 표시`}
+          title={hideTitle ? "" : "프로젝트 관리"}
+          subtitle={hideTitle ? "" : `${state.projects.length}개 프로젝트 중 ${state.filteredProjects.length}개 표시`}
           totalProjects={state.projects.length}
           filteredProjects={state.filteredProjects.length}
           onCreateProject={actions.openCreateModal}
@@ -287,20 +300,31 @@ export function ProjectMasterDetailPage({
           loading={state.isLoading || initialLoading}
         />
 
-        {/* 개발 도구 (개발 환경에서만) */}
-        {process.env.NODE_ENV === 'development' && (
-          <div className="mt-8 p-4 bg-gray-50 rounded-lg">
-            <div className="text-sm text-gray-600 mb-2">개발 도구</div>
-            <div className="flex gap-4 text-xs text-gray-500">
-              <span>총 프로젝트: {state.projects.length}</span>
-              <span>필터된 프로젝트: {state.filteredProjects.length}</span>
-              <span>선택된 인덱스: {state.selectedProjectIndex}</span>
-              <span>진행중: {stats.inProgress}</span>
-              <span>완료: {stats.completed}</span>
-              <span>평균 진행률: {stats.avgProgress}%</span>
-            </div>
+      {/* 개발 도구 (개발 환경에서만) */}
+      {process.env.NODE_ENV === 'development' && (
+        <div className="mt-8 p-4 bg-gray-50 rounded-lg">
+          <div className="text-sm text-gray-600 mb-2">개발 도구</div>
+          <div className="flex gap-4 text-xs text-gray-500">
+            <span>총 프로젝트: {state.projects.length}</span>
+            <span>필터된 프로젝트: {state.filteredProjects.length}</span>
+            <span>선택된 인덱스: {state.selectedProjectIndex}</span>
+            <span>진행중: {stats.inProgress}</span>
+            <span>완료: {stats.completed}</span>
+            <span>평균 진행률: {stats.avgProgress}%</span>
           </div>
-        )}
+        </div>
+      )}
+    </>
+  );
+
+  if (hideWrapper) {
+    return content;
+  }
+
+  return (
+    <AppLayout>
+      <DataPageContainer>
+        {content}
       </DataPageContainer>
     </AppLayout>
   );

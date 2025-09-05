@@ -72,7 +72,7 @@ export function ProjectDetailPanel({
   }
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full min-h-0">
       {/* 헤더 */}
       <div className="flex items-center justify-between p-6 border-b border-border-light flex-shrink-0">
         <div className="flex items-center gap-3 flex-1 min-w-0">
@@ -161,7 +161,7 @@ export function ProjectDetailPanel({
       </div>
 
       {/* 탭 컨텐츠 */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto min-h-0">
         <div className="p-6">
           {activeTab === 'overview' && (
             <ProjectOverviewTab project={project} />

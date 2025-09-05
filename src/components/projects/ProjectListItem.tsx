@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Typography from '@/components/ui/Typography';
+import StatusBadge from '@/components/ui/StatusBadge';
 import type { ProjectTableRow } from '@/lib/types/project-table.types';
 import { Building, Calendar } from 'lucide-react';
 
@@ -25,34 +26,27 @@ export function ProjectListItem({
   isSelected, 
   onClick 
 }: ProjectListItemProps) {
-  // 상태에 따른 스타일 클래스
-  const getStatusColor = (status: string) => {
-    const colors = {
-      planning: 'bg-gray-100 text-gray-700 border-gray-200',
-      in_progress: 'bg-blue-100 text-blue-700 border-blue-200',
-      review: 'bg-yellow-100 text-yellow-700 border-yellow-200',
-      completed: 'bg-green-100 text-green-700 border-green-200',
-      on_hold: 'bg-orange-100 text-orange-700 border-orange-200',
-      cancelled: 'bg-red-100 text-red-700 border-red-200'
-    };
-    return colors[status as keyof typeof colors] || colors.planning;
+  // 프로젝트 상태를 StatusBadge의 ProjectStatus로 직접 매핑
+  const mapProjectStatus = (status: string): 'planning' | 'review' | 'in_progress' | 'on_hold' | 'cancelled' | 'completed' => {
+    // 프로젝트 상태 타입이 이미 일치하므로 직접 반환
+    const validStatuses = ['planning', 'review', 'in_progress', 'on_hold', 'cancelled', 'completed'] as const;
+    return validStatuses.includes(status as any) ? (status as any) : 'planning';
   };
 
-  const getStatusLabel = (status: string) => {
-    const labels = {
-      planning: '기획',
-      in_progress: '진행중',
-      review: '검토',
-      completed: '완료',
-      on_hold: '보류',
-      cancelled: '취소'
-    };
-    return labels[status as keyof typeof labels] || status;
+  // 디버깅을 위한 클릭 핸들러
+  const handleClick = () => {
+    console.log('🖱️ ProjectListItem clicked:', {
+      projectNo: project.no,
+      projectId: project.id,
+      projectName: project.name,
+      isCurrentlySelected: isSelected
+    });
+    onClick();
   };
 
   return (
     <button
-      onClick={onClick}
+      onClick={handleClick}
       className={`
         w-full text-left p-3 rounded-lg border transition-all duration-200
         hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-weave-primary focus:ring-offset-1
@@ -76,10 +70,13 @@ export function ProjectListItem({
             {project.no}
           </Typography>
           
-          {/* 상태 배지 */}
-          <span className={`text-xs px-2 py-1 rounded border ${getStatusColor(project.status)}`}>
-            {getStatusLabel(project.status)}
-          </span>
+          {/* 상태 배지 - 프로젝트 전용 StatusBadge 컴포넌트 사용 */}
+          <StatusBadge 
+            status={mapProjectStatus(project.status)}
+            type="project"
+            size="sm"
+            showIcon={false}
+          />
         </div>
 
         {/* 프로젝트명 */}

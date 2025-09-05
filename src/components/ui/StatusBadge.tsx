@@ -35,12 +35,20 @@ export type GeneralStatus =
   | 'archived'   // 보관됨
   | 'scheduled'; // 예약됨
 
-export type StatusType = InvoiceStatus | PaymentStatus | GeneralStatus;
+export type ProjectStatus = 
+  | 'planning'    // 기획
+  | 'review'      // 검토  
+  | 'in_progress' // 진행중
+  | 'on_hold'     // 보류
+  | 'cancelled'   // 취소
+  | 'completed';  // 완료
+
+export type StatusType = InvoiceStatus | PaymentStatus | GeneralStatus | ProjectStatus;
 
 // Props 인터페이스
 export interface StatusBadgeProps {
   status: StatusType;
-  type: 'invoice' | 'payment' | 'general';
+  type: 'invoice' | 'payment' | 'general' | 'project';
   size?: 'sm' | 'md' | 'lg';
   showIcon?: boolean;
   className?: string;
@@ -174,11 +182,64 @@ const generalConfig: Record<GeneralStatus, {
   }
 };
 
+// 프로젝트 상태 설정 - 상세페이지 스타일 기반
+const projectConfig: Record<ProjectStatus, {
+  label: string;
+  color: string;
+  bgColor: string;
+  icon: React.ComponentType<any>;
+  ariaLabel: string;
+}> = {
+  planning: {
+    label: '기획',
+    color: 'text-gray-800',
+    bgColor: 'bg-gray-100 border-gray-200',
+    icon: FileText,
+    ariaLabel: '프로젝트가 기획 단계입니다'
+  },
+  review: {
+    label: '검토',
+    color: 'text-yellow-800', 
+    bgColor: 'bg-yellow-100 border-yellow-200',
+    icon: AlertTriangle,
+    ariaLabel: '프로젝트가 검토 중입니다'
+  },
+  in_progress: {
+    label: '진행중',
+    color: 'text-blue-800',
+    bgColor: 'bg-blue-100 border-blue-200',
+    icon: Loader2,
+    ariaLabel: '프로젝트가 진행 중입니다'
+  },
+  on_hold: {
+    label: '보류',
+    color: 'text-orange-800',
+    bgColor: 'bg-orange-100 border-orange-200',
+    icon: Clock,
+    ariaLabel: '프로젝트가 보류 상태입니다'
+  },
+  cancelled: {
+    label: '취소',
+    color: 'text-red-800',
+    bgColor: 'bg-red-100 border-red-200',
+    icon: XCircle,
+    ariaLabel: '프로젝트가 취소되었습니다'
+  },
+  completed: {
+    label: '완료',
+    color: 'text-green-800',
+    bgColor: 'bg-green-100 border-green-200',
+    icon: CheckCircle,
+    ariaLabel: '프로젝트가 완료되었습니다'
+  }
+};
+
 // 상태 설정 맵
 const statusConfigMap = {
   invoice: invoiceConfig,
   payment: paymentConfig,
-  general: generalConfig
+  general: generalConfig,
+  project: projectConfig
 };
 
 const StatusBadge = React.forwardRef<HTMLSpanElement, StatusBadgeProps>(
@@ -258,19 +319,19 @@ StatusBadge.displayName = 'StatusBadge';
 export default StatusBadge;
 
 // 유틸리티 함수들
-export const getStatusColor = (status: StatusType, type: 'invoice' | 'payment' | 'general'): string => {
+export const getStatusColor = (status: StatusType, type: 'invoice' | 'payment' | 'general' | 'project'): string => {
   const typeConfig = statusConfigMap[type];
   const config = (typeConfig as any)[status];
   return config?.color || 'text-txt-secondary';
 };
 
-export const getStatusLabel = (status: StatusType, type: 'invoice' | 'payment' | 'general'): string => {
+export const getStatusLabel = (status: StatusType, type: 'invoice' | 'payment' | 'general' | 'project'): string => {
   const typeConfig = statusConfigMap[type];
   const config = (typeConfig as any)[status];
   return config?.label || status.toString();
 };
 
-export const getStatusIcon = (status: StatusType, type: 'invoice' | 'payment' | 'general') => {
+export const getStatusIcon = (status: StatusType, type: 'invoice' | 'payment' | 'general' | 'project') => {
   const typeConfig = statusConfigMap[type];
   const config = (typeConfig as any)[status];
   return config?.icon;

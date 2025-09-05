@@ -100,7 +100,15 @@ const generateMockData = (): ProjectTableRow[] => {
   });
 };
 
-export default function NewProjectsPage() {
+interface NewProjectsPageProps {
+  hideHeader?: boolean;
+  onProjectClick?: (projectNo: string) => void;
+}
+
+export default function NewProjectsPage({ 
+  hideHeader = false,
+  onProjectClick
+}: NewProjectsPageProps = {}) {
   const router = useRouter();
   const [mockData, setMockData] = useState<ProjectTableRow[]>([]);
   const [selectedProject, setSelectedProject] = useState<ProjectTableRow | null>(null);
@@ -144,9 +152,13 @@ export default function NewProjectsPage() {
     loadData();
   }, []); // 컴포넌트 마운트 시에만 실행
 
-  // 행 클릭 핸들러 - 개별 프로젝트 상세 페이지로 이동
+  // 행 클릭 핸들러 - 개별 프로젝트 상세 페이지로 이동 또는 커스텀 핸들러 실행
   const handleRowClick = (project: ProjectTableRow) => {
-    router.push(`/projects/${project.no}`);
+    if (onProjectClick) {
+      onProjectClick(project.no);
+    } else {
+      router.push(`/projects/${project.no}`);
+    }
   };
 
   // 모달 닫기 핸들러
@@ -168,10 +180,10 @@ export default function NewProjectsPage() {
     alert('엑셀 파일이 다운로드됩니다.');
   };
 
-  return (
-    <AppLayout>
-      <DataPageContainer>
-        {/* 헤더 */}
+  const renderContent = () => (
+    <>
+      {/* 헤더 */}
+      {!hideHeader && (
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3 flex-1 min-w-0">
@@ -293,8 +305,9 @@ export default function NewProjectsPage() {
             </div>
           </div>
         </div>
+      )}
 
-        {/* 고급 테이블 */}
+      {/* 고급 테이블 */}
         <AdvancedTable
           data={tableData}
           config={config}
@@ -328,12 +341,25 @@ size="sm"
           </div>
         )}
 
-        {/* 프로젝트 상세 모달 */}
-        <ProjectDetailModal
-          project={selectedProject}
-          isOpen={isModalOpen}
-          onClose={handleCloseModal}
-        />
+      {/* 프로젝트 상세 모달 */}
+      <ProjectDetailModal
+        project={selectedProject}
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+      />
+    </>
+  );
+
+  // hideHeader가 true면 AppLayout과 DataPageContainer 없이 반환
+  if (hideHeader) {
+    return renderContent();
+  }
+
+  // 기본적으로는 AppLayout과 DataPageContainer 포함
+  return (
+    <AppLayout>
+      <DataPageContainer>
+        {renderContent()}
       </DataPageContainer>
     </AppLayout>
   );
