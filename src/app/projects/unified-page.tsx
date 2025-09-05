@@ -388,6 +388,7 @@ export default function UnifiedProjectsPage() {
           initialProjectId={selectedProjectId || undefined}
           hideWrapper={true}
           hideTitle={true}
+          projects={sortedProjectData}
         />
       </DataPageContainer>
     </AppLayout>

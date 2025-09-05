@@ -92,6 +92,7 @@ export interface ProjectMasterDetailPageProps {
   initialProjectId?: string; // URL에서 전달받은 프로젝트 ID
   hideWrapper?: boolean; // AppLayout과 DataPageContainer를 숨길지 여부
   hideTitle?: boolean; // 프로젝트 관리 타이틀을 숨길지 여부
+  projects?: ProjectTableRow[]; // 외부에서 전달받은 프로젝트 데이터 (통합 데이터 사용)
 }
 
 /**
@@ -109,25 +110,37 @@ export interface ProjectMasterDetailPageProps {
 export function ProjectMasterDetailPage({ 
   initialProjectId,
   hideWrapper = false,
-  hideTitle = false
+  hideTitle = false,
+  projects: externalProjects
 }: ProjectMasterDetailPageProps) {
   const [initialLoading, setInitialLoading] = useState(true);
   
   // 중앙화된 상태 관리
   const { state, actions } = useProjectMasterDetail();
 
-  // 초기 데이터 로딩 (한 번만 실행)
+  // 초기 데이터 로딩 (외부 데이터 우선 사용)
   useEffect(() => {
     const loadData = async () => {
       setInitialLoading(true);
       actions.setLoading(true);
       
       try {
-        // 실제 환경에서는 API 호출
-        await new Promise(resolve => setTimeout(resolve, 500));
-        const data = generateMockData();
-        actions.refreshProjects(data);
+        let data: ProjectTableRow[];
         
+        if (externalProjects && externalProjects.length > 0) {
+          // 외부에서 전달받은 데이터가 있으면 우선 사용 (통합 데이터)
+          console.log('🔄 Using external projects data:', externalProjects.length);
+          data = externalProjects;
+          // 외부 데이터는 즉시 사용 가능
+          await new Promise(resolve => setTimeout(resolve, 100));
+        } else {
+          // 외부 데이터가 없으면 내부 데이터 생성
+          console.log('🔄 Loading internal mock data');
+          await new Promise(resolve => setTimeout(resolve, 500));
+          data = generateMockData();
+        }
+        
+        actions.refreshProjects(data);
         return data;
       } catch (error) {
         console.error('Failed to load projects:', error);
@@ -139,7 +152,7 @@ export function ProjectMasterDetailPage({
     };
 
     loadData();
-  }, []); // 빈 의존성 배열로 한 번만 실행
+  }, [externalProjects]); // externalProjects 의존성 추가
 
   // 초기 선택 여부를 추적하는 ref
   const hasInitiallySelected = useRef(false);
