@@ -1,4 +1,4 @@
-// 모의 데이터 모드에서는 새로운 프로젝트 관리 시스템 사용
+// 프로젝트 목록 테이블 페이지 (기존 유지)
 import NewProjectsPage from './new-projects-page';
 
 export default function ProjectsPage() {

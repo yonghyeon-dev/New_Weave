@@ -144,10 +144,9 @@ export default function NewProjectsPage() {
     loadData();
   }, []); // 컴포넌트 마운트 시에만 실행
 
-  // 행 클릭 핸들러
+  // 행 클릭 핸들러 - 개별 프로젝트 상세 페이지로 이동
   const handleRowClick = (project: ProjectTableRow) => {
-    setSelectedProject(project);
-    setIsModalOpen(true);
+    router.push(`/projects/${project.no}`);
   };
 
   // 모달 닫기 핸들러
