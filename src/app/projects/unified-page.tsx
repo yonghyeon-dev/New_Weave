@@ -63,9 +63,11 @@ export default function UnifiedProjectsPage() {
     }
   }, [urlViewMode, isInitialized]);
 
-  // Detail View에서 선택된 프로젝트가 없을 때 첫 번째 프로젝트 자동 선택 (정렬된 데이터 기준)
+  // Detail View에서 선택된 프로젝트가 없을 때 첫 번째 프로젝트 자동 선택 (URL 동기화 완료 후에만)
   useEffect(() => {
-    if (isInitialized && viewMode === 'detail' && !selectedProjectId && sortedProjectData.length > 0 && !loading) {
+    // URL의 view 파라미터와 현재 viewMode가 일치할 때만 실행하여 레이스 컨디션 방지
+    const urlViewMode = searchParams.get('view') as ViewMode | null;
+    if (isInitialized && viewMode === 'detail' && urlViewMode === 'detail' && !selectedProjectId && sortedProjectData.length > 0 && !loading) {
       const params = new URLSearchParams(searchParams.toString());
       params.set('selected', sortedProjectData[0].no);
       router.push(`${pathname}?${params.toString()}`, { scroll: false });
@@ -79,16 +81,20 @@ export default function UnifiedProjectsPage() {
     // localStorage에 저장
     localStorage.setItem('preferredViewMode', newMode);
     
-    // URL 업데이트
+    // URL 업데이트 (통합된 처리로 레이스 컨디션 방지)
     const params = new URLSearchParams(searchParams.toString());
     params.set('view', newMode);
     
     if (newMode === 'list' && params.has('selected')) {
       // List View로 전환 시 선택된 프로젝트 제거
       params.delete('selected');
-    } else if (newMode === 'detail' && !params.has('selected') && sortedProjectData.length > 0) {
-      // Detail View로 전환 시 선택된 프로젝트가 없으면 첫 번째 프로젝트 자동 선택 (정렬된 데이터 기준)
-      params.set('selected', sortedProjectData[0].no);
+    } else if (newMode === 'detail') {
+      // Detail View로 전환 시 선택된 프로젝트 처리
+      if (!params.has('selected') && sortedProjectData.length > 0) {
+        // 선택된 프로젝트가 없으면 첫 번째 프로젝트 자동 선택
+        params.set('selected', sortedProjectData[0].no);
+      }
+      // 이미 selected가 있다면 그대로 유지
     }
     
     router.push(`${pathname}?${params.toString()}`, { scroll: false });
