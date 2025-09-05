@@ -9,7 +9,7 @@ export interface ProjectTableColumn {
   width?: number;
   visible: boolean;
   order: number;
-  type: 'text' | 'date' | 'number' | 'status' | 'progress' | 'currency';
+  type: 'text' | 'date' | 'number' | 'status' | 'progress' | 'currency' | 'payment_progress';
 }
 
 export interface ProjectTableRow {
@@ -20,10 +20,14 @@ export interface ProjectTableRow {
   client: string;
   progress: number;
   status: ProjectStatus;
-  supplyStatus: string;
   dueDate: string;
   modifiedDate: string;
-  // 세부정보용 추가 필드
+  paymentProgress?: number;   // 수급현황 진행률 (총금액 대비 입금액 비율)
+  // 지연 로딩 최적화를 위한 플래그
+  hasContract?: boolean;
+  hasBilling?: boolean;
+  hasDocuments?: boolean;
+  // 세부정보용 추가 필드 (필요시 지연 로딩)
   contract?: ContractInfo;
   billing?: BillingInfo;
   documents?: DocumentInfo[];
@@ -61,9 +65,17 @@ export interface ContractInfo {
 
 export interface BillingInfo {
   // 청구/정산 관련 정보
-  totalAmount: number;
-  paidAmount: number;
-  remainingAmount: number;
+  totalAmount: number;        // 총 프로젝트 금액
+  paidAmount: number;         // 총 입금액 (계약금 + 중도금 + 잔금)
+  remainingAmount: number;    // 미수금
+  // 수금 단계별 세부 정보
+  contractAmount: number;     // 계약금 (선수금)
+  interimAmount: number;      // 중도금
+  finalAmount: number;        // 잔금
+  // 실제 입금 현황
+  contractPaid: number;       // 계약금 입금액
+  interimPaid: number;        // 중도금 입금액
+  finalPaid: number;          // 잔금 입금액
 }
 
 export interface DocumentInfo {

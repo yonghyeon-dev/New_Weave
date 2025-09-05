@@ -23,12 +23,63 @@ const generateMockData = (): ProjectTableRow[] => {
   const clients = ['A개발', 'B디자인', 'C마케팅', 'D컨설팅', 'E업체', 'F자체', 'A학교'];
   const statuses: Array<'planning' | 'in_progress' | 'review' | 'completed' | 'on_hold' | 'cancelled'> = 
     ['planning', 'in_progress', 'review', 'completed', 'on_hold', 'cancelled'];
-  const supplyStatuses = ['진행률(%)', '진행중', '완료', '진행률(%)'];
+
+  // 하이드레이션 에러 방지를 위한 시드 기반 랜덤 함수
+  const seededRandom = (seed: number): number => {
+    const x = Math.sin(seed) * 10000;
+    return x - Math.floor(x);
+  };
+
+  // 데이터 무결성을 위한 기준 날짜 설정 (2024년 1월 1일)
+  const baseDate = new Date(2024, 0, 1);
+  const dayInterval = 7; // 프로젝트마다 약 1주일 간격
 
   return Array.from({ length: 20 }, (_, i) => { // LCP 개선을 위해 초기 데이터 축소
-    const registrationDate = new Date(2024, Math.floor(Math.random() * 12), Math.floor(Math.random() * 28) + 1);
-    const dueDate = new Date(registrationDate.getTime() + Math.floor(Math.random() * 90) * 24 * 60 * 60 * 1000);
-    const modifiedDate = new Date(registrationDate.getTime() + Math.floor(Math.random() * 60) * 24 * 60 * 60 * 1000);
+    // 시드 생성 (인덱스 기반)
+    const seed1 = i * 1234 + 5678;
+    const seed2 = i * 2345 + 6789;
+    const seed3 = i * 3456 + 7890;
+    const seed4 = i * 4567 + 8901;
+    const seed5 = i * 5678 + 9012;
+
+    // No 순서에 맞는 순차적 등록일 생성 (논리적 일관성 확보)
+    const registrationDate = new Date(
+      baseDate.getTime() + 
+      (i * dayInterval * 24 * 60 * 60 * 1000) + // 기본 간격
+      (Math.floor(seededRandom(seed1) * 3) * 24 * 60 * 60 * 1000) // 0-2일 랜덤 오프셋
+    );
+    const dueDate = new Date(registrationDate.getTime() + Math.floor(seededRandom(seed2) * 90) * 24 * 60 * 60 * 1000);
+    
+    // 수정일: 등록일 이후부터 현재까지의 랜덤한 시점 (논리적 일관성 확보)
+    const currentDate = new Date();
+    const maxModifyTime = Math.min(currentDate.getTime(), registrationDate.getTime() + 180 * 24 * 60 * 60 * 1000);
+    const modifyTimeRange = maxModifyTime - registrationDate.getTime();
+    const modifiedDate = new Date(registrationDate.getTime() + Math.floor(seededRandom(seed3) * modifyTimeRange));
+
+    // 프로젝트 진행률에 따른 현실적인 수금현황 계산
+    const progress = Math.floor(seededRandom(seed4) * 101);
+    let paymentProgress = 0;
+    
+    // 프로젝트 진행률에 따른 수금현황 로직
+    if (progress >= 80) {
+      // 거의 완료된 프로젝트: 80-100% 수금
+      paymentProgress = Math.floor(80 + seededRandom(seed5) * 21);
+    } else if (progress >= 50) {
+      // 중간 단계 프로젝트: 30-80% 수금 (계약금 + 중도금 일부)
+      paymentProgress = Math.floor(30 + seededRandom(seed5) * 51);
+    } else if (progress >= 20) {
+      // 초기 단계 프로젝트: 10-40% 수금 (계약금 위주)
+      paymentProgress = Math.floor(10 + seededRandom(seed5) * 31);
+    } else {
+      // 계획/초기 프로젝트: 0-20% 수금
+      paymentProgress = Math.floor(seededRandom(seed5) * 21);
+    }
+    
+    // 완료된 프로젝트는 수금도 높은 확률로 완료
+    const statusIndex = Math.floor(seededRandom(seed1 + seed2) * statuses.length);
+    if (statuses[statusIndex] === 'completed' && seededRandom(seed3 + seed4) > 0.3) {
+      paymentProgress = 100;
+    }
 
     return {
       id: `project-${i + 1}`,
@@ -36,54 +87,15 @@ const generateMockData = (): ProjectTableRow[] => {
       name: `${['A개발', 'B디자인', 'C마케팅', 'D컨설팅', '카페 관리', '피시방 관리', 'A교육 강의'][i % 7]} 프로젝트`,
       registrationDate: registrationDate.toISOString(),
       client: clients[i % clients.length],
-      progress: Math.floor(Math.random() * 101),
-      status: statuses[Math.floor(Math.random() * statuses.length)],
-      supplyStatus: supplyStatuses[i % supplyStatuses.length],
+      progress,
+      paymentProgress,
+      status: statuses[statusIndex],
       dueDate: dueDate.toISOString(),
       modifiedDate: modifiedDate.toISOString(),
-      // 세부 정보
-      contract: Math.random() > 0.5 ? {
-        contractorInfo: {
-          name: '홍길동',
-          position: '팀부'
-        },
-        reportInfo: {
-          type: '첨부'
-        },
-        estimateInfo: {
-          type: '첨부'
-        },
-        documentIssue: {
-          taxInvoice: '세금계산서',
-          receipt: '원천/부가세',
-          cashReceipt: '현금영수증',
-          businessReceipt: '카드영수증'
-        },
-        other: {
-          date: 'YYYY-MM-DD'
-        }
-      } : undefined,
-      billing: Math.random() > 0.3 ? {
-        totalAmount: Math.floor(Math.random() * 10000000) + 1000000,
-        paidAmount: Math.floor(Math.random() * 5000000),
-        remainingAmount: Math.floor(Math.random() * 3000000)
-      } : undefined,
-      documents: Math.random() > 0.4 ? [
-        {
-          id: '1',
-          type: 'contract',
-          name: '프로젝트 계약서.pdf',
-          createdAt: new Date().toISOString(),
-          status: 'completed'
-        },
-        {
-          id: '2',
-          type: 'estimate',
-          name: '견적서.pdf',
-          createdAt: new Date().toISOString(),
-          status: 'sent'
-        }
-      ] : undefined
+      // 세부 정보 - 지연 로딩을 위한 플래그만 저장
+      hasContract: seededRandom(seed1 + 1000) > 0.5,
+      hasBilling: seededRandom(seed2 + 1000) > 0.3,
+      hasDocuments: seededRandom(seed3 + 1000) > 0.4
     };
   });
 };
@@ -96,7 +108,7 @@ export default function NewProjectsPage() {
   const [loading, setLoading] = useState(true);
 
   const {
-    data: filteredData,
+    data: tableData,
     paginatedData,
     filteredCount,
     totalCount,
@@ -111,11 +123,11 @@ export default function NewProjectsPage() {
   const stats = useMemo(() => {
     if (loading) return { inProgress: 0, completed: 0, avgProgress: 0 };
     return {
-      inProgress: filteredData.filter(p => p.status === 'in_progress').length,
-      completed: filteredData.filter(p => p.status === 'completed').length,
-      avgProgress: Math.round(filteredData.reduce((acc, p) => acc + p.progress, 0) / filteredData.length || 0)
+      inProgress: tableData.filter(p => p.status === 'in_progress').length,
+      completed: tableData.filter(p => p.status === 'completed').length,
+      avgProgress: Math.round(tableData.reduce((acc, p) => acc + p.progress, 0) / tableData.length || 0)
     };
-  }, [filteredData, loading]);
+  }, [tableData, loading]);
 
   // 초기 데이터 로딩
   useEffect(() => {
@@ -153,7 +165,7 @@ export default function NewProjectsPage() {
 
   // 엑셀 내보내기 (더미 구현)
   const handleExport = () => {
-    console.log('Export to Excel:', filteredData);
+    console.log('Export to Excel:', tableData);
     alert('엑셀 파일이 다운로드됩니다.');
   };
 
@@ -285,7 +297,7 @@ export default function NewProjectsPage() {
 
         {/* 고급 테이블 */}
         <AdvancedTable
-          data={filteredData}
+          data={tableData}
           config={config}
           onConfigChange={updateConfig}
           onRowClick={handleRowClick}

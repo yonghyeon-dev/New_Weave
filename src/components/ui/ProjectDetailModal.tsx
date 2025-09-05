@@ -134,16 +134,16 @@ export function ProjectDetailModal({ project, isOpen, onClose }: ProjectDetailMo
                   <CardTitle className="text-base">프로젝트 진행률</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-3">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-txt-secondary">전체 진행률</span>
-                      <span className="text-txt-primary">{project.progress}%</span>
-                    </div>
-                    <div className="h-3 bg-bg-secondary rounded-full overflow-hidden">
+                  <div className="space-y-2">
+                    <div className="text-sm text-txt-secondary mb-2">전체 진행률</div>
+                    <div className="h-2 bg-bg-secondary rounded-full overflow-hidden mb-1.5">
                       <div 
                         className="h-full bg-gradient-to-r from-weave-primary to-weave-primary-dark transition-all duration-300"
                         style={{ width: `${project.progress}%` }}
                       />
+                    </div>
+                    <div className="text-center">
+                      <span className="text-sm text-txt-primary font-medium">{project.progress}%</span>
                     </div>
                   </div>
                 </CardContent>

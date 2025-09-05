@@ -39,6 +39,18 @@ const nextConfig = {
     preloadEntriesOnStart: false,
   },
 
+  // Webpack 캐시 최적화 설정 (실제 환경에서는 기본 설정 사용)
+  webpack: (config, { dev }) => {
+    if (dev) {
+      // 개발 환경에서만 메모리 생성 제한으로 성능 향상
+      if (config.cache && config.cache.type === 'filesystem') {
+        config.cache.maxMemoryGenerations = 1;
+      }
+    }
+    
+    return config;
+  },
+
   // 개발 환경 최적화
   logging: {
     fetches: {

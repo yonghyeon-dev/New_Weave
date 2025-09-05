@@ -43,9 +43,10 @@ export function AdvancedTable({
 }: AdvancedTableProps) {
   const [showColumnSettings, setShowColumnSettings] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
+  const [draggedColumnId, setDraggedColumnId] = useState<string | null>(null);
 
-  // 컬럼 순서 변경 핸들러
-  const handleColumnReorder = (result: DropResult) => {
+  // 컬럼 순서 변경 핸들러 (설정 패널용)
+  const handleColumnSettingsReorder = (result: DropResult) => {
     if (!result.destination) return;
 
     const newColumns = [...config.columns];
@@ -62,6 +63,43 @@ export function AdvancedTable({
       ...config,
       columns: updatedColumns
     });
+  };
+
+  // 테이블 헤더 드래그앤드롭 핸들러 (실시간)
+  const handleColumnReorder = (result: DropResult) => {
+    // 드래그 종료 시 상태 초기화
+    setDraggedColumnId(null);
+    
+    if (!result.destination) return;
+    
+    // 드래그앤드롭이 테이블 헤더에서 발생한 경우
+    if (result.source.droppableId === 'table-header') {
+      const visibleColumnsCopy = [...visibleColumns];
+      const [reorderedColumn] = visibleColumnsCopy.splice(result.source.index, 1);
+      visibleColumnsCopy.splice(result.destination.index, 0, reorderedColumn);
+
+      // 전체 컬럼 배열에서 order 값 업데이트
+      const updatedColumns = config.columns.map(col => {
+        const newIndex = visibleColumnsCopy.findIndex(vc => vc.id === col.id);
+        return newIndex !== -1 ? { ...col, order: newIndex } : col;
+      });
+
+      onConfigChange({
+        ...config,
+        columns: updatedColumns
+      });
+    } else {
+      // 설정 패널에서 발생한 경우 기존 로직 사용
+      handleColumnSettingsReorder(result);
+    }
+  };
+
+  // 드래그 시작 핸들러
+  const handleDragStart = (start: any) => {
+    if (start.source.droppableId === 'table-header') {
+      const draggedColumn = visibleColumns[start.source.index];
+      setDraggedColumnId(draggedColumn.id);
+    }
   };
 
   // 컬럼 가시성 토글
@@ -146,14 +184,34 @@ export function AdvancedTable({
         return `${Number(value).toLocaleString()}원`;
       case 'progress':
         return (
-          <div className="flex items-center gap-2">
-            <div className="flex-1 h-2 bg-bg-secondary rounded-full overflow-hidden">
+          <div className="w-full max-w-[100px] min-w-[80px]">
+            <div className="h-2 md:h-2.5 bg-bg-secondary rounded-full overflow-hidden mb-1">
               <div 
                 className="h-full bg-weave-primary transition-all duration-300"
                 style={{ width: `${value || 0}%` }}
               />
             </div>
-            <span className="text-sm text-txt-secondary">{value || 0}%</span>
+            <div className="text-center">
+              <span className="text-[10px] md:text-xs text-txt-secondary font-medium">
+                {value || 0}%
+              </span>
+            </div>
+          </div>
+        );
+      case 'payment_progress':
+        return (
+          <div className="w-full max-w-[100px] min-w-[80px]">
+            <div className="h-2 md:h-2.5 bg-bg-secondary rounded-full overflow-hidden mb-1">
+              <div 
+                className="h-full bg-green-500 transition-all duration-300"
+                style={{ width: `${value || 0}%` }}
+              />
+            </div>
+            <div className="text-center">
+              <span className="text-[10px] md:text-xs text-green-600 font-medium">
+                {value || 0}%
+              </span>
+            </div>
           </div>
         );
       case 'status':
@@ -268,7 +326,7 @@ export function AdvancedTable({
               컬럼을 드래그하여 순서를 변경하고, 체크박스로 표시/숨김을 설정하세요.
             </Typography>
             
-            <DragDropContext onDragEnd={handleColumnReorder}>
+            <DragDropContext onDragEnd={handleColumnSettingsReorder}>
               <Droppable droppableId="columns">
                 {(provided) => (
                   <div
@@ -331,50 +389,146 @@ export function AdvancedTable({
       {/* 테이블 */}
       <Card>
         <Table>
-          <TableHeader>
-            <TableRow>
-              {visibleColumns.map((column) => (
-                <TableHead 
-                  key={column.id}
-                  className="cursor-pointer select-none"
-                  style={{ width: column.width }}
-                  onClick={() => column.sortable && handleSort(column.key as string)}
-                >
-                  <div className="flex items-center gap-2">
-                    <span>{column.label}</span>
-                    {column.sortable && (
-                      <div className="flex flex-col">
-                        <SortAsc className={`w-3 h-3 ${
-                          config.sort.column === column.key && config.sort.direction === 'asc'
-                            ? 'text-weave-primary' 
-                            : 'text-txt-tertiary'
-                        }`} />
-                        <SortDesc className={`w-3 h-3 -mt-1 ${
-                          config.sort.column === column.key && config.sort.direction === 'desc'
-                            ? 'text-weave-primary' 
-                            : 'text-txt-tertiary'
-                        }`} />
-                      </div>
-                    )}
-                  </div>
-                </TableHead>
-              ))}
-            </TableRow>
-          </TableHeader>
+          <DragDropContext 
+            onDragStart={handleDragStart}
+            onDragEnd={handleColumnReorder}
+          >
+            <Droppable 
+              droppableId="table-header" 
+              direction="horizontal"
+              renderClone={(provided, snapshot, rubric) => {
+                const column = visibleColumns[rubric.source.index];
+                return (
+                  <TableHead
+                    ref={provided.innerRef}
+                    {...provided.draggableProps}
+                    {...provided.dragHandleProps}
+                    className="select-none opacity-90 shadow-2xl scale-110 bg-bg-primary border-2 border-weave-primary z-[1000] rounded-md"
+                    style={{
+                      width: column.width,
+                      ...provided.draggableProps.style,
+                    }}
+                  >
+                    <div className="flex items-center gap-2 px-2">
+                      <span className="flex-shrink-0 font-medium">{column.label}</span>
+                      {column.sortable && (
+                        <div className="flex flex-col flex-shrink-0">
+                          <SortAsc className="w-3 h-3 text-txt-tertiary" />
+                          <SortDesc className="w-3 h-3 -mt-1 text-txt-tertiary" />
+                        </div>
+                      )}
+                    </div>
+                  </TableHead>
+                );
+              }}
+            >
+              {(provided, snapshot) => (
+                <TableHeader>
+                  <TableRow
+                    {...provided.droppableProps}
+                    ref={provided.innerRef}
+                  >
+                    {visibleColumns.map((column, index) => (
+                      <Draggable 
+                        key={column.id} 
+                        draggableId={column.id} 
+                        index={index}
+                      >
+                        {(provided, snapshot) => (
+                          <>
+                            <TableHead 
+                              ref={provided.innerRef}
+                              {...provided.draggableProps}
+                              {...provided.dragHandleProps}
+                              className={`select-none transition-all duration-200 cursor-move group ${
+                                snapshot.isDragging 
+                                  ? 'opacity-40 bg-weave-primary-light border-2 border-dashed border-weave-primary' 
+                                  : 'hover:bg-bg-secondary hover:shadow-sm'
+                              }`}
+                              style={{ 
+                                width: column.width,
+                                minWidth: column.width,
+                                maxWidth: column.width,
+                                ...(!snapshot.isDragging && provided.draggableProps.style)
+                              }}
+                            >
+                              <div 
+                                className="flex items-center gap-2 relative"
+                                onClick={(e) => {
+                                  // 드래그 중이 아닐 때만 정렬 실행
+                                  if (!snapshot.isDragging && column.sortable) {
+                                    handleSort(column.key as string);
+                                  }
+                                }}
+                              >
+                                <span className="flex-shrink-0">{column.label}</span>
+                                {column.sortable && (
+                                  <div className="flex flex-col flex-shrink-0">
+                                    <SortAsc className={`w-3 h-3 ${
+                                      config.sort.column === column.key && config.sort.direction === 'asc'
+                                        ? 'text-weave-primary' 
+                                        : 'text-txt-tertiary'
+                                    }`} />
+                                    <SortDesc className={`w-3 h-3 -mt-1 ${
+                                      config.sort.column === column.key && config.sort.direction === 'desc'
+                                        ? 'text-weave-primary' 
+                                        : 'text-txt-tertiary'
+                                    }`} />
+                                  </div>
+                                )}
+                                
+                                {/* 드래그 인디케이터 (호버 시에만 표시) */}
+                                {!snapshot.isDragging && (
+                                  <div className="absolute -right-1 top-1/2 transform -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <GripVertical className="w-3 h-3 text-txt-tertiary" />
+                                  </div>
+                                )}
+                              </div>
+                            </TableHead>
+                          </>
+                        )}
+                      </Draggable>
+                    ))}
+                    {provided.placeholder}
+                  </TableRow>
+                </TableHeader>
+              )}
+            </Droppable>
+          </DragDropContext>
           <TableBody>
             {loading ? (
               // 로딩 스켈레톤 행들
               Array.from({ length: 8 }, (_, index) => (
                 <TableRow key={`loading-${index}`}>
                   {visibleColumns.map((column) => (
-                    <TableCell key={`loading-${column.id}-${index}`}>
+                    <TableCell 
+                      key={`loading-${column.id}-${index}`}
+                      className={`transition-all duration-200 ${
+                        draggedColumnId === column.id 
+                          ? 'opacity-40 bg-weave-primary-light border-x-2 border-dashed border-weave-primary' 
+                          : ''
+                      }`}
+                      style={{
+                        width: column.width,
+                        minWidth: column.width,
+                        maxWidth: column.width,
+                      }}
+                    >
                       <div className="animate-pulse">
-                        <div className="h-4 bg-gray-200 rounded" style={{ 
-                          width: column.type === 'progress' ? '100px' : 
-                                 column.type === 'status' ? '60px' :
-                                 column.type === 'date' ? '80px' :
-                                 column.type === 'currency' ? '90px' : '120px' 
-                        }}></div>
+                        {(column.type === 'progress' || column.type === 'payment_progress') ? (
+                          <div className="w-full max-w-[100px] min-w-[80px]">
+                            <div className="h-2 md:h-2.5 bg-gray-200 rounded-full mb-1"></div>
+                            <div className="text-center">
+                              <div className="h-2 bg-gray-200 rounded w-6 mx-auto"></div>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="h-4 bg-gray-200 rounded" style={{ 
+                            width: column.type === 'status' ? '60px' :
+                                   column.type === 'date' ? '80px' :
+                                   column.type === 'currency' ? '90px' : '120px' 
+                          }}></div>
+                        )}
                       </div>
                     </TableCell>
                   ))}
@@ -388,7 +542,19 @@ export function AdvancedTable({
                   className="cursor-pointer"
                 >
                   {visibleColumns.map((column) => (
-                    <TableCell key={column.id}>
+                    <TableCell 
+                      key={column.id}
+                      className={`transition-all duration-200 ${
+                        draggedColumnId === column.id 
+                          ? 'opacity-40 bg-weave-primary-light border-x-2 border-dashed border-weave-primary' 
+                          : ''
+                      }`}
+                      style={{
+                        width: column.width,
+                        minWidth: column.width,
+                        maxWidth: column.width,
+                      }}
+                    >
                       {formatCellValue(row[column.key], column)}
                     </TableCell>
                   ))}

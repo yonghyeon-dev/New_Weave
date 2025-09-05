@@ -41,7 +41,7 @@ const DEFAULT_COLUMNS: ProjectTableColumn[] = [
     filterable: false,
     width: 120,
     visible: true,
-    order: 2,
+    order: 3,
     type: 'date'
   },
   {
@@ -52,19 +52,8 @@ const DEFAULT_COLUMNS: ProjectTableColumn[] = [
     filterable: true,
     width: 150,
     visible: true,
-    order: 3,
+    order: 2,
     type: 'text'
-  },
-  {
-    id: 'progress',
-    key: 'progress',
-    label: '진행률',
-    sortable: true,
-    filterable: false,
-    width: 120,
-    visible: true,
-    order: 4,
-    type: 'progress'
   },
   {
     id: 'status',
@@ -74,19 +63,30 @@ const DEFAULT_COLUMNS: ProjectTableColumn[] = [
     filterable: true,
     width: 100,
     visible: true,
-    order: 5,
+    order: 7,
     type: 'status'
   },
   {
-    id: 'supplyStatus',
-    key: 'supplyStatus',
+    id: 'progress',
+    key: 'progress',
+    label: '진행률',
+    sortable: true,
+    filterable: false,
+    width: 110,
+    visible: true,
+    order: 4,
+    type: 'progress'
+  },
+  {
+    id: 'paymentProgress',
+    key: 'paymentProgress',
     label: '수급현황',
-    sortable: false,
-    filterable: true,
-    width: 100,
+    sortable: true,
+    filterable: false,
+    width: 110,
     visible: true,
     order: 6,
-    type: 'text'
+    type: 'payment_progress'
   },
   {
     id: 'dueDate',
@@ -96,7 +96,7 @@ const DEFAULT_COLUMNS: ProjectTableColumn[] = [
     filterable: false,
     width: 120,
     visible: true,
-    order: 7,
+    order: 5,
     type: 'date'
   },
   {
@@ -106,7 +106,7 @@ const DEFAULT_COLUMNS: ProjectTableColumn[] = [
     sortable: true,
     filterable: false,
     width: 120,
-    visible: false, // 기본적으로 숨김
+    visible: true, // 기본 표시로 변경
     order: 8,
     type: 'date'
   }
@@ -119,7 +119,7 @@ const DEFAULT_FILTERS: TableFilterState = {
 };
 
 const DEFAULT_SORT: TableSortState = {
-  column: 'registrationDate',
+  column: 'no',
   direction: 'desc'
 };
 
@@ -256,7 +256,14 @@ export function useProjectTable(initialData: ProjectTableRow[] = []) {
       if (typeof aValue === 'number' && typeof bValue === 'number') {
         comparison = aValue - bValue;
       } else if (typeof aValue === 'string' && typeof bValue === 'string') {
-        comparison = aValue.localeCompare(bValue, 'ko-KR');
+        // No 컬럼의 경우 숫자 부분을 추출하여 숫자 정렬
+        if (config.sort.column === 'no' && aValue.includes('_') && bValue.includes('_')) {
+          const aNum = parseInt(aValue.split('_')[1] || '0');
+          const bNum = parseInt(bValue.split('_')[1] || '0');
+          comparison = aNum - bNum;
+        } else {
+          comparison = aValue.localeCompare(bValue, 'ko-KR');
+        }
       } else {
         // 날짜나 기타 타입의 경우
         const aStr = String(aValue);
