@@ -152,21 +152,6 @@ export function ProjectDetailPanel({
         </div>
       </div>
 
-      {/* 필터 컨트롤 (컴팩트 모드) */}
-      {(onSearchChange || onFiltersChange) && (
-        <div className="border-b border-border-light flex-shrink-0 px-6 py-3">
-          <ProjectTableControls
-            searchQuery={searchQuery}
-            onSearchChange={onSearchChange || (() => {})}
-            filters={filters || { searchQuery: '', statusFilter: 'all', customFilters: {} }}
-            onFiltersChange={onFiltersChange || (() => {})}
-            onResetFilters={onResetFilters}
-            showColumnSettings={false}
-            showFilters={true}
-            compact={true}
-          />
-        </div>
-      )}
 
       {/* 탭 네비게이션 */}
       <div className="border-b border-border-light flex-shrink-0">

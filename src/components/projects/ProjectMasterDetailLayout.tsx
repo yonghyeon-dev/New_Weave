@@ -4,12 +4,16 @@ import React from 'react';
 import { Card } from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Typography from '@/components/ui/Typography';
+import { ViewSwitchButtons, ViewMode } from '@/components/ui/ViewSwitchButtons';
+import { UnifiedFilterBar } from '@/components/ui/UnifiedFilterBar';
 import { 
   Plus, 
   Briefcase, 
   Search,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  RefreshCw,
+  Download
 } from 'lucide-react';
 
 export interface ProjectMasterDetailLayoutProps {
@@ -26,9 +30,16 @@ export interface ProjectMasterDetailLayoutProps {
   showBreadcrumb?: boolean;
   breadcrumbItems?: Array<{ label: string; href?: string }>;
   
-  // Search props
+  // View mode props
+  currentView: ViewMode;
+  onViewChange: (view: ViewMode) => void;
+  
+  // Filter props
   searchQuery: string;
   onSearchChange: (query: string) => void;
+  filters: any;
+  onFiltersChange: (filters: any) => void;
+  onResetFilters?: () => void;
   
   // Navigation props
   selectedProjectIndex: number;
@@ -63,8 +74,13 @@ export function ProjectMasterDetailLayout({
   onExport,
   showBreadcrumb = false,
   breadcrumbItems = [],
+  currentView,
+  onViewChange,
   searchQuery,
   onSearchChange,
+  filters,
+  onFiltersChange,
+  onResetFilters,
   selectedProjectIndex,
   totalFilteredProjects,
   onNavigateProject,
@@ -103,18 +119,27 @@ export function ProjectMasterDetailLayout({
       {/* 헤더 섹션 */}
       <div className="mb-6">
         <div className="flex items-center justify-between mb-4">
-          {/* 제목 영역 */}
+          {/* 제목 영역 + 뷰 스위치 */}
           <div className="flex items-center gap-3 flex-1 min-w-0">
             <div className="p-3 bg-weave-primary-light rounded-lg flex-shrink-0">
               <Briefcase className="w-6 h-6 text-weave-primary" />
             </div>
-            <div className="min-w-0 flex-1">
+            <div className="min-w-0">
               <Typography variant="h2" className="text-2xl mb-1 text-txt-primary">
                 {title}
               </Typography>
               <Typography variant="body1" className="text-txt-secondary">
                 {subtitle}
               </Typography>
+            </div>
+            
+            {/* 뷰 스위치 버튼 - 텍스트 우측 */}
+            <div className="ml-4">
+              <ViewSwitchButtons
+                currentView={currentView}
+                onViewChange={onViewChange}
+                disabled={loading}
+              />
             </div>
           </div>
           
@@ -126,7 +151,7 @@ export function ProjectMasterDetailLayout({
               disabled={loading}
               className="flex items-center gap-2"
             >
-              <Search className="w-4 h-4" />
+              <RefreshCw className="w-4 h-4" />
               새로고침
             </Button>
             
@@ -136,7 +161,7 @@ export function ProjectMasterDetailLayout({
               disabled={loading}
               className="flex items-center gap-2"
             >
-              <Search className="w-4 h-4" />
+              <Download className="w-4 h-4" />
               내보내기
             </Button>
             
@@ -152,58 +177,16 @@ export function ProjectMasterDetailLayout({
           </div>
         </div>
 
-        {/* 통계 및 검색 영역 */}
-        <div className="flex items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <Typography variant="body2" className="text-txt-secondary">
-              총 {totalProjects}개 중 {filteredProjects}개 표시
-            </Typography>
-            
-            {/* 네비게이션 컨트롤 */}
-            {selectedProjectIndex >= 0 && (
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => onNavigateProject('prev')}
-                  disabled={totalFilteredProjects <= 1}
-                  className="p-1"
-                  aria-label="이전 프로젝트"
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                </Button>
-                
-                <Typography variant="body2" className="text-txt-tertiary">
-                  {selectedProjectIndex + 1} / {totalFilteredProjects}
-                </Typography>
-                
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => onNavigateProject('next')}
-                  disabled={totalFilteredProjects <= 1}
-                  className="p-1"
-                  aria-label="다음 프로젝트"
-                >
-                  <ChevronRight className="w-4 h-4" />
-                </Button>
-              </div>
-            )}
-          </div>
-
-          {/* 검색 입력 */}
-          <div className="relative w-64">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-txt-tertiary" />
-            <input
-              type="text"
-              placeholder="프로젝트 검색..."
-              value={searchQuery}
-              onChange={(e) => onSearchChange(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-border-light rounded-lg focus:outline-none focus:ring-2 focus:ring-weave-primary focus:border-weave-primary text-sm"
-              aria-label="프로젝트 검색"
-            />
-          </div>
-        </div>
+        {/* 통합 필터 바 */}
+        <UnifiedFilterBar
+          searchQuery={searchQuery}
+          onSearchChange={onSearchChange}
+          filters={filters}
+          onFiltersChange={onFiltersChange}
+          onResetFilters={onResetFilters}
+          showColumnSettings={currentView === 'list'}
+          loading={loading}
+        />
       </div>
 
       {/* 메인 컨텐츠 영역 - 마스터-디테일 레이아웃 */}
@@ -211,9 +194,15 @@ export function ProjectMasterDetailLayout({
         {/* 좌측: 마스터 (프로젝트 목록) */}
         <Card className="w-full lg:w-[30%] flex flex-col min-h-0">
           <div className="p-4 border-b border-border-light flex-shrink-0">
-            <Typography variant="h4" className="font-medium text-txt-primary">
-              프로젝트 목록
-            </Typography>
+            <div className="flex items-center justify-between">
+              <Typography variant="h4" className="font-medium text-txt-primary">
+                프로젝트 목록
+              </Typography>
+              {/* 통계 배지 */}
+              <Typography variant="body2" className="text-txt-secondary">
+                총 {totalProjects}개 중 {filteredProjects}개 표시
+              </Typography>
+            </div>
           </div>
           
           <div className="flex-1 overflow-y-auto">

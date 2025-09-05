@@ -257,9 +257,16 @@ export function ProjectMasterDetailPage({
             { label: initialProjectId || '상세' }
           ]}
           
-          // Search props
+          // View mode props
+          currentView={state.currentView}
+          onViewChange={actions.setCurrentView}
+          
+          // Filter props
           searchQuery={state.searchQuery}
           onSearchChange={actions.setSearchQuery}
+          filters={state.filters}
+          onFiltersChange={actions.updateFilters}
+          onResetFilters={actions.resetFilters}
           
           // Navigation props
           selectedProjectIndex={state.selectedProjectIndex}

@@ -6,6 +6,7 @@ import type {
   TableFilterState, 
   TableSortState 
 } from '@/lib/types/project-table.types';
+import type { ViewMode } from '@/components/ui/ViewSwitchButtons';
 
 export type DetailTabType = 'overview' | 'contract' | 'billing' | 'documents';
 
@@ -19,6 +20,7 @@ export interface MasterDetailState {
   isCreateModalOpen: boolean;
   activeDetailTab: DetailTabType;
   isLoading: boolean;
+  currentView: ViewMode; // 뷰 모드 상태 추가
   
   // 검색 및 필터 (확장됨)
   searchQuery: string;
@@ -47,6 +49,7 @@ export interface MasterDetailActions {
   setActiveDetailTab: (tab: DetailTabType) => void;
   setSearchQuery: (query: string) => void;
   setLoading: (loading: boolean) => void;
+  setCurrentView: (view: ViewMode) => void; // 뷰 모드 변경
   
   // 필터 및 정렬 관리 (새로 추가)
   updateFilters: (filters: TableFilterState) => void;
@@ -77,6 +80,7 @@ export function useProjectMasterDetail(initialProjects: ProjectTableRow[] = []):
   const [activeDetailTab, setActiveDetailTab] = useState<DetailTabType>('overview');
   const [isLoading, setIsLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [currentView, setCurrentView] = useState<ViewMode>('detail'); // 뷰 모드 상태 추가
   
   // 필터 및 정렬 상태 (새로 추가)
   const [filters, setFilters] = useState<TableFilterState>({
@@ -352,6 +356,7 @@ export function useProjectMasterDetail(initialProjects: ProjectTableRow[] = []):
     isCreateModalOpen,
     activeDetailTab,
     isLoading,
+    currentView, // 뷰 모드 상태 추가
     searchQuery,
     filteredProjects,
     filters,
@@ -363,6 +368,7 @@ export function useProjectMasterDetail(initialProjects: ProjectTableRow[] = []):
     isCreateModalOpen,
     activeDetailTab,
     isLoading,
+    currentView, // 뷰 모드 의존성 추가
     searchQuery,
     filteredProjects,
     filters,
@@ -382,6 +388,7 @@ export function useProjectMasterDetail(initialProjects: ProjectTableRow[] = []):
     setActiveDetailTab,
     setSearchQuery: handleSetSearchQuery,
     setLoading: handleSetLoading,
+    setCurrentView, // 뷰 모드 변경 액션 추가
     updateFilters,
     updateSort,
     resetFilters,
