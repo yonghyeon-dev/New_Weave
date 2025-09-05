@@ -146,11 +146,15 @@ export function ProjectCreateModal({
         start_date: formData.start_date,
         due_date: formData.end_date || null,
         progress: formData.progress
-      });
+      }) as any;
 
-      // 목록에서 사용할 형태로 변환
+      // null 안전 확인
+      if (!newProject) {
+        throw new Error('프로젝트 생성에 실패했습니다.');
+      }
+
       const tableRow: ProjectTableRow = {
-        id: newProject.id,
+        id: newProject.id || '',
         no: `WEAVE_${String(clients.length + 1).padStart(3, '0')}`, // 임시 번호 생성
         name: newProject.name,
         registrationDate: newProject.created_at,

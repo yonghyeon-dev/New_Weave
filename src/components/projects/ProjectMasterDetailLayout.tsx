@@ -6,6 +6,7 @@ import Button from '@/components/ui/Button';
 import Typography from '@/components/ui/Typography';
 import { ViewMode } from '@/components/ui/ViewSwitchButtons';
 import { UnifiedFilterBar } from '@/components/ui/UnifiedFilterBar';
+import KeyboardShortcuts from '@/components/ui/KeyboardShortcuts';
 import { 
   ChevronLeft,
   ChevronRight
@@ -41,6 +42,9 @@ export interface ProjectMasterDetailLayoutProps {
   selectedProjectIndex: number;
   totalFilteredProjects: number;
   onNavigateProject: (direction: 'prev' | 'next') => void;
+  onCreateProject: () => void;
+  onRefresh?: () => void;
+  onExport?: () => void;
   
   // Content components
   masterContent: React.ReactNode; // 좌측 프로젝트 목록
@@ -79,6 +83,7 @@ export function ProjectMasterDetailLayout({
   selectedProjectIndex,
   totalFilteredProjects,
   onNavigateProject,
+  onCreateProject,
   masterContent,
   detailContent,
   createModal,
@@ -152,10 +157,6 @@ export function ProjectMasterDetailLayout({
               <Typography variant="h4" className="font-medium text-txt-primary">
                 프로젝트 목록
               </Typography>
-              {/* 통계 배지 */}
-              <Typography variant="body2" className="text-txt-secondary">
-                총 {totalProjects}개 중 {filteredProjects}개 표시
-              </Typography>
             </div>
           </div>
           
@@ -175,60 +176,14 @@ export function ProjectMasterDetailLayout({
       {/* 생성 모달 */}
       {createModal}
       
-      {/* 키보드 단축키 안내 (개발 모드에서만) */}
-      {process.env.NODE_ENV === 'development' && (
-        <div className="fixed bottom-4 left-4 p-3 bg-gray-800 text-white text-xs rounded-lg opacity-75 z-10 pointer-events-none">
-          <div>↑/↓: 프로젝트 탐색</div>
-          <div>Enter: 프로젝트 선택</div>
-          <div>Ctrl+N: 새 프로젝트</div>
-        </div>
-      )}
+      {/* 통합 키보드 네비게이션 (Detail view) */}
+      <KeyboardShortcuts
+        mode="detail"
+        onNavigateProject={onNavigateProject}
+        onCreateProject={onCreateProject}
+        totalProjects={totalFilteredProjects}
+      />
     </div>
   );
 }
 
-/**
- * 키보드 네비게이션을 위한 커스텀 훅
- */
-export function useKeyboardNavigation({
-  onNavigateProject,
-  onCreateProject,
-  totalProjects
-}: {
-  onNavigateProject: (direction: 'prev' | 'next') => void;
-  onCreateProject: () => void;
-  totalProjects: number;
-}) {
-  React.useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      // 입력 필드에서는 키보드 네비게이션 비활성화
-      if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
-        return;
-      }
-
-      switch (event.key) {
-        case 'ArrowUp':
-          event.preventDefault();
-          if (totalProjects > 0) {
-            onNavigateProject('prev');
-          }
-          break;
-        case 'ArrowDown':
-          event.preventDefault();
-          if (totalProjects > 0) {
-            onNavigateProject('next');
-          }
-          break;
-        case 'n':
-          if (event.ctrlKey || event.metaKey) {
-            event.preventDefault();
-            onCreateProject();
-          }
-          break;
-      }
-    };
-
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [onNavigateProject, onCreateProject, totalProjects]);
-}

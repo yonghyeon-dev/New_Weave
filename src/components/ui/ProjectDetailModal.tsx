@@ -122,7 +122,7 @@ export function ProjectDetailModal({ project, isOpen, onClose }: ProjectDetailMo
                     </div>
                     <div className="flex justify-between">
                       <span className="text-txt-secondary">수급현황</span>
-                      <span className="text-txt-primary">{project.supplyStatus}</span>
+                      <span className="text-txt-primary">{project.paymentProgress || 0}%</span>
                     </div>
                   </CardContent>
                 </Card>

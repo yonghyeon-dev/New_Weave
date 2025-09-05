@@ -81,15 +81,16 @@ export function ProjectListItem({
 
         {/* 프로젝트명 */}
         <div>
-          <Typography 
-            variant="body1" 
-            className={`font-medium leading-tight ${
-              isSelected ? 'text-weave-primary' : 'text-txt-primary'
-            }`}
-            title={project.name}
-          >
-            {project.name.length > 30 ? `${project.name.substring(0, 30)}...` : project.name}
-          </Typography>
+          <div title={project.name}>
+            <Typography 
+              variant="body1" 
+              className={`font-medium leading-tight ${
+                isSelected ? 'text-weave-primary' : 'text-txt-primary'
+              }`}
+            >
+              {project.name.length > 30 ? `${project.name.substring(0, 30)}...` : project.name}
+            </Typography>
+          </div>
         </div>
 
         {/* 클라이언트 정보 */}

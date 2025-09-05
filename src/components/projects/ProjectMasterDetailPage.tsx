@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import AppLayout from '@/components/layout/AppLayout';
 import { DataPageContainer } from '@/components/layout/PageContainer';
-import { ProjectMasterDetailLayout, useKeyboardNavigation } from './ProjectMasterDetailLayout';
+import { ProjectMasterDetailLayout } from './ProjectMasterDetailLayout';
 import { ProjectList } from './ProjectList';
 import { ProjectDetailPanel } from './ProjectDetailPanel';
 import { ProjectCreateModal } from './ProjectCreateModal';
@@ -210,12 +210,7 @@ export function ProjectMasterDetailPage({
     alert('프로젝트 편집 기능은 향후 구현 예정입니다.');
   }, []);
 
-  // 키보드 네비게이션 설정
-  useKeyboardNavigation({
-    onNavigateProject: actions.navigateProject,
-    onCreateProject: actions.openCreateModal,
-    totalProjects: state.filteredProjects.length
-  });
+  // 키보드 네비게이션은 이제 ProjectMasterDetailLayout에서 통합 관리됨
 
   // 네비게이션 가능 여부 계산
   const canNavigatePrev = useMemo(() => {
@@ -243,7 +238,7 @@ export function ProjectMasterDetailPage({
       <ProjectMasterDetailLayout
           // Header props
           title={hideTitle ? "" : "프로젝트 관리"}
-          subtitle={hideTitle ? "" : `${state.projects.length}개 프로젝트 중 ${state.filteredProjects.length}개 표시`}
+          subtitle={hideTitle ? "" : "프로젝트를 효율적으로 관리하고 추적하세요"}
           totalProjects={state.projects.length}
           filteredProjects={state.filteredProjects.length}
           onCreateProject={actions.openCreateModal}

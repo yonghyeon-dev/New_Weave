@@ -6,8 +6,10 @@ import AppLayout from '@/components/layout/AppLayout';
 import { DataPageContainer } from '@/components/layout/PageContainer';
 import { AdvancedTable } from '@/components/ui/AdvancedTable';
 import { ProjectDetailModal } from '@/components/ui/ProjectDetailModal';
+import { ProjectCreateModal } from '@/components/projects/ProjectCreateModal';
 import Button from '@/components/ui/Button';
 import Typography from '@/components/ui/Typography';
+import KeyboardShortcuts from '@/components/ui/KeyboardShortcuts';
 import { useProjectTable } from '@/lib/hooks/useProjectTable';
 import { UnifiedFilterBar } from '@/components/ui/UnifiedFilterBar';
 import type { ProjectTableRow } from '@/lib/types/project-table.types';
@@ -104,16 +106,20 @@ const generateMockData = (): ProjectTableRow[] => {
 interface NewProjectsPageProps {
   hideHeader?: boolean;
   onProjectClick?: (projectNo: string) => void;
+  onCreateProject?: () => void;
 }
 
 export default function NewProjectsPage({ 
   hideHeader = false,
-  onProjectClick
+  onProjectClick,
+  onCreateProject
 }: NewProjectsPageProps = {}) {
   const router = useRouter();
   const [mockData, setMockData] = useState<ProjectTableRow[]>([]);
   const [selectedProject, setSelectedProject] = useState<ProjectTableRow | null>(null);
+  const [selectedProjectIndex, setSelectedProjectIndex] = useState(-1);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
 
   const {
@@ -126,7 +132,16 @@ export default function NewProjectsPage({
     updateData,
     resetColumnConfig,
     resetFilters,
-    updatePageSize
+    updatePageSize,
+    availableClients,
+    // 삭제 모드 관련
+    isDeleteMode,
+    selectedItems,
+    toggleDeleteMode,
+    handleItemSelect,
+    handleSelectAll,
+    handleDeselectAll,
+    handleDeleteSelected
   } = useProjectTable(mockData);
 
   // LCP 개선을 위한 메모화된 통계 계산
@@ -153,6 +168,22 @@ export default function NewProjectsPage({
 
     loadData();
   }, []); // 컴포넌트 마운트 시에만 실행
+
+  // 페이지네이션된 데이터가 변경될 때 선택된 인덱스 초기화
+  useEffect(() => {
+    if (paginatedData.length > 0 && selectedProjectIndex === -1) {
+      setSelectedProjectIndex(0);
+      setSelectedProject(paginatedData[0]);
+    } else if (selectedProjectIndex >= paginatedData.length) {
+      // 현재 선택된 인덱스가 범위를 벗어나면 조정
+      const newIndex = Math.max(0, paginatedData.length - 1);
+      setSelectedProjectIndex(newIndex);
+      setSelectedProject(paginatedData[newIndex]);
+    } else if (selectedProjectIndex >= 0 && paginatedData[selectedProjectIndex]) {
+      // 인덱스가 유효하면 해당 프로젝트로 업데이트
+      setSelectedProject(paginatedData[selectedProjectIndex]);
+    }
+  }, [paginatedData, selectedProjectIndex]);
 
   // 행 클릭 핸들러 - 개별 프로젝트 상세 페이지로 이동 또는 커스텀 핸들러 실행
   const handleRowClick = (project: ProjectTableRow) => {
@@ -182,20 +213,51 @@ export default function NewProjectsPage({
     alert('엑셀 파일이 다운로드됩니다.');
   };
 
+  // 키보드 네비게이션을 위한 프로젝트 네비게이션 핸들러
+  const handleNavigateProject = (direction: 'prev' | 'next') => {
+    if (paginatedData.length === 0) return;
+
+    let newIndex: number;
+    if (direction === 'prev') {
+      newIndex = selectedProjectIndex <= 0 ? paginatedData.length - 1 : selectedProjectIndex - 1;
+    } else {
+      newIndex = selectedProjectIndex >= paginatedData.length - 1 ? 0 : selectedProjectIndex + 1;
+    }
+
+    setSelectedProjectIndex(newIndex);
+    setSelectedProject(paginatedData[newIndex]);
+  };
+
+  // 키보드를 통한 프로젝트 선택
+  const handleSelectProject = () => {
+    if (selectedProject) {
+      handleRowClick(selectedProject);
+    }
+  };
+
+  // 새 프로젝트 생성 핸들러
+  const handleCreateProject = () => {
+    if (onCreateProject) {
+      onCreateProject(); // 상위 컴포넌트의 모달 열기 함수 호출
+    } else {
+      setIsCreateModalOpen(true); // 자체 모달 열기
+    }
+  };
+
+  // 프로젝트 생성 성공 핸들러
+  const handleProjectCreateSuccess = (newProject: ProjectTableRow) => {
+    setMockData(prev => [newProject, ...prev]);
+    updateData([newProject, ...mockData]);
+    setIsCreateModalOpen(false);
+    
+    console.log('프로젝트가 성공적으로 생성되었습니다:', newProject.name);
+  };
+
   const renderContent = () => (
     <>
       {/* 헤더 */}
       {!hideHeader && (
         <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3 flex-1 min-w-0">
-              <div className="min-w-0 flex-1">
-                <Typography variant="body1" className="text-txt-secondary">
-                  {totalCount}개 프로젝트 중 {filteredCount}개 표시
-                </Typography>
-              </div>
-            </div>
-          </div>
 
           {/* 요약 통계 */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
@@ -295,8 +357,17 @@ export default function NewProjectsPage({
           onResetFilters={resetFilters}
           pageSize={config.pagination.pageSize}
           onPageSizeChange={updatePageSize}
+          availableClients={availableClients}
           showColumnSettings={true}
           loading={loading}
+          // 삭제 모드 관련
+          isDeleteMode={isDeleteMode}
+          selectedItems={selectedItems}
+          onToggleDeleteMode={toggleDeleteMode}
+          onSelectAll={handleSelectAll}
+          onDeselectAll={handleDeselectAll}
+          onDeleteSelected={handleDeleteSelected}
+          totalItems={filteredCount}
         />
       </div>
 
@@ -307,6 +378,14 @@ export default function NewProjectsPage({
           onConfigChange={updateConfig}
           onRowClick={handleRowClick}
           loading={loading}
+          // 키보드 네비게이션 관련
+          selectedProjectIndex={selectedProjectIndex}
+          // 삭제 모드 관련
+          isDeleteMode={isDeleteMode}
+          selectedItems={selectedItems}
+          onItemSelect={handleItemSelect}
+          onSelectAll={handleSelectAll}
+          onDeselectAll={handleDeselectAll}
         />
 
         {/* 디버그 패널 (개발 환경에서만) */}
@@ -339,6 +418,24 @@ size="sm"
         project={selectedProject}
         isOpen={isModalOpen}
         onClose={handleCloseModal}
+      />
+
+      {/* 프로젝트 생성 모달 (독립 실행 시에만) */}
+      {!onCreateProject && (
+        <ProjectCreateModal
+          isOpen={isCreateModalOpen}
+          onClose={() => setIsCreateModalOpen(false)}
+          onSuccess={handleProjectCreateSuccess}
+        />
+      )}
+
+      {/* 키보드 단축키 - List 뷰 모드 */}
+      <KeyboardShortcuts
+        mode="list"
+        onNavigateProject={handleNavigateProject}
+        onSelectProject={handleSelectProject}
+        onCreateProject={handleCreateProject}
+        totalProjects={paginatedData.length}
       />
     </>
   );

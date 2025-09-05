@@ -137,6 +137,10 @@ export function useProjectTable(initialData: ProjectTableRow[] = []) {
   // 하이드레이션 상태 추적
   const [isHydrated, setIsHydrated] = useState(false);
   
+  // 삭제 모드 관련 상태
+  const [isDeleteMode, setIsDeleteMode] = useState(false);
+  const [selectedItems, setSelectedItems] = useState<string[]>([]);
+  
   // 하이드레이션이 완료되면 localStorage 설정 적용
   useEffect(() => {
     setIsHydrated(true);
@@ -220,14 +224,15 @@ export function useProjectTable(initialData: ProjectTableRow[] = []) {
   // 데이터 업데이트 핸들러
   const updateData = useCallback((newData: ProjectTableRow[]) => {
     setData(newData);
-    updateConfig({
-      ...config,
+    // config를 직접 참조하지 않고 함수형 업데이트 사용
+    setConfig(prevConfig => ({
+      ...prevConfig,
       pagination: {
-        ...config.pagination,
+        ...prevConfig.pagination,
         total: newData.length
       }
-    });
-  }, [config, updateConfig]);
+    }));
+  }, []);
 
   // 필터링된 데이터 (메모이제이션으로 성능 최적화)
   const filteredData = useMemo(() => {
@@ -359,6 +364,50 @@ export function useProjectTable(initialData: ProjectTableRow[] = []) {
     updateConfig(resetConfig);
   }, [config, updateConfig]);
 
+  // 삭제 모드 관련 함수들
+  const toggleDeleteMode = useCallback(() => {
+    setIsDeleteMode(prev => !prev);
+    setSelectedItems([]); // 삭제 모드 토글 시 선택 초기화
+  }, []);
+
+  const handleItemSelect = useCallback((itemId: string) => {
+    setSelectedItems(prev => 
+      prev.includes(itemId) 
+        ? prev.filter(id => id !== itemId)
+        : [...prev, itemId]
+    );
+  }, []);
+
+  const handleSelectAll = useCallback(() => {
+    setSelectedItems(sortedData.map(row => row.id));
+  }, [sortedData]);
+
+  const handleDeselectAll = useCallback(() => {
+    setSelectedItems([]);
+  }, []);
+
+  const handleDeleteSelected = useCallback(() => {
+    if (selectedItems.length === 0) return;
+    
+    // 실제로는 여기서 삭제 확인 모달을 띄우거나 부모 컴포넌트에 이벤트를 전달
+    console.log('삭제할 항목들:', selectedItems);
+    
+    // 삭제 후 상태 초기화
+    setSelectedItems([]);
+    setIsDeleteMode(false);
+  }, [selectedItems]);
+
+  // 전체 초기화 (컬럼 + 필터)
+  const resetAll = useCallback(() => {
+    const resetConfig: ProjectTableConfig = {
+      columns: DEFAULT_COLUMNS.map(col => ({ ...col })),
+      filters: { ...DEFAULT_FILTERS },
+      sort: { ...DEFAULT_SORT },
+      pagination: { ...DEFAULT_PAGINATION }
+    };
+    updateConfig(resetConfig);
+  }, [updateConfig]);
+
   return {
     // 데이터
     data: sortedData,
@@ -377,7 +426,17 @@ export function useProjectTable(initialData: ProjectTableRow[] = []) {
     // 유틸리티
     resetColumnConfig,
     resetFilters,
-    updatePageSize
+    resetAll,
+    updatePageSize,
+    
+    // 삭제 모드
+    isDeleteMode,
+    selectedItems,
+    toggleDeleteMode,
+    handleItemSelect,
+    handleSelectAll,
+    handleDeselectAll,
+    handleDeleteSelected
   };
 }
 

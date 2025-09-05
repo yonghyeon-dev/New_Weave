@@ -9,7 +9,7 @@ import DashboardCalendar from '@/components/dashboard/DashboardCalendar';
 import Typography from '@/components/ui/Typography';
 import type { DashboardInsight, QuickAction } from '@/components/dashboard/DashboardLayout';
 import type { CalendarEvent } from '@/components/dashboard/DashboardCalendar';
-import { createClient } from '@/lib/supabase/client';
+import { getSupabaseClientSafe } from '@/lib/supabase/client';
 import { projectsService } from '@/lib/services/supabase/projects.service';
 import { clientService } from '@/lib/services/supabase/clients.service';
 import { invoicesService } from '@/lib/services/supabase/invoices.service';
@@ -50,7 +50,7 @@ export default function Dashboard() {
   const router = useRouter();
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [supabaseClient] = useState(() => createClient());
+  const [supabaseClient] = useState(() => getSupabaseClientSafe());
   const [realtimeChannel, setRealtimeChannel] = useState<RealtimeChannel | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
 
@@ -73,6 +73,13 @@ export default function Dashboard() {
       }
       
       // 실제 Supabase 인증 모드
+      if (!supabaseClient) {
+        console.log('Supabase client not available, using mock data');
+        setUserId('mock-user-id');
+        await fetchDashboardData('mock-user-id');
+        return;
+      }
+      
       const { data: { session }, error } = await supabaseClient.auth.getSession();
       
       if (error || !session || !session.user) {
@@ -316,6 +323,8 @@ export default function Dashboard() {
     
     // 실시간 구독 설정
     const setupRealtimeSubscription = (currentUserId: string) => {
+      if (!supabaseClient) return;
+      
       const channel = supabaseClient
         .channel('dashboard-updates')
         .on(
@@ -372,10 +381,10 @@ export default function Dashboard() {
     return () => {
       if (realtimeChannel) {
         console.log('Unsubscribing from dashboard realtime updates');
-        supabaseClient.removeChannel(realtimeChannel);
+        supabaseClient?.removeChannel(realtimeChannel);
       }
     };
-  }, [supabaseClient, router, userId, realtimeChannel]);
+  }, [router, userId, realtimeChannel]);
 
   // 빠른 실행 버튼들
   const quickActions: QuickAction[] = [

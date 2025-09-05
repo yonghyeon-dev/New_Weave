@@ -12,6 +12,7 @@ import { Card } from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Typography from '@/components/ui/Typography';
 import Pagination from '@/components/ui/Pagination';
+import Checkbox from '@/components/ui/Checkbox';
 import type { 
   ProjectTableColumn, 
   ProjectTableRow, 
@@ -26,6 +27,14 @@ export interface AdvancedTableProps {
   onConfigChange: (config: ProjectTableConfig) => void;
   onRowClick?: (row: ProjectTableRow) => void;
   loading?: boolean;
+  // 키보드 네비게이션 관련
+  selectedProjectIndex?: number;
+  // 삭제 모드 관련
+  isDeleteMode?: boolean;
+  selectedItems?: string[];
+  onItemSelect?: (itemId: string) => void;
+  onSelectAll?: () => void;
+  onDeselectAll?: () => void;
 }
 
 export function AdvancedTable({ 
@@ -33,7 +42,13 @@ export function AdvancedTable({
   config, 
   onConfigChange, 
   onRowClick,
-  loading = false 
+  loading = false,
+  selectedProjectIndex,
+  isDeleteMode = false,
+  selectedItems = [],
+  onItemSelect,
+  onSelectAll,
+  onDeselectAll
 }: AdvancedTableProps) {
   const [draggedColumnId, setDraggedColumnId] = useState<string | null>(null);
   const [draggedColumns, setDraggedColumns] = useState<ProjectTableColumn[] | null>(null);
@@ -336,6 +351,18 @@ export function AdvancedTable({
                     {...provided.droppableProps}
                     ref={provided.innerRef}
                   >
+                    {/* 삭제 모드일 때 체크박스 헤더 */}
+                    {isDeleteMode && (
+                      <TableHead className="w-12 px-2">
+                        <Checkbox
+                          checked={selectedItems.length === data.length && data.length > 0}
+                          indeterminate={selectedItems.length > 0 && selectedItems.length < data.length}
+                          onChange={selectedItems.length === data.length ? onDeselectAll : onSelectAll}
+                          size="sm"
+                          aria-label="전체 선택"
+                        />
+                      </TableHead>
+                    )}
                     {visibleColumns.map((column, index) => (
                       <Draggable 
                         key={column.id} 
@@ -488,12 +515,28 @@ export function AdvancedTable({
                 </TableRow>
               ))
             ) : (
-              data.map((row) => (
+              data.map((row, index) => (
                 <TableRow 
                   key={row.id}
-                  onClick={() => onRowClick?.(row)}
-                  className="cursor-pointer"
+                  onClick={() => !isDeleteMode && onRowClick?.(row)}
+                  className={`${isDeleteMode ? "" : "cursor-pointer"} ${
+                    selectedProjectIndex === index ? "bg-weave-primary-light border-l-4 border-weave-primary" : ""
+                  }`}
                 >
+                  {/* 삭제 모드일 때 체크박스 */}
+                  {isDeleteMode && (
+                    <TableCell 
+                      className="w-12 px-2"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <Checkbox
+                        checked={selectedItems.includes(row.id)}
+                        onChange={() => onItemSelect?.(row.id)}
+                        size="sm"
+                        aria-label={`${row.name} 선택`}
+                      />
+                    </TableCell>
+                  )}
                   {visibleColumns.map((column) => (
                     <TableCell 
                       key={column.id}

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import AppLayout from '@/components/layout/AppLayout';
 import { DataPageContainer } from '@/components/layout/PageContainer';
@@ -88,8 +88,8 @@ export default function ProjectWorkflowPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
 
-  // 워크플로우 순서대로 탭 정의
-  const workflowTabs: WorkflowTab[] = [
+  // 워크플로우 순서대로 탭 정의 (메모이제이션으로 불필요한 재생성 방지)
+  const workflowTabs: WorkflowTab[] = useMemo(() => [
     {
       id: 'clients',
       label: '클라이언트',
@@ -138,7 +138,7 @@ export default function ProjectWorkflowPage() {
       icon: <Settings className="w-4 h-4" />,
       description: '프로젝트 설정'
     }
-  ];
+  ], [clients.length, projects.length, reports.length]);
 
   // URL 파라미터로 탭 초기화
   useEffect(() => {
@@ -146,7 +146,7 @@ export default function ProjectWorkflowPage() {
     if (tabParam && workflowTabs.find(tab => tab.id === tabParam)) {
       setActiveTab(tabParam);
     }
-  }, [searchParams]);
+  }, [searchParams, workflowTabs]);
 
   // 데이터 로드
   useEffect(() => {
@@ -161,6 +161,9 @@ export default function ProjectWorkflowPage() {
       // Supabase에서 현재 사용자 가져오기
       const { createClient } = await import('@/lib/supabase/client');
       const supabase = createClient();
+      if (!supabase) {
+        throw new Error('Supabase client not initialized');
+      }
       const { data: { user }, error: authError } = await supabase.auth.getUser();
       
       if (authError || !user) {

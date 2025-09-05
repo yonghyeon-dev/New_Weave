@@ -62,6 +62,7 @@ export interface MasterDetailActions {
   updateFilters: (filters: TableFilterState) => void;
   updateSort: (sort: TableSortState) => void;
   resetFilters: () => void;
+  resetAll: () => void;  // 전체 초기화 (필터 + 컬럼)
   
   // 페이지네이션 관리
   setCurrentPage: (page: number) => void;
@@ -335,6 +336,7 @@ export function useProjectMasterDetail(initialProjects: ProjectTableRow[] = []):
     const initialFilters: TableFilterState = {
       searchQuery: '',
       statusFilter: 'all',
+      clientFilter: 'all',
       customFilters: {}
     };
     setFilters(initialFilters);
@@ -348,6 +350,29 @@ export function useProjectMasterDetail(initialProjects: ProjectTableRow[] = []):
     
     // 필터 초기화 시 첫 페이지로 이동
     setCurrentPage(1);
+  }, []);
+
+  // 전체 초기화 (필터 + 정렬 + 페이지네이션)
+  const resetAll = useCallback(() => {
+    console.log('🔄 Resetting All Settings (Filters + Sort + Pagination)');
+    const initialFilters: TableFilterState = {
+      searchQuery: '',
+      statusFilter: 'all',
+      clientFilter: 'all',
+      customFilters: {}
+    };
+    setFilters(initialFilters);
+    setSearchQuery('');
+    
+    const initialSort: TableSortState = {
+      column: 'no',
+      direction: 'desc'
+    };
+    setSort(initialSort);
+    
+    // 페이지네이션 초기화
+    setCurrentPage(1);
+    setPageSize(5); // Detail View 기본값
   }, []);
 
   // 액션: 검색어 설정 (기존 로직과 새로운 필터 상태 동기화)
@@ -478,6 +503,7 @@ export function useProjectMasterDetail(initialProjects: ProjectTableRow[] = []):
     updateFilters,
     updateSort,
     resetFilters,
+    resetAll,
     // 페이지네이션 액션 추가
     setCurrentPage: handleSetCurrentPage,
     setPageSize: handleSetPageSize,
@@ -500,6 +526,7 @@ export function useProjectMasterDetail(initialProjects: ProjectTableRow[] = []):
     updateFilters,
     updateSort,
     resetFilters,
+    resetAll,
     // 페이지네이션 액션 의존성 추가
     handleSetCurrentPage,
     handleSetPageSize,

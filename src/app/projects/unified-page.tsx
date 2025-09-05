@@ -7,10 +7,12 @@ import { DataPageContainer } from '@/components/layout/PageContainer';
 import { ViewModeSwitch, ViewMode } from '@/components/ui/ViewModeSwitch';
 import NewProjectsPage from './new-projects-page';
 import { ProjectMasterDetailPage } from '@/components/projects/ProjectMasterDetailPage';
+import { ProjectCreateModal } from '@/components/projects/ProjectCreateModal';
 import Typography from '@/components/ui/Typography';
 import Button from '@/components/ui/Button';
-import { Briefcase, Plus, RefreshCw, Download, Upload, Eye, Play, CheckCircle } from 'lucide-react';
+import { Briefcase, Plus, Download, Upload, Eye, Play, CheckCircle } from 'lucide-react';
 import type { ProjectTableRow } from '@/lib/types/project-table.types';
+import { useProjectTable } from '@/lib/hooks/useProjectTable';
 
 /**
  * 통합 프로젝트 페이지
@@ -28,8 +30,12 @@ export default function UnifiedProjectsPage() {
   // localStorage에서 사용자 선호 모드 읽기 (초기값)
   const [viewMode, setViewMode] = useState<ViewMode>('list');
   const [isInitialized, setIsInitialized] = useState(false);
-  const [projectData, setProjectData] = useState<ProjectTableRow[]>([]);
+  const [rawProjectData, setRawProjectData] = useState<ProjectTableRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  
+  // useProjectTable 훅을 사용해서 정렬된 데이터 가져오기
+  const { data: sortedProjectData } = useProjectTable(rawProjectData);
 
   // 초기화 - localStorage와 URL 파라미터 확인
   useEffect(() => {
@@ -48,6 +54,15 @@ export default function UnifiedProjectsPage() {
     }
   }, [urlViewMode, isInitialized]);
 
+  // Detail View에서 선택된 프로젝트가 없을 때 첫 번째 프로젝트 자동 선택 (정렬된 데이터 기준)
+  useEffect(() => {
+    if (isInitialized && viewMode === 'detail' && !selectedProjectId && sortedProjectData.length > 0 && !loading) {
+      const params = new URLSearchParams(searchParams.toString());
+      params.set('selected', sortedProjectData[0].no);
+      router.push(`${pathname}?${params.toString()}`, { scroll: false });
+    }
+  }, [isInitialized, viewMode, selectedProjectId, sortedProjectData, loading, pathname, router, searchParams]);
+
   // 뷰 모드 변경 핸들러
   const handleViewModeChange = useCallback((newMode: ViewMode) => {
     setViewMode(newMode);
@@ -59,13 +74,16 @@ export default function UnifiedProjectsPage() {
     const params = new URLSearchParams(searchParams.toString());
     params.set('view', newMode);
     
-    // Detail View로 전환 시 선택된 프로젝트가 없으면 제거
     if (newMode === 'list' && params.has('selected')) {
+      // List View로 전환 시 선택된 프로젝트 제거
       params.delete('selected');
+    } else if (newMode === 'detail' && !params.has('selected') && sortedProjectData.length > 0) {
+      // Detail View로 전환 시 선택된 프로젝트가 없으면 첫 번째 프로젝트 자동 선택 (정렬된 데이터 기준)
+      params.set('selected', sortedProjectData[0].no);
     }
     
     router.push(`${pathname}?${params.toString()}`, { scroll: false });
-  }, [pathname, router, searchParams]);
+  }, [pathname, router, searchParams, sortedProjectData]);
 
   // 프로젝트 선택 핸들러 (List View에서 사용)
   const handleProjectSelect = useCallback((projectNo: string) => {
@@ -78,9 +96,9 @@ export default function UnifiedProjectsPage() {
     router.push(`${pathname}?${params.toString()}`);
   }, [pathname, router, searchParams]);
 
-  // 통계 데이터 계산
+  // 통계 데이터 계산 (원시 데이터 기준)
   const { stats, totalCount } = useMemo(() => {
-    if (loading || projectData.length === 0) {
+    if (loading || rawProjectData.length === 0) {
       return {
         stats: { inProgress: 0, completed: 0, review: 0 },
         totalCount: 0
@@ -89,13 +107,13 @@ export default function UnifiedProjectsPage() {
     
     return {
       stats: {
-        inProgress: projectData.filter(p => p.status === 'in_progress').length,
-        completed: projectData.filter(p => p.status === 'completed').length,
-        review: projectData.filter(p => p.status === 'review').length
+        inProgress: rawProjectData.filter(p => p.status === 'in_progress').length,
+        completed: rawProjectData.filter(p => p.status === 'completed').length,
+        review: rawProjectData.filter(p => p.status === 'review').length
       },
-      totalCount: projectData.length
+      totalCount: rawProjectData.length
     };
-  }, [projectData, loading]);
+  }, [rawProjectData, loading]);
 
   // 프로젝트 데이터 로딩
   useEffect(() => {
@@ -173,7 +191,7 @@ export default function UnifiedProjectsPage() {
       
       await new Promise(resolve => setTimeout(resolve, 300));
       const data = generateMockData();
-      setProjectData(data);
+      setRawProjectData(data);
       setLoading(false);
     };
 
@@ -181,10 +199,6 @@ export default function UnifiedProjectsPage() {
   }, []);
 
   // 액션 버튼 핸들러들
-  const handleRefresh = useCallback(() => {
-    // 새로고침 로직 (현재는 페이지 새로고침으로 대체)
-    window.location.reload();
-  }, []);
 
   const handleExport = useCallback(() => {
     // 엑셀 내보내기 로직
@@ -193,8 +207,17 @@ export default function UnifiedProjectsPage() {
   }, []);
 
   const handleCreateProject = useCallback(() => {
-    router.push('/projects/new');
-  }, [router]);
+    setIsCreateModalOpen(true);
+  }, []);
+
+  // 프로젝트 생성 성공 핸들러
+  const handleProjectCreateSuccess = useCallback((newProject: ProjectTableRow) => {
+    setRawProjectData(prev => [newProject, ...prev]);
+    setIsCreateModalOpen(false);
+    
+    // 성공 알림 (선택적)
+    console.log('프로젝트가 성공적으로 생성되었습니다:', newProject.name);
+  }, []);
 
   // 헤더 컴포넌트
   const renderHeader = () => (
@@ -222,15 +245,6 @@ export default function UnifiedProjectsPage() {
         
         {/* 우측 액션 버튼 그룹 */}
         <div className="flex items-center gap-3 flex-shrink-0">
-          <Button
-            variant="outline"
-            onClick={handleRefresh}
-            className="flex items-center gap-2"
-          >
-            <RefreshCw className="w-4 h-4" />
-            새로고침
-          </Button>
-          
           <Button
             variant="outline"
             onClick={handleExport}
@@ -325,6 +339,13 @@ export default function UnifiedProjectsPage() {
           </div>
         </div>
       </div>
+
+      {/* 프로젝트 생성 모달 */}
+      <ProjectCreateModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        onSuccess={handleProjectCreateSuccess}
+      />
     </div>
   );
 
@@ -351,6 +372,7 @@ export default function UnifiedProjectsPage() {
           <NewProjectsPage 
             hideHeader={true}
             onProjectClick={handleProjectSelect}
+            onCreateProject={handleCreateProject}
           />
         </DataPageContainer>
       </AppLayout>
