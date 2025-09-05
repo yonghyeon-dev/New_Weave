@@ -1,7 +1,11 @@
 'use client';
 
 import { useState, useCallback, useMemo } from 'react';
-import type { ProjectTableRow } from '@/lib/types/project-table.types';
+import type { 
+  ProjectTableRow, 
+  TableFilterState, 
+  TableSortState 
+} from '@/lib/types/project-table.types';
 
 export type DetailTabType = 'overview' | 'contract' | 'billing' | 'documents';
 
@@ -16,9 +20,11 @@ export interface MasterDetailState {
   activeDetailTab: DetailTabType;
   isLoading: boolean;
   
-  // 검색 및 필터
+  // 검색 및 필터 (확장됨)
   searchQuery: string;
   filteredProjects: ProjectTableRow[];
+  filters: TableFilterState;
+  sort: TableSortState;
 }
 
 export interface MasterDetailActions {
@@ -41,6 +47,11 @@ export interface MasterDetailActions {
   setActiveDetailTab: (tab: DetailTabType) => void;
   setSearchQuery: (query: string) => void;
   setLoading: (loading: boolean) => void;
+  
+  // 필터 및 정렬 관리 (새로 추가)
+  updateFilters: (filters: TableFilterState) => void;
+  updateSort: (sort: TableSortState) => void;
+  resetFilters: () => void;
   
   // 데이터 관리
   refreshProjects: (projects: ProjectTableRow[]) => void;
@@ -66,18 +77,84 @@ export function useProjectMasterDetail(initialProjects: ProjectTableRow[] = []):
   const [activeDetailTab, setActiveDetailTab] = useState<DetailTabType>('overview');
   const [isLoading, setIsLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  
+  // 필터 및 정렬 상태 (새로 추가)
+  const [filters, setFilters] = useState<TableFilterState>({
+    searchQuery: '',
+    statusFilter: 'all',
+    customFilters: {}
+  });
+  
+  const [sort, setSort] = useState<TableSortState>({
+    column: 'no',
+    direction: 'desc'
+  });
 
-  // 파생 상태: 필터링된 프로젝트 목록
+  // 파생 상태: 필터링된 프로젝트 목록 (개선됨)
   const filteredProjects = useMemo(() => {
-    if (!searchQuery.trim()) return projects;
-    
-    const query = searchQuery.toLowerCase();
-    return projects.filter(project =>
-      project.name.toLowerCase().includes(query) ||
-      project.client.toLowerCase().includes(query) ||
-      project.no.toLowerCase().includes(query)
-    );
-  }, [projects, searchQuery]);
+    let filtered = [...projects];
+
+    // 검색 쿼리 필터링 (기존 searchQuery와 filters.searchQuery 통합)
+    const searchTerm = searchQuery || filters.searchQuery;
+    if (searchTerm.trim()) {
+      const query = searchTerm.toLowerCase().trim();
+      filtered = filtered.filter(project =>
+        project.name.toLowerCase().includes(query) ||
+        project.client.toLowerCase().includes(query) ||
+        project.no.toLowerCase().includes(query)
+      );
+    }
+
+    // 상태 필터링
+    if (filters.statusFilter !== 'all') {
+      filtered = filtered.filter(project => 
+        project.status === filters.statusFilter
+      );
+    }
+
+    // 사용자 정의 필터
+    Object.entries(filters.customFilters).forEach(([key, value]) => {
+      if (value && value !== 'all') {
+        filtered = filtered.filter(project => 
+          project[key as keyof ProjectTableRow] === value
+        );
+      }
+    });
+
+    // 정렬 적용
+    if (sort.column) {
+      filtered = filtered.sort((a, b) => {
+        const aValue = a[sort.column as keyof ProjectTableRow];
+        const bValue = b[sort.column as keyof ProjectTableRow];
+
+        if (aValue == null && bValue == null) return 0;
+        if (aValue == null) return 1;
+        if (bValue == null) return -1;
+
+        let comparison = 0;
+        if (typeof aValue === 'number' && typeof bValue === 'number') {
+          comparison = aValue - bValue;
+        } else if (typeof aValue === 'string' && typeof bValue === 'string') {
+          // No 컬럼의 경우 숫자 부분을 추출하여 정렬
+          if (sort.column === 'no' && aValue.includes('_') && bValue.includes('_')) {
+            const aNum = parseInt(aValue.split('_')[1] || '0');
+            const bNum = parseInt(bValue.split('_')[1] || '0');
+            comparison = aNum - bNum;
+          } else {
+            comparison = aValue.localeCompare(bValue, 'ko-KR');
+          }
+        } else {
+          const aStr = String(aValue);
+          const bStr = String(bValue);
+          comparison = aStr.localeCompare(bStr, 'ko-KR');
+        }
+
+        return sort.direction === 'desc' ? -comparison : comparison;
+      });
+    }
+
+    return filtered;
+  }, [projects, searchQuery, filters, sort]);
 
   // 파생 상태: 선택된 프로젝트의 인덱스
   const selectedProjectIndex = useMemo(() => {
@@ -180,6 +257,50 @@ export function useProjectMasterDetail(initialProjects: ProjectTableRow[] = []):
     setIsLoading(loading);
   }, []);
 
+  // 액션: 필터 업데이트 (새로 추가)
+  const updateFilters = useCallback((newFilters: TableFilterState) => {
+    console.log('🔍 Updating Filters:', newFilters);
+    setFilters(newFilters);
+    
+    // 검색어가 변경된 경우 레거시 searchQuery도 동기화
+    if (newFilters.searchQuery !== searchQuery) {
+      setSearchQuery(newFilters.searchQuery);
+    }
+  }, [searchQuery]);
+
+  // 액션: 정렬 업데이트 (새로 추가)
+  const updateSort = useCallback((newSort: TableSortState) => {
+    console.log('🔽 Updating Sort:', newSort);
+    setSort(newSort);
+  }, []);
+
+  // 액션: 필터 초기화 (새로 추가)
+  const resetFilters = useCallback(() => {
+    console.log('🔄 Resetting Filters');
+    const initialFilters: TableFilterState = {
+      searchQuery: '',
+      statusFilter: 'all',
+      customFilters: {}
+    };
+    setFilters(initialFilters);
+    setSearchQuery('');
+    
+    const initialSort: TableSortState = {
+      column: 'no',
+      direction: 'desc'
+    };
+    setSort(initialSort);
+  }, []);
+
+  // 액션: 검색어 설정 (기존 로직과 새로운 필터 상태 동기화)
+  const handleSetSearchQuery = useCallback((query: string) => {
+    setSearchQuery(query);
+    setFilters(prev => ({
+      ...prev,
+      searchQuery: query
+    }));
+  }, []);
+
   // 액션: 프로젝트 목록 새로고침 (개선된 상태 동기화)
   const refreshProjects = useCallback((newProjects: ProjectTableRow[]) => {
     console.log('🔄 Refreshing Projects:', {
@@ -233,6 +354,8 @@ export function useProjectMasterDetail(initialProjects: ProjectTableRow[] = []):
     isLoading,
     searchQuery,
     filteredProjects,
+    filters,
+    sort,
   }), [
     projects,
     selectedProject,
@@ -242,6 +365,8 @@ export function useProjectMasterDetail(initialProjects: ProjectTableRow[] = []):
     isLoading,
     searchQuery,
     filteredProjects,
+    filters,
+    sort,
   ]);
 
   const actions: MasterDetailActions = useMemo(() => ({
@@ -255,8 +380,11 @@ export function useProjectMasterDetail(initialProjects: ProjectTableRow[] = []):
     updateProject,
     deleteProject,
     setActiveDetailTab,
-    setSearchQuery,
+    setSearchQuery: handleSetSearchQuery,
     setLoading: handleSetLoading,
+    updateFilters,
+    updateSort,
+    resetFilters,
     refreshProjects,
   }), [
     selectProject,
@@ -269,8 +397,11 @@ export function useProjectMasterDetail(initialProjects: ProjectTableRow[] = []):
     updateProject,
     deleteProject,
     setActiveDetailTab,
-    setSearchQuery,
+    handleSetSearchQuery,
     handleSetLoading,
+    updateFilters,
+    updateSort,
+    resetFilters,
     refreshProjects,
   ]);
 

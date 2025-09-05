@@ -4,7 +4,11 @@ import React from 'react';
 import Typography from '@/components/ui/Typography';
 import Button from '@/components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
-import type { ProjectTableRow } from '@/lib/types/project-table.types';
+import { ProjectTableControls } from '@/components/ui/ProjectTableControls';
+import type { 
+  ProjectTableRow,
+  TableFilterState 
+} from '@/lib/types/project-table.types';
 import type { DetailTabType } from '@/lib/hooks/useProjectMasterDetail';
 import { 
   FileText, 
@@ -28,6 +32,13 @@ export interface ProjectDetailPanelProps {
   onNavigate?: (direction: 'prev' | 'next') => void;
   canNavigatePrev?: boolean;
   canNavigateNext?: boolean;
+  
+  // 새로운 필터 관련 props
+  searchQuery?: string;
+  onSearchChange?: (query: string) => void;
+  filters?: TableFilterState;
+  onFiltersChange?: (filters: TableFilterState) => void;
+  onResetFilters?: () => void;
 }
 
 /**
@@ -47,7 +58,14 @@ export function ProjectDetailPanel({
   onEdit,
   onNavigate,
   canNavigatePrev = false,
-  canNavigateNext = false
+  canNavigateNext = false,
+  
+  // 새로운 필터 관련 props
+  searchQuery = '',
+  onSearchChange,
+  filters,
+  onFiltersChange,
+  onResetFilters
 }: ProjectDetailPanelProps) {
   const tabs = [
     { id: 'overview', label: '개요', icon: FileText },
@@ -133,6 +151,22 @@ export function ProjectDetailPanel({
           )}
         </div>
       </div>
+
+      {/* 필터 컨트롤 (컴팩트 모드) */}
+      {(onSearchChange || onFiltersChange) && (
+        <div className="border-b border-border-light flex-shrink-0 px-6 py-3">
+          <ProjectTableControls
+            searchQuery={searchQuery}
+            onSearchChange={onSearchChange || (() => {})}
+            filters={filters || { searchQuery: '', statusFilter: 'all', customFilters: {} }}
+            onFiltersChange={onFiltersChange || (() => {})}
+            onResetFilters={onResetFilters}
+            showColumnSettings={false}
+            showFilters={true}
+            compact={true}
+          />
+        </div>
+      )}
 
       {/* 탭 네비게이션 */}
       <div className="border-b border-border-light flex-shrink-0">

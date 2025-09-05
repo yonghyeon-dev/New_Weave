@@ -286,6 +286,11 @@ export function ProjectMasterDetailPage({
               onNavigate={actions.navigateProject}
               canNavigatePrev={canNavigatePrev}
               canNavigateNext={canNavigateNext}
+              searchQuery={state.searchQuery}
+              onSearchChange={actions.setSearchQuery}
+              filters={state.filters}
+              onFiltersChange={actions.updateFilters}
+              onResetFilters={actions.resetFilters}
             />
           }
           
