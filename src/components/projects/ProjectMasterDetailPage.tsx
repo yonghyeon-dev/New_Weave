@@ -309,6 +309,7 @@ export function ProjectMasterDetailPage({
               onNavigate={actions.navigateProject}
               canNavigatePrev={canNavigatePrev}
               canNavigateNext={canNavigateNext}
+              viewMode="detail"
               searchQuery={state.searchQuery}
               onSearchChange={actions.setSearchQuery}
               filters={state.filters}
