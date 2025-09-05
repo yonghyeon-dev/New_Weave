@@ -310,6 +310,8 @@ export function ProjectMasterDetailPage({
               canNavigatePrev={canNavigatePrev}
               canNavigateNext={canNavigateNext}
               viewMode="detail"
+              currentProjectIndex={state.selectedProjectIndex}
+              totalProjectsCount={state.filteredProjects.length}
               searchQuery={state.searchQuery}
               onSearchChange={actions.setSearchQuery}
               filters={state.filters}

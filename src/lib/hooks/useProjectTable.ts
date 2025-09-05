@@ -193,6 +193,13 @@ export function useProjectTable(initialData: ProjectTableRow[] = []) {
   
   const [data, setData] = useState<ProjectTableRow[]>(initialData);
 
+  // initialData가 변경되면 data 업데이트
+  useEffect(() => {
+    if (initialData.length > 0) {
+      setData(initialData);
+    }
+  }, [initialData]);
+
   // 하이드레이션이 완료되면 저장된 설정 적용
   useEffect(() => {
     if (isHydrated) {

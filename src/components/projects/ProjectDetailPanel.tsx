@@ -3,6 +3,7 @@
 import React from 'react';
 import Typography from '@/components/ui/Typography';
 import Button from '@/components/ui/Button';
+import ProjectNavigation from '@/components/ui/ProjectNavigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { ProjectTableControls } from '@/components/ui/ProjectTableControls';
 import type { 
@@ -21,7 +22,8 @@ import {
   User,
   ChevronLeft,
   ChevronRight,
-  FolderOpen
+  FolderOpen,
+  ArrowLeft
 } from 'lucide-react';
 
 export interface ProjectDetailPanelProps {
@@ -29,9 +31,15 @@ export interface ProjectDetailPanelProps {
   activeTab: DetailTabType;
   onTabChange: (tab: DetailTabType) => void;
   onEdit?: (project: ProjectTableRow) => void;
-  onNavigate?: (direction: 'prev' | 'next') => void;
+  onNavigate?: (direction: 'first' | 'prev' | 'next' | 'last') => void;
   canNavigatePrev?: boolean;
   canNavigateNext?: boolean;
+  onBackToList?: () => void; // 목록으로 돌아가기 핸들러
+  viewMode?: 'detail' | 'fullpage'; // 뷰 모드에 따른 렌더링 차별화
+  
+  // 네비게이션을 위한 추가 props
+  currentProjectIndex?: number;
+  totalProjectsCount?: number;
   
   // 새로운 필터 관련 props
   searchQuery?: string;
@@ -59,6 +67,12 @@ export function ProjectDetailPanel({
   onNavigate,
   canNavigatePrev = false,
   canNavigateNext = false,
+  onBackToList,
+  viewMode = 'detail',
+  
+  // 네비게이션을 위한 추가 props
+  currentProjectIndex = 0,
+  totalProjectsCount = 0,
   
   // 새로운 필터 관련 props
   searchQuery = '',
@@ -91,67 +105,68 @@ export function ProjectDetailPanel({
 
   return (
     <div className="flex flex-col h-full min-h-0">
-      {/* 헤더 */}
-      <div className="flex items-center justify-between p-6 border-b border-border-light flex-shrink-0">
-        <div className="flex items-center gap-3 flex-1 min-w-0">
-          <div className="p-2 bg-weave-primary-light rounded-lg flex-shrink-0">
-            <FileText className="w-5 h-5 text-weave-primary" />
+      {/* Detail 모드에서만 프로젝트 정보 헤더 표시 */}
+      {viewMode === 'detail' && (
+        <div className="flex items-center justify-between p-6 border-b border-border-light flex-shrink-0">
+          <div className="flex items-center gap-3 flex-1 min-w-0">
+            <div className="p-2 bg-weave-primary-light rounded-lg flex-shrink-0">
+              <FileText className="w-5 h-5 text-weave-primary" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <Typography variant="h3" className="text-xl font-semibold text-txt-primary truncate">
+                {project.name}
+              </Typography>
+              <Typography variant="body2" className="text-txt-secondary">
+                {project.no} • {project.client}
+              </Typography>
+            </div>
           </div>
-          <div className="min-w-0 flex-1">
-            <Typography variant="h3" className="text-xl font-semibold text-txt-primary truncate">
-              {project.name}
-            </Typography>
-            <Typography variant="body2" className="text-txt-secondary">
-              {project.no} • {project.client}
-            </Typography>
-          </div>
-        </div>
-        
-        <div className="flex items-center gap-2 flex-shrink-0">
-          {/* 네비게이션 버튼 */}
-          {onNavigate && (
-            <>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => onNavigate('prev')}
-                disabled={!canNavigatePrev}
-                className="p-2"
-                aria-label="이전 프로젝트"
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </Button>
-              
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => onNavigate('next')}
-                disabled={!canNavigateNext}
-                className="p-2"
-                aria-label="다음 프로젝트"
-              >
-                <ChevronRight className="w-4 h-4" />
-              </Button>
-              
-              <div className="w-px h-6 bg-border-light mx-2" />
-            </>
-          )}
           
-          {/* 편집 버튼 */}
-          {onEdit && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onEdit(project)}
-              className="flex items-center gap-2"
-            >
-              <Edit className="w-4 h-4" />
-              편집
-            </Button>
-          )}
+          <div className="flex items-center gap-2 flex-shrink-0">
+            {/* 프로젝트 네비게이션 */}
+            {onNavigate && totalProjectsCount > 1 && (
+              <>
+                <ProjectNavigation
+                  currentIndex={currentProjectIndex}
+                  totalCount={totalProjectsCount}
+                  onNavigate={onNavigate}
+                  size="sm"
+                  ariaLabel="프로젝트 네비게이션"
+                  itemType="프로젝트"
+                />
+                
+                <div className="w-px h-6 bg-border-light mx-2" />
+              </>
+            )}
+            
+            {/* 목록으로 버튼 (Detail 모드에서만) */}
+            {onBackToList && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onBackToList}
+                className="flex items-center gap-2"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                목록으로
+              </Button>
+            )}
+            
+            {/* 편집 버튼 (Detail 모드에서만) */}
+            {onEdit && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onEdit(project)}
+                className="flex items-center gap-2"
+              >
+                <Edit className="w-4 h-4" />
+                편집
+              </Button>
+            )}
+          </div>
         </div>
-      </div>
-
+      )}
 
       {/* 탭 네비게이션 */}
       <div className="border-b border-border-light flex-shrink-0">

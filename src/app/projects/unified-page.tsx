@@ -37,6 +37,15 @@ export default function UnifiedProjectsPage() {
   // useProjectTable 훅을 사용해서 정렬된 데이터 가져오기
   const { data: sortedProjectData } = useProjectTable(rawProjectData);
 
+  // 디버깅을 위한 콘솔 로그
+  console.log('🔍 Debug - unified-page.tsx:', {
+    rawProjectDataLength: rawProjectData.length,
+    sortedProjectDataLength: sortedProjectData.length,
+    loading,
+    viewMode,
+    selectedProjectId
+  });
+
   // 초기화 - localStorage와 URL 파라미터 확인
   useEffect(() => {
     if (!isInitialized) {
@@ -85,16 +94,11 @@ export default function UnifiedProjectsPage() {
     router.push(`${pathname}?${params.toString()}`, { scroll: false });
   }, [pathname, router, searchParams, sortedProjectData]);
 
-  // 프로젝트 선택 핸들러 (List View에서 사용)
+  // 프로젝트 선택 핸들러 (List View에서 사용) - 전체 페이지로 전환
   const handleProjectSelect = useCallback((projectNo: string) => {
-    // Detail View로 전환하면서 선택된 프로젝트 설정
-    const params = new URLSearchParams(searchParams.toString());
-    params.set('view', 'detail');
-    params.set('selected', projectNo);
-    
-    localStorage.setItem('preferredViewMode', 'detail');
-    router.push(`${pathname}?${params.toString()}`);
-  }, [pathname, router, searchParams]);
+    // 개별 프로젝트 상세 페이지로 네비게이션
+    router.push(`/projects/${projectNo}`);
+  }, [router]);
 
   // 통계 데이터 계산 (원시 데이터 기준)
   const { stats, totalCount } = useMemo(() => {
