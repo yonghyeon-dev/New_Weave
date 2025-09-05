@@ -131,7 +131,14 @@ export function ProjectDetailPanel({
                   <SimpleProjectNavigation
                     currentIndex={currentProjectIndex}
                     totalCount={totalProjectsCount}
-                    onNavigate={onNavigate}
+                    onNavigate={(direction) => {
+                      // 4방향 네비게이션을 2방향으로 변환
+                      if (direction === 'prev') {
+                        onNavigate('prev');
+                      } else if (direction === 'next') {
+                        onNavigate('next');
+                      }
+                    }}
                     size="sm"
                     ariaLabel="프로젝트 네비게이션"
                     itemType="프로젝트"

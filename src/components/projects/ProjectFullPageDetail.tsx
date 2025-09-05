@@ -247,6 +247,8 @@ export function ProjectFullPageDetail({
             canNavigatePrev={canNavigatePrev}
             canNavigateNext={canNavigateNext}
             viewMode="fullpage"
+            currentProjectIndex={currentProjectIndex}
+            totalProjectsCount={allProjects.length}
             searchQuery={searchQuery}
             onSearchChange={setSearchQuery}
             filters={filters}
