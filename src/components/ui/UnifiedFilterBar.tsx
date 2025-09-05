@@ -236,16 +236,7 @@ export function UnifiedFilterBar({
 
               {/* 추가 필터 영역 (향후 확장용) */}
               <div className="flex items-end">
-                {onResetColumns && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={onResetColumns}
-                    disabled={loading}
-                  >
-                    컬럼 초기화
-                  </Button>
-                )}
+                {/* 추후 필터 옵션 확장 영역 */}
               </div>
             </div>
           </div>
@@ -254,9 +245,23 @@ export function UnifiedFilterBar({
         {/* 컬럼 설정 패널 */}
         {showColumnSettingsPanel && showColumnSettings && columns.length > 0 && (
           <div className="mt-4 pt-4 border-t border-border-light">
-            <Typography variant="body2" className="mb-3 text-txt-secondary">
-              컬럼을 드래그하여 순서를 변경하고, 체크박스로 표시/숨김을 설정하세요.
-            </Typography>
+            <div className="flex justify-between items-center mb-3">
+              <Typography variant="body2" className="text-txt-secondary">
+                컬럼을 드래그하여 순서를 변경하고, 체크박스로 표시/숨김을 설정하세요.
+              </Typography>
+              {onResetColumns && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={onResetColumns}
+                  disabled={loading}
+                  className="flex items-center gap-2"
+                >
+                  <RotateCcw className="w-3 h-3" />
+                  컬럼 초기화
+                </Button>
+              )}
+            </div>
             
             <DragDropContext onDragEnd={handleColumnReorder}>
               <Droppable droppableId="columns">
