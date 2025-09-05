@@ -8,7 +8,8 @@ import { ViewModeSwitch, ViewMode } from '@/components/ui/ViewModeSwitch';
 import NewProjectsPage from './new-projects-page';
 import { ProjectMasterDetailPage } from '@/components/projects/ProjectMasterDetailPage';
 import Typography from '@/components/ui/Typography';
-import { Briefcase } from 'lucide-react';
+import Button from '@/components/ui/Button';
+import { Briefcase, Plus, RefreshCw, Download } from 'lucide-react';
 
 /**
  * 통합 프로젝트 페이지
@@ -74,29 +75,75 @@ export default function UnifiedProjectsPage() {
     router.push(`${pathname}?${params.toString()}`);
   }, [pathname, router, searchParams]);
 
+  // 액션 버튼 핸들러들
+  const handleRefresh = useCallback(() => {
+    // 새로고침 로직 (현재는 페이지 새로고침으로 대체)
+    window.location.reload();
+  }, []);
+
+  const handleExport = useCallback(() => {
+    // 엑셀 내보내기 로직
+    console.log('Export to Excel');
+    alert('엑셀 파일이 다운로드됩니다.');
+  }, []);
+
+  const handleCreateProject = useCallback(() => {
+    router.push('/projects/new');
+  }, [router]);
+
   // 헤더 컴포넌트
   const renderHeader = () => (
     <div className="mb-6">
       <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-3">
-          <div className="p-3 bg-weave-primary-light rounded-lg">
+        <div className="flex items-center gap-3 flex-1 min-w-0">
+          <div className="p-3 bg-weave-primary-light rounded-lg flex-shrink-0">
             <Briefcase className="w-6 h-6 text-weave-primary" />
           </div>
-          <div>
-            <Typography variant="h2" className="text-2xl text-txt-primary">
-              프로젝트 관리
-            </Typography>
-            <Typography variant="body1" className="text-txt-secondary mt-1">
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-4 mb-1">
+              <Typography variant="h2" className="text-2xl text-txt-primary">
+                프로젝트 관리
+              </Typography>
+              <ViewModeSwitch
+                mode={viewMode}
+                onModeChange={handleViewModeChange}
+              />
+            </div>
+            <Typography variant="body1" className="text-txt-secondary">
               프로젝트를 효율적으로 관리하고 추적하세요
             </Typography>
           </div>
         </div>
-      </div>
-      <div className="flex justify-start">
-        <ViewModeSwitch
-          mode={viewMode}
-          onModeChange={handleViewModeChange}
-        />
+        
+        {/* 우측 액션 버튼 그룹 */}
+        <div className="flex items-center gap-3 flex-shrink-0">
+          <Button
+            variant="outline"
+            onClick={handleRefresh}
+            className="flex items-center gap-2"
+          >
+            <RefreshCw className="w-4 h-4" />
+            새로고침
+          </Button>
+          
+          <Button
+            variant="outline"
+            onClick={handleExport}
+            className="flex items-center gap-2"
+          >
+            <Download className="w-4 h-4" />
+            내보내기
+          </Button>
+          
+          <Button
+            variant="primary"
+            onClick={handleCreateProject}
+            className="flex items-center gap-2"
+          >
+            <Plus className="w-4 h-4" />
+            새 프로젝트
+          </Button>
+        </div>
       </div>
     </div>
   );

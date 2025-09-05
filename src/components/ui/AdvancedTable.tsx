@@ -3,14 +3,7 @@
 import React, { useState, useMemo } from 'react';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import { 
-  Settings, 
-  Filter, 
-  Search, 
-  Eye, 
-  EyeOff, 
   GripVertical,
-  ChevronDown,
-  ChevronUp,
   SortAsc,
   SortDesc
 } from 'lucide-react';
@@ -18,6 +11,7 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@
 import { Card } from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Typography from '@/components/ui/Typography';
+import Pagination from '@/components/ui/Pagination';
 import type { 
   ProjectTableColumn, 
   ProjectTableRow, 
@@ -41,8 +35,6 @@ export function AdvancedTable({
   onRowClick,
   loading = false 
 }: AdvancedTableProps) {
-  const [showColumnSettings, setShowColumnSettings] = useState(false);
-  const [showFilters, setShowFilters] = useState(false);
   const [draggedColumnId, setDraggedColumnId] = useState<string | null>(null);
   const [draggedColumns, setDraggedColumns] = useState<ProjectTableColumn[] | null>(null);
   // 컬럼 리사이징 상태 (최소화)
@@ -201,17 +193,6 @@ export function AdvancedTable({
   };
 
 
-  // 컬럼 가시성 토글
-  const handleColumnVisibilityToggle = (columnId: string) => {
-    const updatedColumns = config.columns.map(col =>
-      col.id === columnId ? { ...col, visible: !col.visible } : col
-    );
-
-    onConfigChange({
-      ...config,
-      columns: updatedColumns
-    });
-  };
 
   // 정렬 핸들러
   const handleSort = (columnKey: string) => {
@@ -229,45 +210,6 @@ export function AdvancedTable({
     });
   };
 
-  // 필터 적용
-  const filteredData = useMemo(() => {
-    let filtered = [...data];
-
-    // 검색 필터
-    if (config.filters.searchQuery) {
-      const query = config.filters.searchQuery.toLowerCase();
-      filtered = filtered.filter(row =>
-        Object.values(row).some(value => 
-          String(value).toLowerCase().includes(query)
-        )
-      );
-    }
-
-    // 상태 필터
-    if (config.filters.statusFilter !== 'all') {
-      filtered = filtered.filter(row => 
-        row.status === config.filters.statusFilter
-      );
-    }
-
-    return filtered;
-  }, [data, config.filters]);
-
-  // 정렬 적용
-  const sortedData = useMemo(() => {
-    if (!config.sort.column) return filteredData;
-
-    return [...filteredData].sort((a, b) => {
-      const aValue = a[config.sort.column as keyof ProjectTableRow];
-      const bValue = b[config.sort.column as keyof ProjectTableRow];
-
-      let comparison = 0;
-      if (aValue < bValue) comparison = -1;
-      if (aValue > bValue) comparison = 1;
-
-      return config.sort.direction === 'desc' ? -comparison : comparison;
-    });
-  }, [filteredData, config.sort]);
 
   // 보이는 컬럼만 필터링 및 정렬
   const baseVisibleColumns = config.columns
@@ -350,148 +292,6 @@ export function AdvancedTable({
 
   return (
     <div className="space-y-4">
-      {/* 테이블 컨트롤 */}
-      <Card className="p-4">
-        <div className="flex flex-col lg:flex-row gap-4 justify-between">
-          {/* 검색 */}
-          <div className="flex-1 max-w-md">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-txt-tertiary" />
-              <input
-                type="text"
-                placeholder="프로젝트 검색..."
-                value={config.filters.searchQuery}
-                onChange={(e) => onConfigChange({
-                  ...config,
-                  filters: { ...config.filters, searchQuery: e.target.value }
-                })}
-                className="w-full pl-10 pr-4 py-2 border border-border-light rounded-lg focus:outline-none focus:ring-2 focus:ring-weave-primary focus:border-transparent"
-              />
-            </div>
-          </div>
-
-          {/* 컨트롤 버튼 */}
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              onClick={() => setShowFilters(!showFilters)}
-              className="flex items-center gap-2"
-            >
-              <Filter className="w-4 h-4" />
-              필터
-              {showFilters ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-            </Button>
-            
-            <Button
-              variant="outline"
-              onClick={() => setShowColumnSettings(!showColumnSettings)}
-              className="flex items-center gap-2"
-            >
-              <Settings className="w-4 h-4" />
-              컬럼 설정
-              {showColumnSettings ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-            </Button>
-          </div>
-        </div>
-
-        {/* 필터 패널 */}
-        {showFilters && (
-          <div className="mt-4 pt-4 border-t border-border-light">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-txt-secondary mb-2">
-                  상태
-                </label>
-                <select
-                  value={config.filters.statusFilter}
-                  onChange={(e) => onConfigChange({
-                    ...config,
-                    filters: { 
-                      ...config.filters, 
-                      statusFilter: e.target.value as any 
-                    }
-                  })}
-                  className="w-full px-3 py-2 border border-border-light rounded-lg focus:outline-none focus:ring-2 focus:ring-weave-primary"
-                >
-                  <option value="all">모든 상태</option>
-                  <option value="planning">기획</option>
-                  <option value="in_progress">진행중</option>
-                  <option value="review">검토</option>
-                  <option value="completed">완료</option>
-                  <option value="on_hold">보류</option>
-                  <option value="cancelled">취소</option>
-                </select>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* 컬럼 설정 패널 */}
-        {showColumnSettings && (
-          <div className="mt-4 pt-4 border-t border-border-light">
-            <Typography variant="body2" className="mb-3 text-txt-secondary">
-              컬럼을 드래그하여 순서를 변경하고, 체크박스로 표시/숨김을 설정하세요.
-            </Typography>
-            
-            <DragDropContext onDragEnd={handleColumnSettingsReorder}>
-              <Droppable droppableId="columns">
-                {(provided) => (
-                  <div
-                    {...provided.droppableProps}
-                    ref={provided.innerRef}
-                    className="space-y-2 max-h-60 overflow-y-auto"
-                  >
-                    {config.columns
-                      .sort((a, b) => a.order - b.order)
-                      .map((column, index) => (
-                        <Draggable 
-                          key={column.id} 
-                          draggableId={column.id} 
-                          index={index}
-                        >
-                          {(provided, snapshot) => (
-                            <div
-                              ref={provided.innerRef}
-                              {...provided.draggableProps}
-                              className={`flex items-center gap-3 p-3 bg-bg-secondary rounded-lg ${
-                                snapshot.isDragging ? 'shadow-lg' : ''
-                              }`}
-                            >
-                              <div
-                                {...provided.dragHandleProps}
-                                className="flex items-center justify-center w-6 h-6 text-txt-tertiary hover:text-txt-secondary cursor-grab"
-                              >
-                                <GripVertical className="w-4 h-4" />
-                              </div>
-                              
-                              <button
-                                onClick={() => handleColumnVisibilityToggle(column.id)}
-                                className="flex items-center justify-center w-6 h-6 text-txt-tertiary hover:text-txt-secondary"
-                              >
-                                {column.visible ? (
-                                  <Eye className="w-4 h-4" />
-                                ) : (
-                                  <EyeOff className="w-4 h-4" />
-                                )}
-                              </button>
-                              
-                              <span className={`flex-1 text-sm ${
-                                column.visible ? 'text-txt-primary' : 'text-txt-tertiary'
-                              }`}>
-                                {column.label}
-                              </span>
-                            </div>
-                          )}
-                        </Draggable>
-                      ))}
-                    {provided.placeholder}
-                  </div>
-                )}
-              </Droppable>
-            </DragDropContext>
-          </div>
-        )}
-      </Card>
 
       {/* 테이블 */}
       <Card>
@@ -688,7 +488,7 @@ export function AdvancedTable({
                 </TableRow>
               ))
             ) : (
-              sortedData.map((row) => (
+              data.map((row) => (
                 <TableRow 
                   key={row.id}
                   onClick={() => onRowClick?.(row)}
@@ -721,7 +521,7 @@ export function AdvancedTable({
           </TableBody>
         </Table>
 
-        {!loading && sortedData.length === 0 && (
+        {!loading && data.length === 0 && (
           <div className="text-center py-12">
             <Typography variant="body1" className="text-txt-secondary">
               검색 결과가 없습니다.
@@ -729,6 +529,28 @@ export function AdvancedTable({
           </div>
         )}
       </Card>
+
+      {/* 페이지네이션 */}
+      {!loading && data.length > 0 && (
+        <Pagination
+          currentPage={config.pagination.page}
+          totalPages={Math.ceil(config.pagination.total / config.pagination.pageSize)}
+          onPageChange={(page) => {
+            onConfigChange({
+              ...config,
+              pagination: {
+                ...config.pagination,
+                page
+              }
+            });
+          }}
+          itemsPerPage={config.pagination.pageSize}
+          totalItems={config.pagination.total}
+          size="sm"
+          showInfo={true}
+          visiblePages={5}
+        />
+      )}
     </div>
   );
 }

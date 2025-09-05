@@ -9,6 +9,7 @@ import { ProjectDetailModal } from '@/components/ui/ProjectDetailModal';
 import Button from '@/components/ui/Button';
 import Typography from '@/components/ui/Typography';
 import { useProjectTable } from '@/lib/hooks/useProjectTable';
+import { UnifiedFilterBar } from '@/components/ui/UnifiedFilterBar';
 import type { ProjectTableRow } from '@/lib/types/project-table.types';
 import { 
   Plus, 
@@ -124,7 +125,8 @@ export default function NewProjectsPage({
     updateConfig,
     updateData,
     resetColumnConfig,
-    resetFilters
+    resetFilters,
+    updatePageSize
   } = useProjectTable(mockData);
 
   // LCP 개선을 위한 메모화된 통계 계산
@@ -187,46 +189,11 @@ export default function NewProjectsPage({
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3 flex-1 min-w-0">
-              <div className="p-3 bg-weave-primary-light rounded-lg flex-shrink-0">
-                <Briefcase className="w-6 h-6 text-weave-primary" />
-              </div>
               <div className="min-w-0 flex-1">
-                <Typography variant="h2" className="text-2xl mb-1 text-txt-primary">
-                  프로젝트 관리
-                </Typography>
                 <Typography variant="body1" className="text-txt-secondary">
                   {totalCount}개 프로젝트 중 {filteredCount}개 표시
                 </Typography>
               </div>
-            </div>
-            
-            <div className="flex items-center gap-3 flex-shrink-0">
-              <Button
-                variant="outline"
-                onClick={handleRefresh}
-                className="flex items-center gap-2"
-              >
-                <RefreshCw className="w-4 h-4" />
-                새로고침
-              </Button>
-              
-              <Button
-                variant="outline"
-                onClick={handleExport}
-                className="flex items-center gap-2"
-              >
-                <Download className="w-4 h-4" />
-                내보내기
-              </Button>
-              
-              <Button
-                variant="primary"
-                onClick={() => router.push('/projects/new')}
-                className="flex items-center gap-2"
-              >
-                <Plus className="w-4 h-4" />
-                새 프로젝트
-              </Button>
             </div>
           </div>
 
@@ -307,9 +274,35 @@ export default function NewProjectsPage({
         </div>
       )}
 
+      {/* 통합 필터 바 */}
+      <div className="mb-6">
+        <UnifiedFilterBar
+          searchQuery={config.filters.searchQuery}
+          onSearchChange={(query) => updateConfig({
+            ...config,
+            filters: { ...config.filters, searchQuery: query },
+            pagination: { ...config.pagination, page: 1 }
+          })}
+          filters={config.filters}
+          onFiltersChange={(filters) => updateConfig({
+            ...config,
+            filters,
+            pagination: { ...config.pagination, page: 1 }
+          })}
+          columns={config.columns}
+          onColumnConfigChange={updateConfig}
+          onResetColumns={resetColumnConfig}
+          onResetFilters={resetFilters}
+          pageSize={config.pagination.pageSize}
+          onPageSizeChange={updatePageSize}
+          showColumnSettings={true}
+          loading={loading}
+        />
+      </div>
+
       {/* 고급 테이블 */}
         <AdvancedTable
-          data={tableData}
+          data={paginatedData}
           config={config}
           onConfigChange={updateConfig}
           onRowClick={handleRowClick}

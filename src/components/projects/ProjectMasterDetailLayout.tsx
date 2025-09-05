@@ -4,16 +4,11 @@ import React from 'react';
 import { Card } from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Typography from '@/components/ui/Typography';
-import { ViewSwitchButtons, ViewMode } from '@/components/ui/ViewSwitchButtons';
+import { ViewMode } from '@/components/ui/ViewSwitchButtons';
 import { UnifiedFilterBar } from '@/components/ui/UnifiedFilterBar';
 import { 
-  Plus, 
-  Briefcase, 
-  Search,
   ChevronLeft,
-  ChevronRight,
-  RefreshCw,
-  Download
+  ChevronRight
 } from 'lucide-react';
 
 export interface ProjectMasterDetailLayoutProps {
@@ -22,9 +17,6 @@ export interface ProjectMasterDetailLayoutProps {
   subtitle: string;
   totalProjects: number;
   filteredProjects: number;
-  onCreateProject: () => void;
-  onRefresh: () => void;
-  onExport: () => void;
   
   // Breadcrumb props
   showBreadcrumb?: boolean;
@@ -69,9 +61,6 @@ export function ProjectMasterDetailLayout({
   subtitle,
   totalProjects,
   filteredProjects,
-  onCreateProject,
-  onRefresh,
-  onExport,
   showBreadcrumb = false,
   breadcrumbItems = [],
   currentView,
@@ -121,9 +110,6 @@ export function ProjectMasterDetailLayout({
         <div className="flex items-center justify-between mb-4">
           {/* 제목 영역 + 뷰 스위치 */}
           <div className="flex items-center gap-3 flex-1 min-w-0">
-            <div className="p-3 bg-weave-primary-light rounded-lg flex-shrink-0">
-              <Briefcase className="w-6 h-6 text-weave-primary" />
-            </div>
             <div className="min-w-0">
               <Typography variant="h2" className="text-2xl mb-1 text-txt-primary">
                 {title}
@@ -133,48 +119,8 @@ export function ProjectMasterDetailLayout({
               </Typography>
             </div>
             
-            {/* 뷰 스위치 버튼 - 텍스트 우측 */}
-            <div className="ml-4">
-              <ViewSwitchButtons
-                currentView={currentView}
-                onViewChange={onViewChange}
-                disabled={loading}
-              />
-            </div>
           </div>
           
-          {/* 액션 버튼 그룹 */}
-          <div className="flex items-center gap-3 flex-shrink-0">
-            <Button
-              variant="outline"
-              onClick={onRefresh}
-              disabled={loading}
-              className="flex items-center gap-2"
-            >
-              <RefreshCw className="w-4 h-4" />
-              새로고침
-            </Button>
-            
-            <Button
-              variant="outline"
-              onClick={onExport}
-              disabled={loading}
-              className="flex items-center gap-2"
-            >
-              <Download className="w-4 h-4" />
-              내보내기
-            </Button>
-            
-            <Button
-              variant="primary"
-              onClick={onCreateProject}
-              disabled={loading}
-              className="flex items-center gap-2"
-            >
-              <Plus className="w-4 h-4" />
-              새 프로젝트
-            </Button>
-          </div>
         </div>
 
         {/* 통합 필터 바 */}

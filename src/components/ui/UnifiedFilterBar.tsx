@@ -37,6 +37,10 @@ export interface UnifiedFilterBarProps {
   onResetColumns?: () => void;
   onResetFilters?: () => void;
   
+  // 페이지네이션 설정
+  pageSize?: number;
+  onPageSizeChange?: (size: number) => void;
+  
   // 표시 옵션
   showColumnSettings?: boolean;  // 리스트 뷰에서만 true
   
@@ -62,6 +66,8 @@ export function UnifiedFilterBar({
   onColumnConfigChange,
   onResetColumns,
   onResetFilters,
+  pageSize = 10,
+  onPageSizeChange,
   showColumnSettings = true,
   loading = false
 }: UnifiedFilterBarProps) {
@@ -74,6 +80,13 @@ export function UnifiedFilterBar({
       ...filters,
       statusFilter: status as any
     });
+  };
+
+  // 페이지 크기 변경 핸들러
+  const handlePageSizeChange = (size: string) => {
+    if (onPageSizeChange) {
+      onPageSizeChange(parseInt(size, 10));
+    }
   };
 
   // 컬럼 순서 변경 핸들러
@@ -119,7 +132,7 @@ export function UnifiedFilterBar({
     <div className="w-full">
       {/* 메인 필터 바 */}
       <Card className="p-4">
-        <div className="flex items-center gap-4">
+        <div className="flex flex-col lg:flex-row gap-4 justify-between">
           {/* 검색 입력 */}
           <div className="flex-1 max-w-md">
             <div className="relative">
@@ -136,7 +149,7 @@ export function UnifiedFilterBar({
           </div>
 
           {/* 컨트롤 버튼 */}
-          <div className="flex items-center gap-2">
+          <div className="flex gap-2">
             {/* 필터 버튼 */}
             <Button
               variant="outline"
@@ -199,6 +212,25 @@ export function UnifiedFilterBar({
                   <option value="completed">완료</option>
                   <option value="on_hold">보류</option>
                   <option value="cancelled">취소</option>
+                </select>
+              </div>
+
+              {/* 페이지 크기 설정 */}
+              <div>
+                <label className="block text-sm font-medium text-txt-secondary mb-2">
+                  페이지당 항목 수
+                </label>
+                <select
+                  value={pageSize}
+                  onChange={(e) => handlePageSizeChange(e.target.value)}
+                  className="w-full px-3 py-2 border border-border-light rounded-lg focus:outline-none focus:ring-2 focus:ring-weave-primary"
+                  disabled={loading}
+                >
+                  <option value={5}>5개</option>
+                  <option value={10}>10개</option>
+                  <option value={20}>20개</option>
+                  <option value={50}>50개</option>
+                  <option value={100}>100개</option>
                 </select>
               </div>
 

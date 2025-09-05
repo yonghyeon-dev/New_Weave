@@ -125,7 +125,7 @@ const DEFAULT_SORT: TableSortState = {
 
 const DEFAULT_PAGINATION = {
   page: 1,
-  pageSize: 20,
+  pageSize: 10,
   total: 0
 };
 
@@ -327,6 +327,19 @@ export function useProjectTable(initialData: ProjectTableRow[] = []) {
     updateConfig(resetConfig);
   }, [config, updateConfig]);
 
+  // 페이지 크기 변경
+  const updatePageSize = useCallback((newPageSize: number) => {
+    const resetConfig: ProjectTableConfig = {
+      ...config,
+      pagination: {
+        ...config.pagination,
+        pageSize: newPageSize,
+        page: 1 // 페이지 크기 변경 시 첫 페이지로 리셋
+      }
+    };
+    updateConfig(resetConfig);
+  }, [config, updateConfig]);
+
   return {
     // 데이터
     data: sortedData,
@@ -343,7 +356,8 @@ export function useProjectTable(initialData: ProjectTableRow[] = []) {
     
     // 유틸리티
     resetColumnConfig,
-    resetFilters
+    resetFilters,
+    updatePageSize
   };
 }
 
