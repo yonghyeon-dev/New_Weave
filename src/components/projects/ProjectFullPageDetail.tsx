@@ -10,6 +10,7 @@ import { UnifiedFilterBar } from '@/components/ui/UnifiedFilterBar';
 import Typography from '@/components/ui/Typography';
 import Button from '@/components/ui/Button';
 import ProjectNavigation from '@/components/ui/ProjectNavigation';
+import SimpleProjectNavigation from '@/components/ui/SimpleProjectNavigation';
 import { 
   Briefcase, 
   ArrowLeft, 
@@ -181,13 +182,22 @@ export function ProjectFullPageDetail({
             
             {/* 중앙: 프로젝트 네비게이션 */}
             <div className="mx-6">
-              <ProjectNavigation
+              <SimpleProjectNavigation
                 currentIndex={currentProjectIndex}
                 totalCount={allProjects.length}
-                onNavigate={handleNavigateProject}
+                onNavigate={(direction) => {
+                  // 2방향을 4방향으로 변환
+                  if (direction === 'prev') {
+                    handleNavigateProject('prev');
+                  } else if (direction === 'next') {
+                    handleNavigateProject('next');
+                  }
+                }}
                 size="sm"
                 ariaLabel="프로젝트 네비게이션"
                 itemType="프로젝트"
+                showPosition={true}
+                compact={false}
               />
             </div>
             
