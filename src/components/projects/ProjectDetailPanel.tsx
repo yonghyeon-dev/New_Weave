@@ -4,6 +4,7 @@ import React from 'react';
 import Typography from '@/components/ui/Typography';
 import Button from '@/components/ui/Button';
 import ProjectNavigation from '@/components/ui/ProjectNavigation';
+import SimpleProjectNavigation from '@/components/ui/SimpleProjectNavigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { ProjectTableControls } from '@/components/ui/ProjectTableControls';
 import type { 
@@ -126,14 +127,27 @@ export function ProjectDetailPanel({
             {/* 프로젝트 네비게이션 */}
             {onNavigate && totalProjectsCount > 1 && (
               <>
-                <ProjectNavigation
-                  currentIndex={currentProjectIndex}
-                  totalCount={totalProjectsCount}
-                  onNavigate={onNavigate}
-                  size="sm"
-                  ariaLabel="프로젝트 네비게이션"
-                  itemType="프로젝트"
-                />
+                {viewMode === 'fullpage' ? (
+                  <SimpleProjectNavigation
+                    currentIndex={currentProjectIndex}
+                    totalCount={totalProjectsCount}
+                    onNavigate={onNavigate}
+                    size="sm"
+                    ariaLabel="프로젝트 네비게이션"
+                    itemType="프로젝트"
+                    showPosition={true}
+                    compact={false}
+                  />
+                ) : (
+                  <ProjectNavigation
+                    currentIndex={currentProjectIndex}
+                    totalCount={totalProjectsCount}
+                    onNavigate={onNavigate}
+                    size="sm"
+                    ariaLabel="프로젝트 네비게이션"
+                    itemType="프로젝트"
+                  />
+                )}
                 
                 <div className="w-px h-6 bg-border-light mx-2" />
               </>
