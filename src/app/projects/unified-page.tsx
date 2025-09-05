@@ -292,24 +292,6 @@ export default function UnifiedProjectsPage() {
         <div className="bg-white rounded-lg border border-border-light p-4">
           <div className="flex items-center justify-between">
             <div>
-              <div className="text-2xl font-bold text-blue-600 min-w-[3rem] min-h-[2rem]">
-                {loading ? (
-                  <div className="w-12 h-8 bg-gray-200 rounded animate-pulse"></div>
-                ) : (
-                  stats.completed
-                )}
-              </div>
-              <div className="text-sm text-txt-secondary">완료</div>
-            </div>
-            <div className="p-2 bg-blue-50 rounded-lg">
-              <RefreshCw className="w-5 h-5 text-blue-500" />
-            </div>
-          </div>
-        </div>
-        
-        <div className="bg-white rounded-lg border border-border-light p-4">
-          <div className="flex items-center justify-between">
-            <div>
               <div className="text-2xl font-bold text-orange-600 min-w-[3rem] min-h-[2rem]">
                 {loading ? (
                   <div className="w-12 h-8 bg-gray-200 rounded animate-pulse"></div>
@@ -321,6 +303,24 @@ export default function UnifiedProjectsPage() {
             </div>
             <div className="p-2 bg-orange-50 rounded-lg">
               <Eye className="w-5 h-5 text-orange-500" />
+            </div>
+          </div>
+        </div>
+        
+        <div className="bg-white rounded-lg border border-border-light p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="text-2xl font-bold text-blue-600 min-w-[3rem] min-h-[2rem]">
+                {loading ? (
+                  <div className="w-12 h-8 bg-gray-200 rounded animate-pulse"></div>
+                ) : (
+                  stats.completed
+                )}
+              </div>
+              <div className="text-sm text-txt-secondary">완료</div>
+            </div>
+            <div className="p-2 bg-blue-50 rounded-lg">
+              <RefreshCw className="w-5 h-5 text-blue-500" />
             </div>
           </div>
         </div>
