@@ -9,7 +9,7 @@ import NewProjectsPage from './new-projects-page';
 import { ProjectMasterDetailPage } from '@/components/projects/ProjectMasterDetailPage';
 import Typography from '@/components/ui/Typography';
 import Button from '@/components/ui/Button';
-import { Briefcase, Plus, RefreshCw, Download, Upload, Eye } from 'lucide-react';
+import { Briefcase, Plus, RefreshCw, Download, Upload, Eye, Play, CheckCircle } from 'lucide-react';
 import type { ProjectTableRow } from '@/lib/types/project-table.types';
 
 /**
@@ -274,7 +274,7 @@ export default function UnifiedProjectsPage() {
         <div className="bg-white rounded-lg border border-border-light p-4">
           <div className="flex items-center justify-between">
             <div>
-              <div className="text-2xl font-bold text-green-600 min-w-[3rem] min-h-[2rem]">
+              <div className="text-2xl font-bold text-purple-600 min-w-[3rem] min-h-[2rem]">
                 {loading ? (
                   <div className="w-12 h-8 bg-gray-200 rounded animate-pulse"></div>
                 ) : (
@@ -283,8 +283,8 @@ export default function UnifiedProjectsPage() {
               </div>
               <div className="text-sm text-txt-secondary">진행중</div>
             </div>
-            <div className="p-2 bg-green-50 rounded-lg">
-              <RefreshCw className="w-5 h-5 text-green-500" />
+            <div className="p-2 bg-purple-50 rounded-lg">
+              <Play className="w-5 h-5 text-purple-500" />
             </div>
           </div>
         </div>
@@ -310,7 +310,7 @@ export default function UnifiedProjectsPage() {
         <div className="bg-white rounded-lg border border-border-light p-4">
           <div className="flex items-center justify-between">
             <div>
-              <div className="text-2xl font-bold text-blue-600 min-w-[3rem] min-h-[2rem]">
+              <div className="text-2xl font-bold text-green-600 min-w-[3rem] min-h-[2rem]">
                 {loading ? (
                   <div className="w-12 h-8 bg-gray-200 rounded animate-pulse"></div>
                 ) : (
@@ -319,8 +319,8 @@ export default function UnifiedProjectsPage() {
               </div>
               <div className="text-sm text-txt-secondary">완료</div>
             </div>
-            <div className="p-2 bg-blue-50 rounded-lg">
-              <RefreshCw className="w-5 h-5 text-blue-500" />
+            <div className="p-2 bg-green-50 rounded-lg">
+              <CheckCircle className="w-5 h-5 text-green-500" />
             </div>
           </div>
         </div>
