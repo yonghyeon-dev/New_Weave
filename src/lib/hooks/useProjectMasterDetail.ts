@@ -85,11 +85,26 @@ export function useProjectMasterDetail(initialProjects: ProjectTableRow[] = []):
     return filteredProjects.findIndex(p => p.id === selectedProject.id);
   }, [filteredProjects, selectedProject]);
 
-  // 액션: 프로젝트 선택
+  // 액션: 프로젝트 선택 (개선된 탭 상태 관리)
   const selectProject = useCallback((project: ProjectTableRow) => {
+    console.log('🎯 Selecting project:', {
+      id: project.id,
+      no: project.no,
+      name: project.name,
+      currentlySelected: selectedProject?.no
+    });
+    
+    const previousProjectId = selectedProject?.id;
     setSelectedProject(project);
-    setActiveDetailTab('overview'); // 새로운 프로젝트 선택시 개요 탭으로 리셋
-  }, []);
+    
+    // 다른 프로젝트를 선택하는 경우에만 탭 리셋
+    if (previousProjectId !== project.id) {
+      setActiveDetailTab('overview');
+      console.log('📑 Resetting tab to overview (different project selected)');
+    } else {
+      console.log('📑 Keeping current tab (same project re-selected)');
+    }
+  }, [selectedProject]);
 
   // 액션: 인덱스로 프로젝트 선택
   const selectProjectByIndex = useCallback((index: number) => {
@@ -165,13 +180,46 @@ export function useProjectMasterDetail(initialProjects: ProjectTableRow[] = []):
     setIsLoading(loading);
   }, []);
 
-  // 액션: 프로젝트 목록 새로고침
+  // 액션: 프로젝트 목록 새로고침 (개선된 상태 동기화)
   const refreshProjects = useCallback((newProjects: ProjectTableRow[]) => {
+    console.log('🔄 Refreshing Projects:', {
+      newProjectsCount: newProjects.length,
+      currentSelected: selectedProject?.no,
+      newProjectNumbers: newProjects.map(p => p.no)
+    });
+    
+    // 현재 선택된 프로젝트의 ID를 미리 저장
+    const currentSelectedId = selectedProject?.id;
+    const currentSelectedNo = selectedProject?.no;
+    
+    // 프로젝트 목록을 먼저 업데이트
     setProjects(newProjects);
     
-    // 현재 선택된 프로젝트가 새 목록에 없는 경우 선택 해제
-    if (selectedProject && !newProjects.find(p => p.id === selectedProject.id)) {
-      clearSelection();
+    // 선택된 프로젝트가 있었다면 새 목록에서 찾아서 다시 선택
+    if (currentSelectedId && currentSelectedNo) {
+      // ID로 먼저 찾기 (정확한 매칭)
+      let updatedProject = newProjects.find(p => p.id === currentSelectedId);
+      
+      // ID로 찾지 못했다면 No(프로젝트 번호)로 찾기 (fallback)
+      if (!updatedProject) {
+        updatedProject = newProjects.find(p => p.no === currentSelectedNo);
+        console.log('🔍 Project not found by ID, searching by No:', currentSelectedNo);
+      }
+      
+      if (updatedProject) {
+        console.log('✅ Re-selecting project after refresh:', {
+          id: updatedProject.id,
+          no: updatedProject.no,
+          name: updatedProject.name
+        });
+        
+        // 즉시 재선택 (비동기 처리 방지)
+        setSelectedProject(updatedProject);
+        // 탭도 현재 상태 유지 (초기화하지 않음)
+      } else {
+        console.log('❌ Selected project not found in refreshed data, clearing selection');
+        clearSelection();
+      }
     }
   }, [selectedProject, clearSelection]);
 

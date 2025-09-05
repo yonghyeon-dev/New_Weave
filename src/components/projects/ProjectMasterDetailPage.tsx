@@ -17,15 +17,19 @@ const generateMockData = (): ProjectTableRow[] => {
   const statuses: Array<'planning' | 'in_progress' | 'review' | 'completed' | 'on_hold' | 'cancelled'> = 
     ['planning', 'in_progress', 'review', 'completed', 'on_hold', 'cancelled'];
 
+  // 하이드레이션 안전 시드 기반 랜덤 함수 (정수 기반으로 개선)
   const seededRandom = (seed: number): number => {
-    const x = Math.sin(seed) * 10000;
-    return x - Math.floor(x);
+    let x = Math.sin(seed) * 10000;
+    x = x - Math.floor(x);
+    // 정밀도 문제 해결을 위해 6자리까지만 사용
+    return Math.floor(x * 1000000) / 1000000;
   };
 
-  const baseDate = new Date(2024, 0, 1);
+  // 하이드레이션 안전 고정 날짜 (UTC 기준)
+  const baseDate = new Date(2024, 0, 1, 0, 0, 0, 0);
   const dayInterval = 7;
 
-  return Array.from({ length: 20 }, (_, i) => {
+  const projects = Array.from({ length: 20 }, (_, i) => {
     const seed1 = i * 1234 + 5678;
     const seed2 = i * 2345 + 6789;
     const seed3 = i * 3456 + 7890;
@@ -39,8 +43,9 @@ const generateMockData = (): ProjectTableRow[] => {
     );
     const dueDate = new Date(registrationDate.getTime() + Math.floor(seededRandom(seed2) * 90) * 24 * 60 * 60 * 1000);
     
-    const currentDate = new Date();
-    const maxModifyTime = Math.min(currentDate.getTime(), registrationDate.getTime() + 180 * 24 * 60 * 60 * 1000);
+    // 하이드레이션 안전: 고정된 기준 날짜 사용 (2024년 12월 31일)
+    const fixedCurrentDate = new Date(2024, 11, 31, 0, 0, 0, 0);
+    const maxModifyTime = Math.min(fixedCurrentDate.getTime(), registrationDate.getTime() + 180 * 24 * 60 * 60 * 1000);
     const modifyTimeRange = maxModifyTime - registrationDate.getTime();
     const modifiedDate = new Date(registrationDate.getTime() + Math.floor(seededRandom(seed3) * modifyTimeRange));
 
@@ -78,6 +83,9 @@ const generateMockData = (): ProjectTableRow[] => {
       hasDocuments: seededRandom(seed3 + 1000) > 0.4
     };
   });
+
+  // 최신 프로젝트가 상단에 오도록 내림차순 정렬 (등록일 기준)
+  return projects.sort((a, b) => new Date(b.registrationDate).getTime() - new Date(a.registrationDate).getTime());
 };
 
 export interface ProjectMasterDetailPageProps {
@@ -129,22 +137,48 @@ export function ProjectMasterDetailPage({
     loadData();
   }, []); // 빈 의존성 배열로 한 번만 실행
 
-  // 프로젝트 자동 선택 (별도 useEffect)
+  // 프로젝트 자동 선택 (최적화된 useEffect)
   useEffect(() => {
-    if (initialProjectId && state.projects.length > 0) {
-      const targetProject = state.projects.find(p => p.no === initialProjectId);
-      if (targetProject && state.selectedProject?.id !== targetProject.id) {
-        actions.selectProject(targetProject);
-      }
+    // initialProjectId가 없거나 프로젝트 목록이 비어있으면 실행하지 않음
+    if (!initialProjectId || state.projects.length === 0) {
+      return;
     }
-  }, [initialProjectId, state.projects, state.selectedProject, actions.selectProject]);
+    
+    // 이미 올바른 프로젝트가 선택되어 있다면 실행하지 않음
+    if (state.selectedProject?.no === initialProjectId) {
+      console.log('✅ Target project already selected:', initialProjectId);
+      return;
+    }
+    
+    console.log('🔍 Auto-selecting initial project:', {
+      initialProjectId,
+      projectsCount: state.projects.length,
+      currentSelected: state.selectedProject?.no,
+      availableProjects: state.projects.map(p => p.no)
+    });
+    
+    const targetProject = state.projects.find(p => p.no === initialProjectId);
+    
+    if (targetProject) {
+      console.log('✅ Selecting initial project:', {
+        id: targetProject.id,
+        no: targetProject.no,
+        name: targetProject.name
+      });
+      actions.selectProject(targetProject);
+    } else {
+      console.warn('⚠️ Initial project not found:', initialProjectId);
+    }
+  }, [initialProjectId, state.projects, state.selectedProject?.no, actions.selectProject]);
 
   // 데이터 새로고침
   const handleRefresh = useCallback(() => {
+    console.log('🔄 Manual Refresh Triggered');
     actions.setLoading(true);
     
     setTimeout(() => {
       const newData = generateMockData();
+      console.log('🔄 Manual Refresh: Generated new data, calling refreshProjects');
       actions.refreshProjects(newData);
       actions.setLoading(false);
     }, 300);

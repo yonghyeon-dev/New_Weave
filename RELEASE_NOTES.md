@@ -6,6 +6,7 @@
 
 | 버전                 | 릴리즈 날짜 | 주요 변경사항                                      | 이슈 해결 | 상태    |
 | -------------------- | ----------- | -------------------------------------------------- | --------- | ------- |
+| V1.3.0_250905_REV003 | 2025-09-05  | 프로젝트 선택 상태 동기화 시스템 전면 개선        | 1건       | ✅ 완료 |
 | V1.3.0_250905_REV002 | 2025-09-05  | 하이드레이션 오류 근본 해결 및 SSR 안정성 강화    | 1건       | ✅ 완료 |
 | V1.3.0_250905_REV001 | 2025-09-05  | 프로젝트 테이블 UI/UX 최적화 및 드래그앤드롭 개선 | 4건       | ✅ 완료 |
 | V1.3.0_250904_REV003 | 2025-09-04  | 프로젝트 페이지 무한로딩 Critical Bug 긴급 수정   | 1건       | ✅ 완료 |
@@ -14,6 +15,101 @@
 | V1.3.0_250903_REV001 | 2025-09-03  | 프로젝트 관리 시스템 전면 개편 및 고급 테이블 도입 | 4건       | ✅ 완료 |
 | V1.3.0_250831_REV005 | 2025-08-31  | AI 업무비서 챗 시스템 전면 개선 및 RAG 기능 활성화 | 5건       | ✅ 완료 |
 | V1.3.0_250831_REV004 | 2025-08-31  | 프로젝트 설정 탭에 결제 리마인더 기능 통합         | 1건       | ✅ 완료 |
+
+---
+
+# 📝 V1.3.0_250905_REV003 프로젝트 선택 상태 동기화 시스템 전면 개선
+
+**릴리즈 일자**: 2025년 9월 5일  
+**릴리즈 타입**: System Architecture Enhancement & Bug Fix  
+**배포 상태**: 완료
+
+## 🚨 이슈 해결 로그
+
+### ISSUE-STATE-001 🚨 Critical: 프로젝트 선택 상태 동기화 실패
+
+#### 🔍 **문제 분석** (4단계 세분화)
+
+1. **직접 원인**: WEAVE_020이 고정 표시되고 다른 프로젝트 클릭 시 UI가 업데이트되지 않음
+2. **배경 원인**: 데이터 새로고침(refreshProjects)에서 선택 상태가 새로운 객체 참조로 교체되면서 동기화 실패
+3. **시스템 영향**: 마스터-디테일 패턴의 상태 관리 로직에서 React 리렌더링 실패
+4. **사용자 영향**: 프로젝트 간 네비게이션 불가능, 선택된 프로젝트가 다른 프로젝트로 고정됨
+
+#### 🎯 **해결 방안** (시스템적 접근)
+
+- **이중 검색 시스템**: ID → No(프로젝트 번호) 순차 검색으로 안전성 확보
+- **강제 재선택 로직**: 데이터 새로고침 후 즉시 선택 상태 복원
+- **스마트 탭 관리**: 동일 프로젝트 재선택 시 탭 상태 유지
+- **중복 실행 방지**: 불필요한 useEffect 재실행 최소화
+
+#### ✅ **검증 완료** (구체적 결과)
+
+- **프로젝트 선택 정상화**: 다른 프로젝트 클릭 시 즉시 UI 업데이트
+- **상태 동기화 안정화**: 데이터 새로고침 후에도 선택 상태 완전 보존
+- **탭 상태 최적화**: 불필요한 탭 초기화 방지로 사용성 향상
+- **로깅 시스템 강화**: 상태 변경 추적 가능으로 디버깅 효율성 증대
+
+#### 💻 **기술 상세** (코드 변경사항)
+
+```typescript
+// useProjectMasterDetail.ts 주요 개선사항
+
+// 1. refreshProjects 함수 - 이중 검색 시스템
+const refreshProjects = useCallback((newProjects: ProjectTableRow[]) => {
+  // 현재 선택된 프로젝트의 ID를 미리 저장
+  const currentSelectedId = selectedProject?.id;
+  const currentSelectedNo = selectedProject?.no;
+  
+  setProjects(newProjects);
+  
+  if (currentSelectedId && currentSelectedNo) {
+    // ID로 먼저 찾기 (정확한 매칭)
+    let updatedProject = newProjects.find(p => p.id === currentSelectedId);
+    
+    // ID로 찾지 못했다면 No(프로젝트 번호)로 찾기 (fallback)
+    if (!updatedProject) {
+      updatedProject = newProjects.find(p => p.no === currentSelectedNo);
+    }
+    
+    if (updatedProject) {
+      // 즉시 재선택 (비동기 처리 방지)
+      setSelectedProject(updatedProject);
+      // 탭도 현재 상태 유지
+    }
+  }
+}, [selectedProject, clearSelection]);
+
+// 2. selectProject 함수 - 스마트 탭 관리
+const selectProject = useCallback((project: ProjectTableRow) => {
+  const previousProjectId = selectedProject?.id;
+  setSelectedProject(project);
+  
+  // 다른 프로젝트를 선택하는 경우에만 탭 리셋
+  if (previousProjectId !== project.id) {
+    setActiveDetailTab('overview');
+  }
+}, [selectedProject]);
+
+// 3. 초기 프로젝트 선택 - 중복 실행 방지
+useEffect(() => {
+  if (!initialProjectId || state.projects.length === 0) return;
+  
+  // 이미 올바른 프로젝트가 선택되어 있다면 실행하지 않음
+  if (state.selectedProject?.no === initialProjectId) return;
+  
+  const targetProject = state.projects.find(p => p.no === initialProjectId);
+  if (targetProject) {
+    actions.selectProject(targetProject);
+  }
+}, [initialProjectId, state.projects, state.selectedProject?.no]);
+```
+
+#### 🚀 **배포 영향** (긴급도/범위/성능)
+
+- **긴급도**: 🚨 Critical - 핵심 네비게이션 기능 완전 복구
+- **영향 범위**: 전체 사용자, 모든 프로젝트 관련 페이지의 마스터-디테일 네비게이션
+- **성능 개선**: 불필요한 리렌더링 방지로 UI 응답성 향상
+- **사용성 향상**: 탭 상태 유지로 사용자 경험 개선
 
 ---
 
