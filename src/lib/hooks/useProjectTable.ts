@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import type { 
   ProjectTableColumn, 
   ProjectTableRow, 
@@ -133,10 +133,18 @@ const DEFAULT_PAGINATION = {
 const STORAGE_KEY = 'weave-project-table-config';
 
 export function useProjectTable(initialData: ProjectTableRow[] = []) {
+  // 하이드레이션 상태 추적
+  const [isHydrated, setIsHydrated] = useState(false);
+  
+  // 하이드레이션이 완료되면 localStorage 설정 적용
+  useEffect(() => {
+    setIsHydrated(true);
+  }, []);
+
   // 저장된 설정 불러오기 (중앙화된 설정 관리)
   const loadSavedConfig = useCallback((): ProjectTableConfig => {
-    // SSR 호환성: 브라우저 환경에서만 localStorage 접근
-    if (typeof window === 'undefined') {
+    // 하이드레이션이 완료되지 않았다면 항상 기본 설정 반환
+    if (!isHydrated || typeof window === 'undefined') {
       return {
         columns: DEFAULT_COLUMNS,
         filters: DEFAULT_FILTERS,
@@ -166,15 +174,32 @@ export function useProjectTable(initialData: ProjectTableRow[] = []) {
       sort: DEFAULT_SORT,
       pagination: DEFAULT_PAGINATION
     };
-  }, []);
+  }, [isHydrated]);
 
-  const [config, setConfig] = useState<ProjectTableConfig>(() => loadSavedConfig());
+  const [config, setConfig] = useState<ProjectTableConfig>(() => {
+    // 초기 렌더링에서는 항상 기본 설정 사용
+    return {
+      columns: DEFAULT_COLUMNS,
+      filters: DEFAULT_FILTERS,
+      sort: DEFAULT_SORT,
+      pagination: DEFAULT_PAGINATION
+    };
+  });
+  
   const [data, setData] = useState<ProjectTableRow[]>(initialData);
+
+  // 하이드레이션이 완료되면 저장된 설정 적용
+  useEffect(() => {
+    if (isHydrated) {
+      const savedConfig = loadSavedConfig();
+      setConfig(savedConfig);
+    }
+  }, [isHydrated, loadSavedConfig]);
 
   // 설정 저장 (중앙화된 설정 영속화)
   const saveConfig = useCallback((newConfig: ProjectTableConfig) => {
-    // SSR 호환성: 브라우저 환경에서만 localStorage 접근
-    if (typeof window === 'undefined') {
+    // 하이드레이션이 완료된 후에만 localStorage 접근
+    if (!isHydrated || typeof window === 'undefined') {
       return;
     }
 
@@ -183,7 +208,7 @@ export function useProjectTable(initialData: ProjectTableRow[] = []) {
     } catch (error) {
       console.error('Failed to save table config:', error);
     }
-  }, []);
+  }, [isHydrated]);
 
   // 설정 업데이트 핸들러
   const updateConfig = useCallback((newConfig: ProjectTableConfig) => {
