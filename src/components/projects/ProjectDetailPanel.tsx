@@ -127,34 +127,23 @@ export function ProjectDetailPanel({
             {/* 프로젝트 네비게이션 */}
             {onNavigate && totalProjectsCount > 1 && (
               <>
-                {viewMode === 'fullpage' ? (
-                  <SimpleProjectNavigation
-                    currentIndex={currentProjectIndex}
-                    totalCount={totalProjectsCount}
-                    onNavigate={(direction) => {
-                      // 4방향 네비게이션을 2방향으로 변환
-                      if (direction === 'prev') {
-                        onNavigate('prev');
-                      } else if (direction === 'next') {
-                        onNavigate('next');
-                      }
-                    }}
-                    size="sm"
-                    ariaLabel="프로젝트 네비게이션"
-                    itemType="프로젝트"
-                    showPosition={true}
-                    compact={false}
-                  />
-                ) : (
-                  <ProjectNavigation
-                    currentIndex={currentProjectIndex}
-                    totalCount={totalProjectsCount}
-                    onNavigate={onNavigate}
-                    size="sm"
-                    ariaLabel="프로젝트 네비게이션"
-                    itemType="프로젝트"
-                  />
-                )}
+                <SimpleProjectNavigation
+                  currentIndex={currentProjectIndex}
+                  totalCount={totalProjectsCount}
+                  onNavigate={(direction) => {
+                    // 4방향 네비게이션을 2방향으로 변환
+                    if (direction === 'prev') {
+                      onNavigate('prev');
+                    } else if (direction === 'next') {
+                      onNavigate('next');
+                    }
+                  }}
+                  size="sm"
+                  ariaLabel="프로젝트 네비게이션"
+                  itemType="프로젝트"
+                  showPosition={false}
+                  compact={true}
+                />
                 
                 <div className="w-px h-6 bg-border-light mx-2" />
               </>

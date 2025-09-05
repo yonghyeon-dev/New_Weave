@@ -196,8 +196,8 @@ export function ProjectFullPageDetail({
                 size="sm"
                 ariaLabel="프로젝트 네비게이션"
                 itemType="프로젝트"
-                showPosition={true}
-                compact={false}
+                showPosition={false}
+                compact={true}
               />
             </div>
             
