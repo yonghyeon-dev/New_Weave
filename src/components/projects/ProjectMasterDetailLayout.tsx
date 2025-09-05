@@ -33,6 +33,10 @@ export interface ProjectMasterDetailLayoutProps {
   onFiltersChange: (filters: any) => void;
   onResetFilters?: () => void;
   
+  // Pagination props (Detail View용)
+  pageSize?: number;
+  onPageSizeChange?: (size: number) => void;
+  
   // Navigation props
   selectedProjectIndex: number;
   totalFilteredProjects: number;
@@ -70,6 +74,8 @@ export function ProjectMasterDetailLayout({
   filters,
   onFiltersChange,
   onResetFilters,
+  pageSize = 5,
+  onPageSizeChange,
   selectedProjectIndex,
   totalFilteredProjects,
   onNavigateProject,
@@ -130,6 +136,8 @@ export function ProjectMasterDetailLayout({
           filters={filters}
           onFiltersChange={onFiltersChange}
           onResetFilters={onResetFilters}
+          pageSize={pageSize}
+          onPageSizeChange={onPageSizeChange}
           showColumnSettings={currentView === 'list'}
           loading={loading}
         />

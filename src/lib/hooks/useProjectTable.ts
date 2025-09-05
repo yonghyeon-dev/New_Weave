@@ -115,6 +115,7 @@ const DEFAULT_COLUMNS: ProjectTableColumn[] = [
 const DEFAULT_FILTERS: TableFilterState = {
   searchQuery: '',
   statusFilter: 'all',
+  clientFilter: 'all',
   customFilters: {}
 };
 
@@ -250,6 +251,13 @@ export function useProjectTable(initialData: ProjectTableRow[] = []) {
       );
     }
 
+    // 클라이언트 필터 적용
+    if (config.filters.clientFilter && config.filters.clientFilter !== 'all') {
+      filtered = filtered.filter(row => 
+        row.client === config.filters.clientFilter
+      );
+    }
+
     // 사용자 정의 필터 적용
     Object.entries(config.filters.customFilters).forEach(([key, value]) => {
       if (value && value !== 'all') {
@@ -308,6 +316,17 @@ export function useProjectTable(initialData: ProjectTableRow[] = []) {
     return sortedData.slice(startIndex, endIndex);
   }, [sortedData, config.pagination]);
 
+  // 클라이언트 목록 자동 생성
+  const availableClients = useMemo(() => {
+    const clients = data
+      .map(row => row.client)
+      .filter(client => client && client.trim() !== '')
+      .filter((client, index, array) => array.indexOf(client) === index)
+      .sort((a, b) => a.localeCompare(b, 'ko-KR'));
+    
+    return clients;
+  }, [data]);
+
   // 컬럼 설정 초기화
   const resetColumnConfig = useCallback(() => {
     const resetConfig: ProjectTableConfig = {
@@ -346,6 +365,7 @@ export function useProjectTable(initialData: ProjectTableRow[] = []) {
     paginatedData,
     filteredCount: filteredData.length,
     totalCount: data.length,
+    availableClients,
     
     // 설정
     config,

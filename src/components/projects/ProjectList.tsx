@@ -2,9 +2,10 @@
 
 import React from 'react';
 import Typography from '@/components/ui/Typography';
+import Button from '@/components/ui/Button';
 import { ProjectListItem } from './ProjectListItem';
 import type { ProjectTableRow } from '@/lib/types/project-table.types';
-import { FileX } from 'lucide-react';
+import { FileX, ChevronLeft, ChevronRight } from 'lucide-react';
 
 export interface ProjectListProps {
   projects: ProjectTableRow[];
@@ -12,6 +13,11 @@ export interface ProjectListProps {
   onProjectSelect: (project: ProjectTableRow) => void;
   loading?: boolean;
   searchQuery?: string;
+  // 페이지네이션 props 추가
+  currentPage?: number;
+  totalPages?: number;
+  totalCount?: number;
+  onPageChange?: (page: number) => void;
 }
 
 /**
@@ -29,7 +35,11 @@ export function ProjectList({
   selectedProject,
   onProjectSelect,
   loading = false,
-  searchQuery = ''
+  searchQuery = '',
+  currentPage = 1,
+  totalPages = 1,
+  totalCount = 0,
+  onPageChange
 }: ProjectListProps) {
   // 로딩 상태
   if (loading) {
@@ -79,11 +89,74 @@ export function ProjectList({
         ))}
       </div>
       
-      {/* 목록 하단 정보 */}
+      {/* 페이지네이션 및 목록 하단 정보 */}
       <div className="mt-4 pt-3 border-t border-border-light">
-        <Typography variant="body2" className="text-txt-tertiary text-center">
-          {projects.length}개 프로젝트 표시됨
-        </Typography>
+        {totalPages > 1 && onPageChange ? (
+          <div className="flex flex-col items-center space-y-4">
+            {/* 페이지네이션 컨트롤 */}
+            <div className="flex items-center justify-center space-x-1">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onPageChange(currentPage - 1)}
+                disabled={currentPage <= 1}
+                className="flex items-center gap-1"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                이전
+              </Button>
+              
+              {/* 페이지 번호 */}
+              <div className="flex items-center space-x-1">
+                {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+                  let pageNum: number;
+                  
+                  if (totalPages <= 5) {
+                    pageNum = i + 1;
+                  } else if (currentPage <= 3) {
+                    pageNum = i + 1;
+                  } else if (currentPage >= totalPages - 2) {
+                    pageNum = totalPages - 4 + i;
+                  } else {
+                    pageNum = currentPage - 2 + i;
+                  }
+                  
+                  return (
+                    <Button
+                      key={pageNum}
+                      variant={currentPage === pageNum ? "primary" : "ghost"}
+                      size="sm"
+                      onClick={() => onPageChange(pageNum)}
+                      className="min-w-[32px] px-2"
+                    >
+                      {pageNum}
+                    </Button>
+                  );
+                })}
+              </div>
+              
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onPageChange(currentPage + 1)}
+                disabled={currentPage >= totalPages}
+                className="flex items-center gap-1"
+              >
+                다음
+                <ChevronRight className="w-4 h-4" />
+              </Button>
+            </div>
+            
+            {/* 페이지 정보 */}
+            <Typography variant="body2" className="text-txt-tertiary text-center">
+              {projects.length}개 표시 중 (전체 {totalCount}개, {currentPage}/{totalPages} 페이지)
+            </Typography>
+          </div>
+        ) : (
+          <Typography variant="body2" className="text-txt-tertiary text-center">
+            {projects.length}개 프로젝트 표시됨
+          </Typography>
+        )}
       </div>
     </div>
   );

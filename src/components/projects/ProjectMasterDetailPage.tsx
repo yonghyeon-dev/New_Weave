@@ -268,6 +268,10 @@ export function ProjectMasterDetailPage({
           onFiltersChange={actions.updateFilters}
           onResetFilters={actions.resetFilters}
           
+          // Pagination props
+          pageSize={state.pageSize}
+          onPageSizeChange={actions.setPageSize}
+          
           // Navigation props
           selectedProjectIndex={state.selectedProjectIndex}
           totalFilteredProjects={state.filteredProjects.length}
@@ -276,11 +280,15 @@ export function ProjectMasterDetailPage({
           // Content components
           masterContent={
             <ProjectList
-              projects={state.filteredProjects}
+              projects={state.paginatedProjects}
               selectedProject={state.selectedProject}
               onProjectSelect={actions.selectProject}
               loading={state.isLoading || initialLoading}
               searchQuery={state.searchQuery}
+              currentPage={state.currentPage}
+              totalPages={state.totalPages}
+              totalCount={state.filteredProjects.length}
+              onPageChange={actions.setCurrentPage}
             />
           }
           

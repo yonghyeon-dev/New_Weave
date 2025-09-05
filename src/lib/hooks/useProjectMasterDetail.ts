@@ -27,6 +27,13 @@ export interface MasterDetailState {
   filteredProjects: ProjectTableRow[];
   filters: TableFilterState;
   sort: TableSortState;
+  availableClients: string[]; // 클라이언트 목록 추가
+  
+  // 페이지네이션 상태
+  currentPage: number;
+  pageSize: number;
+  paginatedProjects: ProjectTableRow[];
+  totalPages: number;
 }
 
 export interface MasterDetailActions {
@@ -56,6 +63,12 @@ export interface MasterDetailActions {
   updateSort: (sort: TableSortState) => void;
   resetFilters: () => void;
   
+  // 페이지네이션 관리
+  setCurrentPage: (page: number) => void;
+  setPageSize: (size: number) => void;
+  goToNextPage: () => void;
+  goToPrevPage: () => void;
+  
   // 데이터 관리
   refreshProjects: (projects: ProjectTableRow[]) => void;
 }
@@ -82,10 +95,15 @@ export function useProjectMasterDetail(initialProjects: ProjectTableRow[] = []):
   const [searchQuery, setSearchQuery] = useState('');
   const [currentView, setCurrentView] = useState<ViewMode>('detail'); // 뷰 모드 상태 추가
   
+  // 페이지네이션 상태
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(5); // Detail View 기본값 5개로 설정
+  
   // 필터 및 정렬 상태 (새로 추가)
   const [filters, setFilters] = useState<TableFilterState>({
     searchQuery: '',
     statusFilter: 'all',
+    clientFilter: 'all',
     customFilters: {}
   });
   
@@ -113,6 +131,13 @@ export function useProjectMasterDetail(initialProjects: ProjectTableRow[] = []):
     if (filters.statusFilter !== 'all') {
       filtered = filtered.filter(project => 
         project.status === filters.statusFilter
+      );
+    }
+
+    // 클라이언트 필터링
+    if (filters.clientFilter && filters.clientFilter !== 'all') {
+      filtered = filtered.filter(project => 
+        project.client === filters.clientFilter
       );
     }
 
@@ -160,11 +185,34 @@ export function useProjectMasterDetail(initialProjects: ProjectTableRow[] = []):
     return filtered;
   }, [projects, searchQuery, filters, sort]);
 
-  // 파생 상태: 선택된 프로젝트의 인덱스
+  // 파생 상태: 페이지네이션된 프로젝트 목록
+  const paginatedProjects = useMemo(() => {
+    const startIndex = (currentPage - 1) * pageSize;
+    const endIndex = startIndex + pageSize;
+    return filteredProjects.slice(startIndex, endIndex);
+  }, [filteredProjects, currentPage, pageSize]);
+
+  // 파생 상태: 총 페이지 수
+  const totalPages = useMemo(() => {
+    return Math.ceil(filteredProjects.length / pageSize);
+  }, [filteredProjects.length, pageSize]);
+
+  // 파생 상태: 선택된 프로젝트의 인덱스 (전체 필터된 목록에서)
   const selectedProjectIndex = useMemo(() => {
     if (!selectedProject) return -1;
     return filteredProjects.findIndex(p => p.id === selectedProject.id);
   }, [filteredProjects, selectedProject]);
+
+  // 파생 상태: 클라이언트 목록 자동 생성
+  const availableClients = useMemo(() => {
+    const clients = projects
+      .map(project => project.client)
+      .filter(client => client && client.trim() !== '')
+      .filter((client, index, array) => array.indexOf(client) === index)
+      .sort((a, b) => a.localeCompare(b, 'ko-KR'));
+    
+    return clients;
+  }, [projects]);
 
   // 액션: 프로젝트 선택 (개선된 탭 상태 관리)
   const selectProject = useCallback((project: ProjectTableRow) => {
@@ -270,6 +318,9 @@ export function useProjectMasterDetail(initialProjects: ProjectTableRow[] = []):
     if (newFilters.searchQuery !== searchQuery) {
       setSearchQuery(newFilters.searchQuery);
     }
+    
+    // 필터 변경 시 첫 페이지로 이동
+    setCurrentPage(1);
   }, [searchQuery]);
 
   // 액션: 정렬 업데이트 (새로 추가)
@@ -294,6 +345,9 @@ export function useProjectMasterDetail(initialProjects: ProjectTableRow[] = []):
       direction: 'desc'
     };
     setSort(initialSort);
+    
+    // 필터 초기화 시 첫 페이지로 이동
+    setCurrentPage(1);
   }, []);
 
   // 액션: 검색어 설정 (기존 로직과 새로운 필터 상태 동기화)
@@ -303,6 +357,26 @@ export function useProjectMasterDetail(initialProjects: ProjectTableRow[] = []):
       ...prev,
       searchQuery: query
     }));
+    // 검색어 변경 시 첫 페이지로 이동
+    setCurrentPage(1);
+  }, []);
+
+  // 액션: 페이지네이션 관리
+  const handleSetCurrentPage = useCallback((page: number) => {
+    setCurrentPage(page);
+  }, []);
+
+  const handleSetPageSize = useCallback((size: number) => {
+    setPageSize(size);
+    setCurrentPage(1); // 페이지 크기 변경 시 첫 페이지로 이동
+  }, []);
+
+  const goToNextPage = useCallback(() => {
+    setCurrentPage(prev => Math.min(prev + 1, totalPages));
+  }, [totalPages]);
+
+  const goToPrevPage = useCallback(() => {
+    setCurrentPage(prev => Math.max(prev - 1, 1));
   }, []);
 
   // 액션: 프로젝트 목록 새로고침 (개선된 상태 동기화)
@@ -361,6 +435,12 @@ export function useProjectMasterDetail(initialProjects: ProjectTableRow[] = []):
     filteredProjects,
     filters,
     sort,
+    availableClients, // 클라이언트 목록 추가
+    // 페이지네이션 상태 추가
+    currentPage,
+    pageSize,
+    paginatedProjects,
+    totalPages,
   }), [
     projects,
     selectedProject,
@@ -373,6 +453,12 @@ export function useProjectMasterDetail(initialProjects: ProjectTableRow[] = []):
     filteredProjects,
     filters,
     sort,
+    availableClients, // 클라이언트 목록 의존성 추가
+    // 페이지네이션 의존성 추가
+    currentPage,
+    pageSize,
+    paginatedProjects,
+    totalPages,
   ]);
 
   const actions: MasterDetailActions = useMemo(() => ({
@@ -392,6 +478,11 @@ export function useProjectMasterDetail(initialProjects: ProjectTableRow[] = []):
     updateFilters,
     updateSort,
     resetFilters,
+    // 페이지네이션 액션 추가
+    setCurrentPage: handleSetCurrentPage,
+    setPageSize: handleSetPageSize,
+    goToNextPage,
+    goToPrevPage,
     refreshProjects,
   }), [
     selectProject,
@@ -409,6 +500,11 @@ export function useProjectMasterDetail(initialProjects: ProjectTableRow[] = []):
     updateFilters,
     updateSort,
     resetFilters,
+    // 페이지네이션 액션 의존성 추가
+    handleSetCurrentPage,
+    handleSetPageSize,
+    goToNextPage,
+    goToPrevPage,
     refreshProjects,
   ]);
 

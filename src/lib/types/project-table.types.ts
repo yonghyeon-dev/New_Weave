@@ -89,6 +89,7 @@ export interface DocumentInfo {
 export interface TableFilterState {
   searchQuery: string;
   statusFilter: ProjectStatus | 'all';
+  clientFilter: string; // 클라이언트 필터 추가
   dateRange?: {
     start: Date;
     end: Date;

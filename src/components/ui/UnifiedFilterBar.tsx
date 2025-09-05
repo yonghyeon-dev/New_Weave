@@ -41,6 +41,9 @@ export interface UnifiedFilterBarProps {
   pageSize?: number;
   onPageSizeChange?: (size: number) => void;
   
+  // 클라이언트 목록 (동적 생성용)
+  availableClients?: string[];
+  
   // 표시 옵션
   showColumnSettings?: boolean;  // 리스트 뷰에서만 true
   
@@ -68,6 +71,7 @@ export function UnifiedFilterBar({
   onResetFilters,
   pageSize = 10,
   onPageSizeChange,
+  availableClients = [],
   showColumnSettings = true,
   loading = false
 }: UnifiedFilterBarProps) {
@@ -79,6 +83,14 @@ export function UnifiedFilterBar({
     onFiltersChange({
       ...filters,
       statusFilter: status as any
+    });
+  };
+
+  // 클라이언트 필터 변경 핸들러
+  const handleClientFilterChange = (client: string) => {
+    onFiltersChange({
+      ...filters,
+      clientFilter: client
     });
   };
 
@@ -194,7 +206,7 @@ export function UnifiedFilterBar({
         {/* 필터 패널 */}
         {showFilters && (
           <div className="mt-4 pt-4 border-t border-border-light">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <div>
                 <label className="block text-sm font-medium text-txt-secondary mb-2">
                   상태
@@ -234,9 +246,24 @@ export function UnifiedFilterBar({
                 </select>
               </div>
 
-              {/* 추가 필터 영역 (향후 확장용) */}
-              <div className="flex items-end">
-                {/* 추후 필터 옵션 확장 영역 */}
+              {/* 클라이언트 필터 */}
+              <div>
+                <label className="block text-sm font-medium text-txt-secondary mb-2">
+                  클라이언트
+                </label>
+                <select
+                  value={filters.clientFilter || 'all'}
+                  onChange={(e) => handleClientFilterChange(e.target.value)}
+                  className="w-full px-3 py-2 border border-border-light rounded-lg focus:outline-none focus:ring-2 focus:ring-weave-primary"
+                  disabled={loading}
+                >
+                  <option value="all">모든 클라이언트</option>
+                  {availableClients.map((client) => (
+                    <option key={client} value={client}>
+                      {client}
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
           </div>
