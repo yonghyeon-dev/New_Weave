@@ -9,7 +9,7 @@ import NewProjectsPage from './new-projects-page';
 import { ProjectMasterDetailPage } from '@/components/projects/ProjectMasterDetailPage';
 import Typography from '@/components/ui/Typography';
 import Button from '@/components/ui/Button';
-import { Briefcase, Plus, RefreshCw, Download, Upload } from 'lucide-react';
+import { Briefcase, Plus, RefreshCw, Download, Upload, Eye } from 'lucide-react';
 import type { ProjectTableRow } from '@/lib/types/project-table.types';
 
 /**
@@ -82,7 +82,7 @@ export default function UnifiedProjectsPage() {
   const { stats, totalCount } = useMemo(() => {
     if (loading || projectData.length === 0) {
       return {
-        stats: { inProgress: 0, completed: 0, avgProgress: 0 },
+        stats: { inProgress: 0, completed: 0, review: 0 },
         totalCount: 0
       };
     }
@@ -91,7 +91,7 @@ export default function UnifiedProjectsPage() {
       stats: {
         inProgress: projectData.filter(p => p.status === 'in_progress').length,
         completed: projectData.filter(p => p.status === 'completed').length,
-        avgProgress: Math.round(projectData.reduce((acc, p) => acc + p.progress, 0) / projectData.length || 0)
+        review: projectData.filter(p => p.status === 'review').length
       },
       totalCount: projectData.length
     };
@@ -310,17 +310,17 @@ export default function UnifiedProjectsPage() {
         <div className="bg-white rounded-lg border border-border-light p-4">
           <div className="flex items-center justify-between">
             <div>
-              <div className="text-2xl font-bold text-purple-600 min-w-[3rem] min-h-[2rem]">
+              <div className="text-2xl font-bold text-orange-600 min-w-[3rem] min-h-[2rem]">
                 {loading ? (
                   <div className="w-12 h-8 bg-gray-200 rounded animate-pulse"></div>
                 ) : (
-                  `${stats.avgProgress}%`
+                  stats.review
                 )}
               </div>
-              <div className="text-sm text-txt-secondary">평균 진행률</div>
+              <div className="text-sm text-txt-secondary">검토</div>
             </div>
-            <div className="p-2 bg-purple-50 rounded-lg">
-              <Upload className="w-5 h-5 text-purple-500" />
+            <div className="p-2 bg-orange-50 rounded-lg">
+              <Eye className="w-5 h-5 text-orange-500" />
             </div>
           </div>
         </div>
