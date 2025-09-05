@@ -9,7 +9,8 @@ import NewProjectsPage from './new-projects-page';
 import { ProjectMasterDetailPage } from '@/components/projects/ProjectMasterDetailPage';
 import Typography from '@/components/ui/Typography';
 import Button from '@/components/ui/Button';
-import { Briefcase, Plus, RefreshCw, Download } from 'lucide-react';
+import { Briefcase, Plus, RefreshCw, Download, Upload } from 'lucide-react';
+import type { ProjectTableRow } from '@/lib/types/project-table.types';
 
 /**
  * 통합 프로젝트 페이지
@@ -27,6 +28,8 @@ export default function UnifiedProjectsPage() {
   // localStorage에서 사용자 선호 모드 읽기 (초기값)
   const [viewMode, setViewMode] = useState<ViewMode>('list');
   const [isInitialized, setIsInitialized] = useState(false);
+  const [projectData, setProjectData] = useState<ProjectTableRow[]>([]);
+  const [loading, setLoading] = useState(true);
 
   // 초기화 - localStorage와 URL 파라미터 확인
   useEffect(() => {
@@ -74,6 +77,108 @@ export default function UnifiedProjectsPage() {
     localStorage.setItem('preferredViewMode', 'detail');
     router.push(`${pathname}?${params.toString()}`);
   }, [pathname, router, searchParams]);
+
+  // 통계 데이터 계산
+  const { stats, totalCount } = useMemo(() => {
+    if (loading || projectData.length === 0) {
+      return {
+        stats: { inProgress: 0, completed: 0, avgProgress: 0 },
+        totalCount: 0
+      };
+    }
+    
+    return {
+      stats: {
+        inProgress: projectData.filter(p => p.status === 'in_progress').length,
+        completed: projectData.filter(p => p.status === 'completed').length,
+        avgProgress: Math.round(projectData.reduce((acc, p) => acc + p.progress, 0) / projectData.length || 0)
+      },
+      totalCount: projectData.length
+    };
+  }, [projectData, loading]);
+
+  // 프로젝트 데이터 로딩
+  useEffect(() => {
+    const loadData = async () => {
+      setLoading(true);
+      // 실제로는 NewProjectsPage에서 데이터를 가져오므로 여기서는 기본값 설정
+      // 통계를 위한 샘플 데이터 생성
+      const generateMockData = (): ProjectTableRow[] => {
+        const clients = ['A개발', 'B디자인', 'C마케팅', 'D컨설팅', 'E업체', 'F자체', 'A학교'];
+        const statuses: Array<'planning' | 'in_progress' | 'review' | 'completed' | 'on_hold' | 'cancelled'> = 
+          ['planning', 'in_progress', 'review', 'completed', 'on_hold', 'cancelled'];
+      
+        const seededRandom = (seed: number): number => {
+          const x = Math.sin(seed) * 10000;
+          return x - Math.floor(x);
+        };
+      
+        const baseDate = new Date(2024, 0, 1);
+        const dayInterval = 7;
+      
+        return Array.from({ length: 20 }, (_, i) => {
+          const seed1 = i * 1234 + 5678;
+          const seed2 = i * 2345 + 6789;
+          const seed3 = i * 3456 + 7890;
+          const seed4 = i * 4567 + 8901;
+          const seed5 = i * 5678 + 9012;
+      
+          const registrationDate = new Date(
+            baseDate.getTime() + 
+            (i * dayInterval * 24 * 60 * 60 * 1000) + 
+            (Math.floor(seededRandom(seed1) * 3) * 24 * 60 * 60 * 1000)
+          );
+          const dueDate = new Date(registrationDate.getTime() + Math.floor(seededRandom(seed2) * 90) * 24 * 60 * 60 * 1000);
+          
+          const currentDate = new Date();
+          const maxModifyTime = Math.min(currentDate.getTime(), registrationDate.getTime() + 180 * 24 * 60 * 60 * 1000);
+          const modifyTimeRange = maxModifyTime - registrationDate.getTime();
+          const modifiedDate = new Date(registrationDate.getTime() + Math.floor(seededRandom(seed3) * modifyTimeRange));
+      
+          const progress = Math.floor(seededRandom(seed4) * 101);
+          let paymentProgress = 0;
+          
+          if (progress >= 80) {
+            paymentProgress = Math.floor(80 + seededRandom(seed5) * 21);
+          } else if (progress >= 50) {
+            paymentProgress = Math.floor(30 + seededRandom(seed5) * 51);
+          } else if (progress >= 20) {
+            paymentProgress = Math.floor(10 + seededRandom(seed5) * 31);
+          } else {
+            paymentProgress = Math.floor(seededRandom(seed5) * 21);
+          }
+          
+          const statusIndex = Math.floor(seededRandom(seed1 + seed2) * statuses.length);
+          if (statuses[statusIndex] === 'completed' && seededRandom(seed3 + seed4) > 0.3) {
+            paymentProgress = 100;
+          }
+      
+          return {
+            id: `project-${i + 1}`,
+            no: `WEAVE_${String(i + 1).padStart(3, '0')}`,
+            name: `${['A개발', 'B디자인', 'C마케팅', 'D컨설팅', '카페 관리', '피시방 관리', 'A교육 강의'][i % 7]} 프로젝트`,
+            registrationDate: registrationDate.toISOString(),
+            client: clients[i % clients.length],
+            progress,
+            paymentProgress,
+            status: statuses[statusIndex],
+            dueDate: dueDate.toISOString(),
+            modifiedDate: modifiedDate.toISOString(),
+            hasContract: seededRandom(seed1 + 1000) > 0.5,
+            hasBilling: seededRandom(seed2 + 1000) > 0.3,
+            hasDocuments: seededRandom(seed3 + 1000) > 0.4
+          };
+        });
+      };
+      
+      await new Promise(resolve => setTimeout(resolve, 300));
+      const data = generateMockData();
+      setProjectData(data);
+      setLoading(false);
+    };
+
+    loadData();
+  }, []);
 
   // 액션 버튼 핸들러들
   const handleRefresh = useCallback(() => {
@@ -143,6 +248,81 @@ export default function UnifiedProjectsPage() {
             <Plus className="w-4 h-4" />
             새 프로젝트
           </Button>
+        </div>
+      </div>
+      
+      {/* 요약 통계 */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="bg-white rounded-lg border border-border-light p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="text-2xl font-bold text-txt-primary min-w-[3rem] min-h-[2rem]">
+                {loading ? (
+                  <div className="w-12 h-8 bg-gray-200 rounded animate-pulse"></div>
+                ) : (
+                  totalCount
+                )}
+              </div>
+              <div className="text-sm text-txt-secondary">총 프로젝트</div>
+            </div>
+            <div className="p-2 bg-blue-50 rounded-lg">
+              <Briefcase className="w-5 h-5 text-blue-500" />
+            </div>
+          </div>
+        </div>
+        
+        <div className="bg-white rounded-lg border border-border-light p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="text-2xl font-bold text-green-600 min-w-[3rem] min-h-[2rem]">
+                {loading ? (
+                  <div className="w-12 h-8 bg-gray-200 rounded animate-pulse"></div>
+                ) : (
+                  stats.inProgress
+                )}
+              </div>
+              <div className="text-sm text-txt-secondary">진행중</div>
+            </div>
+            <div className="p-2 bg-green-50 rounded-lg">
+              <RefreshCw className="w-5 h-5 text-green-500" />
+            </div>
+          </div>
+        </div>
+        
+        <div className="bg-white rounded-lg border border-border-light p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="text-2xl font-bold text-blue-600 min-w-[3rem] min-h-[2rem]">
+                {loading ? (
+                  <div className="w-12 h-8 bg-gray-200 rounded animate-pulse"></div>
+                ) : (
+                  stats.completed
+                )}
+              </div>
+              <div className="text-sm text-txt-secondary">완료</div>
+            </div>
+            <div className="p-2 bg-blue-50 rounded-lg">
+              <RefreshCw className="w-5 h-5 text-blue-500" />
+            </div>
+          </div>
+        </div>
+        
+        <div className="bg-white rounded-lg border border-border-light p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="text-2xl font-bold text-purple-600 min-w-[3rem] min-h-[2rem]">
+                {loading ? (
+                  <div className="w-12 h-8 bg-gray-200 rounded animate-pulse"></div>
+                ) : (
+                  `${stats.avgProgress}%`
+                )}
+              </div>
+              <div className="text-sm text-txt-secondary">평균 진행률</div>
+            </div>
+            <div className="p-2 bg-purple-50 rounded-lg">
+              <Upload className="w-5 h-5 text-purple-500" />
+            </div>
+          </div>
         </div>
       </div>
     </div>
