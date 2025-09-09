@@ -87,6 +87,44 @@ export default function ProjectDetailPage({
         paymentProgress = 100;
       }
 
+      // 문서 상태 생성
+      const generateDocumentStatus = () => {
+        const statuses = ['none', 'draft', 'completed', 'approved', 'sent'] as const;
+        
+        return {
+          contract: {
+            exists: seededRandom(seed1 + 1000) > 0.5,
+            status: statuses[Math.floor(seededRandom(seed1 + 2000) * statuses.length)] as any,
+            lastUpdated: modifiedDate.toISOString(),
+            count: 1
+          },
+          invoice: {
+            exists: seededRandom(seed2 + 1000) > 0.3,
+            status: statuses[Math.floor(seededRandom(seed2 + 2000) * statuses.length)] as any,
+            lastUpdated: modifiedDate.toISOString(),
+            count: seededRandom(seed2 + 3000) > 0.7 ? Math.floor(seededRandom(seed2 + 4000) * 3) + 1 : 1
+          },
+          report: {
+            exists: seededRandom(seed3 + 1000) > 0.6,
+            status: statuses[Math.floor(seededRandom(seed3 + 2000) * statuses.length)] as any,
+            lastUpdated: modifiedDate.toISOString(),
+            count: seededRandom(seed3 + 3000) > 0.5 ? Math.floor(seededRandom(seed3 + 4000) * 2) + 1 : 1
+          },
+          estimate: {
+            exists: seededRandom(seed4 + 1000) > 0.4,
+            status: statuses[Math.floor(seededRandom(seed4 + 2000) * statuses.length)] as any,
+            lastUpdated: modifiedDate.toISOString(),
+            count: 1
+          },
+          other: {
+            exists: seededRandom(seed5 + 1000) > 0.7,
+            status: statuses[Math.floor(seededRandom(seed5 + 2000) * statuses.length)] as any,
+            lastUpdated: modifiedDate.toISOString(),
+            count: seededRandom(seed5 + 3000) > 0.8 ? Math.floor(seededRandom(seed5 + 4000) * 4) + 1 : 1
+          }
+        };
+      };
+
       return {
         id: `project-${i + 1}`,
         no: `WEAVE_${String(i + 1).padStart(3, '0')}`,
@@ -100,7 +138,8 @@ export default function ProjectDetailPage({
         modifiedDate: modifiedDate.toISOString(),
         hasContract: seededRandom(seed1 + 1000) > 0.5,
         hasBilling: seededRandom(seed2 + 1000) > 0.3,
-        hasDocuments: seededRandom(seed3 + 1000) > 0.4
+        hasDocuments: seededRandom(seed3 + 1000) > 0.4,
+        documents: generateDocumentStatus()
       };
     });
 

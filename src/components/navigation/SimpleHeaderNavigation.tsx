@@ -7,9 +7,6 @@ import Image from 'next/image';
 import {
   LayoutDashboard,
   Briefcase,
-  BrainCircuit,
-  Bell,
-  Search,
   Calculator,
   Menu,
   X
@@ -42,9 +39,6 @@ const mainNavItems: NavItem[] = [
   },
 ];
 
-// 개발자 전용 관리자 메뉴 (제거됨)
-// const adminNavItems: NavItem[] = [];
-
 export default function SimpleHeaderNavigation() {
   const pathname = usePathname();
   const router = useRouter();
@@ -57,7 +51,6 @@ export default function SimpleHeaderNavigation() {
     }
   };
   const [user] = useState(mockUser);
-  const [isLoading] = useState(false);
 
   const isActive = (href: string) => {
     if (href === '/') return pathname === href;
@@ -214,16 +207,8 @@ export default function SimpleHeaderNavigation() {
 
               {/* Mobile Logout Button */}
               <button
-<<<<<<< HEAD
-                onClick={async () => {
-                  const supabase = createClient();
-                  if (supabase) {
-                    await supabase.auth.signOut();
-                  }
-=======
                 onClick={() => {
                   // Mock 로그아웃
->>>>>>> origin/h1
                   localStorage.clear();
                   sessionStorage.clear();
                   router.push('/home');
