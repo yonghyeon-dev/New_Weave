@@ -15,7 +15,6 @@ import {
   Briefcase, 
   ArrowLeft, 
   Plus, 
-  Download,
   Edit
 } from 'lucide-react';
 import type { ProjectTableRow, TableFilterState } from '@/lib/types/project-table.types';
@@ -78,24 +77,18 @@ export function ProjectFullPageDetail({
     router.push('/projects');
   };
 
-  // 프로젝트 네비게이션
-  const handleNavigateProject = (direction: 'first' | 'prev' | 'next' | 'last') => {
+  // 프로젝트 네비게이션 (2방향 지원)
+  const handleNavigateProject = (direction: 'prev' | 'next') => {
     if (!project || !onProjectChange) return;
     
     let newIndex: number;
     
     switch (direction) {
-      case 'first':
-        newIndex = 0;
-        break;
       case 'prev':
         newIndex = currentProjectIndex - 1;
         break;
       case 'next':
         newIndex = currentProjectIndex + 1;
-        break;
-      case 'last':
-        newIndex = allProjects.length - 1;
         break;
       default:
         return;
@@ -119,16 +112,13 @@ export function ProjectFullPageDetail({
   };
 
   // 프로젝트 편집 (향후 구현)
-  const handleEditProject = (project: ProjectTableRow) => {
-    console.log('Edit project:', project);
-    alert('프로젝트 편집 기능은 향후 구현 예정입니다.');
+  const handleEditProject = () => {
+    if (project) {
+      console.log('Edit project:', project);
+      alert('프로젝트 편집 기능은 향후 구현 예정입니다.');
+    }
   };
 
-  // 엑셀 내보내기
-  const handleExport = () => {
-    console.log('Export project:', project);
-    alert('엑셀 파일이 다운로드됩니다.');
-  };
 
   if (!project) {
     return (
@@ -185,14 +175,7 @@ export function ProjectFullPageDetail({
               <SimpleProjectNavigation
                 currentIndex={currentProjectIndex}
                 totalCount={allProjects.length}
-                onNavigate={(direction) => {
-                  // 2방향을 4방향으로 변환
-                  if (direction === 'prev') {
-                    handleNavigateProject('prev');
-                  } else if (direction === 'next') {
-                    handleNavigateProject('next');
-                  }
-                }}
+                onNavigate={handleNavigateProject}
                 size="sm"
                 ariaLabel="프로젝트 네비게이션"
                 itemType="프로젝트"
@@ -221,16 +204,6 @@ export function ProjectFullPageDetail({
               >
                 <Edit className="w-4 h-4" />
                 편집
-              </Button>
-              
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleExport}
-                className="flex items-center gap-2"
-              >
-                <Download className="w-4 h-4" />
-                내보내기
               </Button>
               
               <Button

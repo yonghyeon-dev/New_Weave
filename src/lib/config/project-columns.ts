@@ -159,9 +159,9 @@ export const PROJECT_COLUMNS: EnhancedProjectTableColumn[] = [
     type: 'status',
     overviewConfig: {
       showInOverview: true,
-      section: 'progress',
-      displayFormat: 'card',
-      priority: 3,
+      section: 'basic',
+      displayFormat: 'detail',
+      priority: 4,
       icon: 'Activity'
     }
   },
@@ -226,7 +226,7 @@ export function createOverviewData<T extends Record<string, any>>(
   columns: EnhancedProjectTableColumn[]
 ) {
   return columns.map(col => ({
-    ...col,
+    column: col,
     value: data[col.key],
     formattedValue: formatColumnValue(data[col.key], col.type)
   }));

@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Typography from '@/components/ui/Typography';
 import Button from '@/components/ui/Button';
 import ProjectNavigation from '@/components/ui/ProjectNavigation';
@@ -15,9 +15,8 @@ import type {
 import type { DetailTabType } from '@/lib/hooks/useProjectMasterDetail';
 import { 
   FileText, 
-  FileCheck, 
-  DollarSign, 
-  BarChart3,
+  FilePlus, 
+  Calculator, 
   Edit,
   Building,
   Calendar,
@@ -33,7 +32,7 @@ export interface ProjectDetailPanelProps {
   activeTab: DetailTabType;
   onTabChange: (tab: DetailTabType) => void;
   onEdit?: (project: ProjectTableRow) => void;
-  onNavigate?: (direction: 'first' | 'prev' | 'next' | 'last') => void;
+  onNavigate?: (direction: 'prev' | 'next') => void;
   canNavigatePrev?: boolean;
   canNavigateNext?: boolean;
   onBackToList?: () => void; // 목록으로 돌아가기 핸들러
@@ -85,9 +84,8 @@ export function ProjectDetailPanel({
 }: ProjectDetailPanelProps) {
   const tabs = [
     { id: 'overview', label: '개요', icon: FileText },
-    { id: 'contract', label: '계약서', icon: FileCheck },
-    { id: 'billing', label: '청구/정산', icon: DollarSign },
-    { id: 'documents', label: '문서', icon: BarChart3 }
+    { id: 'document-management', label: '문서관리', icon: FilePlus },
+    { id: 'tax-management', label: '세무관리', icon: Calculator }
   ];
 
   // 빈 상태 (선택된 프로젝트 없음)
@@ -131,14 +129,7 @@ export function ProjectDetailPanel({
                 <SimpleProjectNavigation
                   currentIndex={currentProjectIndex}
                   totalCount={totalProjectsCount}
-                  onNavigate={(direction) => {
-                    // 4방향 네비게이션을 2방향으로 변환
-                    if (direction === 'prev') {
-                      onNavigate('prev');
-                    } else if (direction === 'next') {
-                      onNavigate('next');
-                    }
-                  }}
+                  onNavigate={onNavigate}
                   size="sm"
                   ariaLabel="프로젝트 네비게이션"
                   itemType="프로젝트"
@@ -212,16 +203,12 @@ export function ProjectDetailPanel({
             <ProjectOverviewEnhanced project={project} />
           )}
 
-          {activeTab === 'contract' && (
-            <ProjectContractTab project={project} />
+          {activeTab === 'document-management' && (
+            <ProjectDocumentManagementTab project={project} />
           )}
 
-          {activeTab === 'billing' && (
-            <ProjectBillingTab project={project} />
-          )}
-
-          {activeTab === 'documents' && (
-            <ProjectDocumentsTab project={project} />
+          {activeTab === 'tax-management' && (
+            <ProjectTaxManagementTab project={project} />
           )}
         </div>
       </div>
@@ -230,65 +217,137 @@ export function ProjectDetailPanel({
 }
 
 
-// 계약 탭 컴포넌트
-function ProjectContractTab({ project }: { project: ProjectTableRow }) {
+// 문서관리 탭 컴포넌트
+function ProjectDocumentManagementTab({ project }: { project: ProjectTableRow }) {
+  const [activeSubTab, setActiveSubTab] = useState<'contract' | 'invoice' | 'report' | 'estimate' | 'etc'>('contract');
+
+  const subTabs = [
+    { id: 'contract', label: '계약서', icon: FileText },
+    { id: 'invoice', label: '청구서', icon: FileText },
+    { id: 'report', label: '보고서', icon: FileText },
+    { id: 'estimate', label: '견적서', icon: FileText },
+    { id: 'etc', label: '기타문서', icon: FileText }
+  ];
+
   return (
     <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">계약 정보</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center py-8">
-            <FileCheck className="w-12 h-12 text-txt-tertiary mx-auto mb-3" />
-            <Typography variant="body1" className="text-txt-secondary">
-              계약 정보 기능은 향후 구현 예정입니다.
-            </Typography>
-          </div>
-        </CardContent>
-      </Card>
+      {/* 서브탭 네비게이션 */}
+      <div className="border-b border-border-light">
+        <nav className="flex space-x-0">
+          {subTabs.map((tab) => {
+            const IconComponent = tab.icon;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveSubTab(tab.id as any)}
+                className={`flex items-center gap-2 px-4 py-3 border-b-2 font-medium text-sm transition-colors ${
+                  activeSubTab === tab.id
+                    ? 'border-weave-primary text-weave-primary'
+                    : 'border-transparent text-txt-secondary hover:text-txt-primary hover:border-border-light'
+                }`}
+                role="tab"
+                aria-selected={activeSubTab === tab.id}
+                aria-controls={`subtabpanel-${tab.id}`}
+              >
+                <IconComponent className="w-4 h-4" />
+                {tab.label}
+              </button>
+            );
+          })}
+        </nav>
+      </div>
+
+      {/* 서브탭 컨텐츠 */}
+      <div className="min-h-[400px]">
+        <UnderDevelopmentPlaceholder 
+          title={subTabs.find(tab => tab.id === activeSubTab)?.label || '문서'}
+          description={`${subTabs.find(tab => tab.id === activeSubTab)?.label} 생성 및 관리 기능을 제공합니다.`}
+          icon={FilePlus}
+        />
+      </div>
     </div>
   );
 }
 
-// 청구/정산 탭 컴포넌트
-function ProjectBillingTab({ project }: { project: ProjectTableRow }) {
+// 세무관리 탭 컴포넌트
+function ProjectTaxManagementTab({ project }: { project: ProjectTableRow }) {
+  const [activeSubTab, setActiveSubTab] = useState<'tax-invoice' | 'withholding-tax' | 'vat' | 'cash-receipt' | 'card-receipt'>('tax-invoice');
+
+  const subTabs = [
+    { id: 'tax-invoice', label: '세금계산서', icon: Calculator },
+    { id: 'withholding-tax', label: '원천세', icon: Calculator },
+    { id: 'vat', label: '부가세', icon: Calculator },
+    { id: 'cash-receipt', label: '현금영수증', icon: Calculator },
+    { id: 'card-receipt', label: '카드영수증', icon: Calculator }
+  ];
+
   return (
     <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">청구/정산 현황</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center py-8">
-            <DollarSign className="w-12 h-12 text-txt-tertiary mx-auto mb-3" />
-            <Typography variant="body1" className="text-txt-secondary">
-              청구/정산 기능은 향후 구현 예정입니다.
-            </Typography>
-          </div>
-        </CardContent>
-      </Card>
+      {/* 서브탭 네비게이션 */}
+      <div className="border-b border-border-light">
+        <nav className="flex space-x-0">
+          {subTabs.map((tab) => {
+            const IconComponent = tab.icon;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveSubTab(tab.id as any)}
+                className={`flex items-center gap-2 px-4 py-3 border-b-2 font-medium text-sm transition-colors ${
+                  activeSubTab === tab.id
+                    ? 'border-weave-primary text-weave-primary'
+                    : 'border-transparent text-txt-secondary hover:text-txt-primary hover:border-border-light'
+                }`}
+                role="tab"
+                aria-selected={activeSubTab === tab.id}
+                aria-controls={`subtabpanel-${tab.id}`}
+              >
+                <IconComponent className="w-4 h-4" />
+                {tab.label}
+              </button>
+            );
+          })}
+        </nav>
+      </div>
+
+      {/* 서브탭 컨텐츠 */}
+      <div className="min-h-[400px]">
+        <UnderDevelopmentPlaceholder 
+          title={subTabs.find(tab => tab.id === activeSubTab)?.label || '세무관리'}
+          description={`${subTabs.find(tab => tab.id === activeSubTab)?.label} 관리 기능을 제공합니다.`}
+          icon={Calculator}
+        />
+      </div>
     </div>
   );
 }
 
-// 문서 탭 컴포넌트
-function ProjectDocumentsTab({ project }: { project: ProjectTableRow }) {
+// 구현중 안내 컴포넌트
+interface UnderDevelopmentPlaceholderProps {
+  title: string;
+  description: string;
+  icon: React.ComponentType<{ className?: string }>;
+}
+
+function UnderDevelopmentPlaceholder({ title, description, icon: IconComponent }: UnderDevelopmentPlaceholderProps) {
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">프로젝트 문서</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center py-8">
-            <FileText className="w-12 h-12 text-txt-tertiary mx-auto mb-3" />
-            <Typography variant="body1" className="text-txt-secondary">
-              문서 관리 기능은 향후 구현 예정입니다.
-            </Typography>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+    <Card>
+      <CardContent className="text-center py-12">
+        <IconComponent className="w-16 h-16 text-txt-tertiary mx-auto mb-4" />
+        <Typography variant="h3" className="text-lg font-semibold text-txt-primary mb-2">
+          {title}
+        </Typography>
+        <Typography variant="body1" className="text-txt-secondary mb-4">
+          이 기능은 현재 구현 중입니다.
+        </Typography>
+        <Typography variant="body2" className="text-txt-tertiary max-w-md mx-auto">
+          {description}
+        </Typography>
+        <div className="mt-6 p-4 bg-weave-primary-light rounded-lg inline-block">
+          <Typography variant="body2" className="text-weave-primary font-medium">
+            🚧 Coming Soon
+          </Typography>
+        </div>
+      </CardContent>
+    </Card>
   );
 }

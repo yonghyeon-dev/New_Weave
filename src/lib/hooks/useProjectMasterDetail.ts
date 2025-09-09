@@ -8,7 +8,7 @@ import type {
 } from '@/lib/types/project-table.types';
 import type { ViewMode } from '@/components/ui/ViewSwitchButtons';
 
-export type DetailTabType = 'overview' | 'contract' | 'billing' | 'documents';
+export type DetailTabType = 'overview' | 'document-management' | 'tax-management';
 
 export interface MasterDetailState {
   // 프로젝트 관련 상태

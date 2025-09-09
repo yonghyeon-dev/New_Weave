@@ -10,7 +10,7 @@ import { ProjectMasterDetailPage } from '@/components/projects/ProjectMasterDeta
 import { ProjectCreateModal } from '@/components/projects/ProjectCreateModal';
 import Typography from '@/components/ui/Typography';
 import Button from '@/components/ui/Button';
-import { Briefcase, Plus, Download, Upload, Eye, Play, CheckCircle } from 'lucide-react';
+import { Briefcase, Plus, Upload, Eye, Play, CheckCircle } from 'lucide-react';
 import type { ProjectTableRow } from '@/lib/types/project-table.types';
 import { useProjectTable } from '@/lib/hooks/useProjectTable';
 
@@ -181,6 +181,46 @@ export default function UnifiedProjectsPage() {
             paymentProgress = 100;
           }
       
+          // 문서 상태 생성
+          const generateDocumentStatus = () => {
+            const statuses = ['none', 'draft', 'completed', 'approved', 'sent'] as const;
+            
+            return {
+              contract: {
+                exists: seededRandom(seed1 + 1000) > 0.5,
+                status: statuses[Math.floor(seededRandom(seed1 + 2000) * statuses.length)] as any,
+                lastUpdated: modifiedDate.toISOString(),
+                count: 1
+              },
+              invoice: {
+                exists: seededRandom(seed2 + 1000) > 0.3,
+                status: statuses[Math.floor(seededRandom(seed2 + 2000) * statuses.length)] as any,
+                lastUpdated: modifiedDate.toISOString(),
+                count: seededRandom(seed2 + 3000) > 0.7 ? Math.floor(seededRandom(seed2 + 4000) * 3) + 1 : 1
+              },
+              report: {
+                exists: seededRandom(seed3 + 1000) > 0.6,
+                status: statuses[Math.floor(seededRandom(seed3 + 2000) * statuses.length)] as any,
+                lastUpdated: modifiedDate.toISOString(),
+                count: seededRandom(seed3 + 3000) > 0.8 ? Math.floor(seededRandom(seed3 + 4000) * 2) + 1 : 1
+              },
+              estimate: {
+                exists: seededRandom(seed4 + 1000) > 0.4,
+                status: statuses[Math.floor(seededRandom(seed4 + 2000) * statuses.length)] as any,
+                lastUpdated: modifiedDate.toISOString(),
+                count: 1
+              },
+              etc: {
+                exists: seededRandom(seed5 + 1000) > 0.7,
+                status: statuses[Math.floor(seededRandom(seed5 + 2000) * statuses.length)] as any,
+                lastUpdated: modifiedDate.toISOString(),
+                count: seededRandom(seed5 + 3000) > 0.6 ? Math.floor(seededRandom(seed5 + 4000) * 4) + 1 : 1
+              }
+            };
+          };
+
+          const documentStatus = generateDocumentStatus();
+
           return {
             id: `project-${i + 1}`,
             no: `WEAVE_${String(i + 1).padStart(3, '0')}`,
@@ -192,9 +232,10 @@ export default function UnifiedProjectsPage() {
             status: statuses[statusIndex],
             dueDate: dueDate.toISOString(),
             modifiedDate: modifiedDate.toISOString(),
-            hasContract: seededRandom(seed1 + 1000) > 0.5,
-            hasBilling: seededRandom(seed2 + 1000) > 0.3,
-            hasDocuments: seededRandom(seed3 + 1000) > 0.4
+            hasContract: documentStatus.contract.exists,
+            hasBilling: documentStatus.invoice.exists,
+            hasDocuments: documentStatus.report.exists || documentStatus.etc.exists,
+            documentStatus
           };
         });
       };
@@ -210,11 +251,6 @@ export default function UnifiedProjectsPage() {
 
   // 액션 버튼 핸들러들
 
-  const handleExport = useCallback(() => {
-    // 엑셀 내보내기 로직
-    console.log('Export to Excel');
-    alert('엑셀 파일이 다운로드됩니다.');
-  }, []);
 
   const handleCreateProject = useCallback(() => {
     setIsCreateModalOpen(true);
@@ -255,14 +291,6 @@ export default function UnifiedProjectsPage() {
         
         {/* 우측 액션 버튼 그룹 */}
         <div className="flex items-center gap-3 flex-shrink-0">
-          <Button
-            variant="outline"
-            onClick={handleExport}
-            className="flex items-center gap-2"
-          >
-            <Download className="w-4 h-4" />
-            내보내기
-          </Button>
           
           <Button
             variant="primary"
