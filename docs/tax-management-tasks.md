@@ -110,9 +110,9 @@
 
 ### 매출 예상 카드
 
-- [ ] **TASK-009** | 연간 매출 예상 카드 컴포넌트
+- [x] **TASK-009** | 연간 매출 예상 카드 컴포넌트
   - **Description**: YearlyProjectionCard 컴포넌트 구현
-  - **Status**: `pending`
+  - **Status**: `completed`
   - **Dependencies**: TASK-005
   - **Priority**: `high`
   - **Details**: 연간 매출 예상액, 전년 대비 성장률 표시
@@ -120,9 +120,9 @@
     - 데이터 바인딩 검증
     - 숫자 포맷팅 테스트
 
-- [ ] **TASK-010** | 당월 매출 카드 컴포넌트
+- [x] **TASK-010** | 당월 매출 카드 컴포넌트
   - **Description**: MonthlyRevenueCard 컴포넌트 구현
-  - **Status**: `pending`
+  - **Status**: `completed`
   - **Dependencies**: TASK-005
   - **Priority**: `high`
   - **Details**: 현재 월 매출, 전월 대비 비율 표시
@@ -130,9 +130,9 @@
     - 월 전환 시나리오 테스트
     - 비율 계산 검증
 
-- [ ] **TASK-011** | 다음 신고 일정 카드
+- [x] **TASK-011** | 다음 신고 일정 카드
   - **Description**: TaxDeadlineCard 컴포넌트 구현
-  - **Status**: `pending`
+  - **Status**: `completed`
   - **Dependencies**: TASK-003
   - **Priority**: `medium`
   - **Details**: 부가세 신고 마감일, D-Day 카운트다운
@@ -142,9 +142,9 @@
 
 ### 차트 컴포넌트
 
-- [ ] **TASK-012** | 월별 트렌드 차트 구현
+- [x] **TASK-012** | 월별 트렌드 차트 구현
   - **Description**: MonthlyTrendChart 컴포넌트 - Recharts 활용
-  - **Status**: `pending`
+  - **Status**: `completed`
   - **Dependencies**: TASK-005
   - **Priority**: `high`
   - **Details**: 라인 차트, 매출/매입 비교, 반응형 디자인
@@ -164,9 +164,9 @@
 
 ### 실시간 업데이트
 
-- [ ] **TASK-014** | Supabase 실시간 구독 설정
+- [x] **TASK-014** | Supabase 실시간 구독 설정
   - **Description**: 거래 변경사항 실시간 반영
-  - **Status**: `pending`
+  - **Status**: `completed`
   - **Dependencies**: TASK-003
   - **Priority**: `medium`
   - **Details**: PostgreSQL Changes 구독, 상태 자동 업데이트
@@ -174,9 +174,9 @@
     - 실시간 동기화 테스트
     - 연결 복구 시나리오
 
-- [ ] **TASK-015** | 통계 자동 갱신 로직
+- [x] **TASK-015** | 통계 자동 갱신 로직
   - **Description**: 거래 추가/수정 시 통계 자동 재계산
-  - **Status**: `pending`
+  - **Status**: `completed`
   - **Dependencies**: TASK-014
   - **Priority**: `medium`
   - **Details**: 디바운싱 적용, 최적화된 재계산
@@ -184,9 +184,9 @@
     - 성능 프로파일링
     - 동시성 테스트
 
-- [ ] **TASK-016** | 로딩 및 에러 상태 처리
+- [x] **TASK-016** | 로딩 및 에러 상태 처리
   - **Description**: 스켈레톤 로더, 에러 바운더리 구현
-  - **Status**: `pending`
+  - **Status**: `completed`
   - **Dependencies**: TASK-009, TASK-010
   - **Priority**: `low`
   - **Details**: 로딩 스켈레톤, 에러 메시지, 재시도 로직
@@ -194,9 +194,9 @@
     - 에러 시나리오 테스트
     - UX 검증
 
-- [ ] **TASK-017** | 개요 탭 통합 테스트
+- [x] **TASK-017** | 개요 탭 통합 테스트
   - **Description**: TaxOverview 컴포넌트 전체 통합 테스트
-  - **Status**: `pending`
+  - **Status**: `completed`
   - **Dependencies**: TASK-009, TASK-010, TASK-011, TASK-012
   - **Priority**: `high`
   - **Details**: 모든 서브 컴포넌트 통합, 데이터 플로우 검증

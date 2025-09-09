@@ -38,6 +38,7 @@ interface TaxState {
   
   setFilters: (filters: Partial<TransactionFilters>) => void;
   resetFilters: () => void;
+  clearFilters: () => void;
   
   setYearlyProjection: (projection: YearlyProjection) => void;
   setMonthlyTrend: (trend: MonthlyTrend[]) => void;
@@ -114,6 +115,7 @@ const useTaxStore = create<TaxState>()(
           })),
         
         resetFilters: () => set({ filters: defaultFilters }),
+        clearFilters: () => set({ filters: defaultFilters }),
 
         // 통계 관련 액션
         setYearlyProjection: (projection) => set({ yearlyProjection: projection }),
