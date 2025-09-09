@@ -119,81 +119,29 @@ export default function TaxTransactions() {
             </Button>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-bg-secondary border-b border-border-light">
-                <tr>
-                  <th className="px-4 py-3 text-left">
-                    <Typography variant="body2" className="font-semibold text-txt-secondary">
-                      날짜
-                    </Typography>
-                  </th>
-                  <th className="px-4 py-3 text-left">
-                    <Typography variant="body2" className="font-semibold text-txt-secondary">
-                      구분
-                    </Typography>
-                  </th>
-                  <th className="px-4 py-3 text-left">
-                    <Typography variant="body2" className="font-semibold text-txt-secondary">
-                      프로젝트/공급처
-                    </Typography>
-                  </th>
-                  <th className="px-4 py-3 text-left">
-                    <Typography variant="body2" className="font-semibold text-txt-secondary">
-                      클라이언트/공급자
-                    </Typography>
-                  </th>
-                  <th className="px-4 py-3 text-right">
-                    <Typography variant="body2" className="font-semibold text-txt-secondary">
-                      공급가액
-                    </Typography>
-                  </th>
-                  <th className="px-4 py-3 text-right">
-                    <Typography variant="body2" className="font-semibold text-txt-secondary">
-                      부가세(10%)
-                    </Typography>
-                  </th>
-                  <th className="px-4 py-3 text-right">
-                    <Typography variant="body2" className="font-semibold text-txt-secondary">
-                      원천세(3.3%)
-                    </Typography>
-                  </th>
-                  <th className="px-4 py-3 text-right">
-                    <Typography variant="body2" className="font-semibold text-txt-secondary">
-                      원천세(8.8%)
-                    </Typography>
-                  </th>
-                  <th className="px-4 py-3 text-right">
-                    <Typography variant="body2" className="font-semibold text-txt-secondary">
-                      합계(입금액)
-                    </Typography>
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {transactions.map((transaction) => {
-                  // 실제 입금액 계산 (매출의 경우 원천세를 제외한 금액)
-                  const actualAmount = transaction.transaction_type === '매출' 
-                    ? transaction.total_amount - transaction.withholding_tax_3_3 - transaction.withholding_tax_6_8
-                    : transaction.total_amount;
-                  
-                  return (
-                    <tr 
-                      key={transaction.id}
-                      className="border-b border-border-light hover:bg-bg-secondary transition-colors cursor-pointer"
-                      onClick={() => {
-                        // 프로젝트가 연결된 경우 프로젝트 페이지로 이동
-                        if (transaction.project_id) {
-                          window.location.href = `/projects/${transaction.project_id}`;
-                        }
-                      }}
-                    >
-                      <td className="px-4 py-3">
-                        <Typography variant="body2" className="text-txt-primary">
-                          {new Date(transaction.transaction_date).toLocaleDateString()}
-                        </Typography>
-                      </td>
-                      <td className="px-4 py-3">
+          <>
+            {/* 모바일 카드 뷰 (768px 미만) */}
+            <div className="block md:hidden space-y-3">
+              {transactions.map((transaction) => {
+                // 실제 입금액 계산 (매출의 경우 원천세를 제외한 금액)
+                const actualAmount = transaction.transaction_type === '매출' 
+                  ? transaction.total_amount - transaction.withholding_tax_3_3 - transaction.withholding_tax_6_8
+                  : transaction.total_amount;
+                
+                return (
+                  <div 
+                    key={transaction.id}
+                    className="bg-white border border-border-light rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer"
+                    onClick={() => {
+                      // 프로젝트가 연결된 경우 프로젝트 페이지로 이동
+                      if (transaction.project_id) {
+                        window.location.href = `/projects/${transaction.project_id}`;
+                      }
+                    }}
+                  >
+                    {/* 상단 헤더 */}
+                    <div className="flex justify-between items-start mb-3">
+                      <div className="flex items-center gap-2">
                         <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
                           transaction.transaction_type === '매출' 
                             ? 'bg-green-100 text-green-700' 
@@ -201,69 +149,250 @@ export default function TaxTransactions() {
                         }`}>
                           {transaction.transaction_type}
                         </span>
-                      </td>
-                      <td className="px-4 py-3">
-                        <div>
-                          <Typography variant="body2" className="text-txt-primary font-medium">
-                            {transaction.category || (transaction.transaction_type === '매출' ? 'A프로젝트' : '공급처')}
-                          </Typography>
-                          {transaction.description && (
-                            <Typography variant="caption" className="text-txt-tertiary">
-                              {transaction.description}
-                            </Typography>
-                          )}
-                        </div>
-                      </td>
-                      <td className="px-4 py-3">
-                        <div>
-                          <Typography variant="body2" className="text-txt-primary">
-                            {transaction.supplier_name}
-                          </Typography>
-                          {transaction.business_number && (
-                            <Typography variant="caption" className="text-txt-tertiary">
-                              {transaction.business_number}
-                            </Typography>
-                          )}
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 text-right">
-                        <Typography variant="body2" className="text-txt-primary">
+                        <Typography variant="caption" className="text-txt-tertiary">
+                          {new Date(transaction.transaction_date).toLocaleDateString()}
+                        </Typography>
+                      </div>
+                    </div>
+
+                    {/* 거래처 정보 */}
+                    <div className="mb-3">
+                      <Typography variant="body1" className="font-semibold text-txt-primary">
+                        {transaction.supplier_name}
+                      </Typography>
+                      {transaction.business_number && (
+                        <Typography variant="caption" className="text-txt-tertiary">
+                          사업자번호: {transaction.business_number}
+                        </Typography>
+                      )}
+                      {transaction.description && (
+                        <Typography variant="caption" className="text-txt-secondary block mt-1">
+                          {transaction.description}
+                        </Typography>
+                      )}
+                    </div>
+
+                    {/* 금액 정보 그리드 */}
+                    <div className="grid grid-cols-2 gap-2 mb-3">
+                      <div className="bg-bg-secondary rounded p-2">
+                        <Typography variant="caption" className="text-txt-tertiary">
+                          공급가액
+                        </Typography>
+                        <Typography variant="body2" className="font-medium text-txt-primary">
                           ₩{Number(transaction.supply_amount).toLocaleString()}
                         </Typography>
-                      </td>
-                      <td className="px-4 py-3 text-right">
-                        <Typography variant="body2" className="text-txt-primary">
-                          {transaction.vat_amount > 0 ? `₩${Number(transaction.vat_amount).toLocaleString()}` : '-'}
+                      </div>
+                      {transaction.vat_amount > 0 && (
+                        <div className="bg-bg-secondary rounded p-2">
+                          <Typography variant="caption" className="text-txt-tertiary">
+                            부가세(10%)
+                          </Typography>
+                          <Typography variant="body2" className="font-medium text-txt-primary">
+                            ₩{Number(transaction.vat_amount).toLocaleString()}
+                          </Typography>
+                        </div>
+                      )}
+                      {transaction.withholding_tax_3_3 > 0 && (
+                        <div className="bg-orange-50 rounded p-2">
+                          <Typography variant="caption" className="text-orange-700">
+                            원천세(3.3%)
+                          </Typography>
+                          <Typography variant="body2" className="font-medium text-orange-600">
+                            ₩{Number(transaction.withholding_tax_3_3).toLocaleString()}
+                          </Typography>
+                        </div>
+                      )}
+                      {transaction.withholding_tax_6_8 > 0 && (
+                        <div className="bg-orange-50 rounded p-2">
+                          <Typography variant="caption" className="text-orange-700">
+                            원천세(8.8%)
+                          </Typography>
+                          <Typography variant="body2" className="font-medium text-orange-600">
+                            ₩{Number(transaction.withholding_tax_6_8).toLocaleString()}
+                          </Typography>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* 합계 */}
+                    <div className="border-t border-border-light pt-3">
+                      <div className="flex justify-between items-center">
+                        <Typography variant="body2" className="text-txt-secondary">
+                          {transaction.transaction_type === '매출' ? '입금액' : '지급액'}
                         </Typography>
-                      </td>
-                      <td className="px-4 py-3 text-right">
-                        <Typography variant="body2" className={transaction.withholding_tax_3_3 > 0 ? "text-orange-600" : "text-txt-tertiary"}>
-                          {transaction.withholding_tax_3_3 > 0 ? `₩${Number(transaction.withholding_tax_3_3).toLocaleString()}` : '-'}
-                        </Typography>
-                      </td>
-                      <td className="px-4 py-3 text-right">
-                        <Typography variant="body2" className={transaction.withholding_tax_6_8 > 0 ? "text-orange-600" : "text-txt-tertiary"}>
-                          {transaction.withholding_tax_6_8 > 0 ? `₩${Number(transaction.withholding_tax_6_8).toLocaleString()}` : '-'}
-                        </Typography>
-                      </td>
-                      <td className="px-4 py-3 text-right">
-                        <div>
-                          <Typography variant="body2" className="font-semibold text-txt-primary">
+                        <div className="text-right">
+                          <Typography variant="body1" className="font-bold text-txt-primary">
                             ₩{Number(actualAmount).toLocaleString()}
                           </Typography>
                           {transaction.transaction_type === '매출' && (transaction.withholding_tax_3_3 > 0 || transaction.withholding_tax_6_8 > 0) && (
                             <Typography variant="caption" className="text-txt-tertiary">
-                              (총 ₩{Number(transaction.total_amount).toLocaleString()})
+                              총액: ₩{Number(transaction.total_amount).toLocaleString()}
                             </Typography>
                           )}
                         </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+                      </div>
+                    </div>
+
+                    {/* 프로젝트 정보 (있는 경우) */}
+                    {transaction.category && (
+                      <div className="mt-3 pt-3 border-t border-border-light">
+                        <Typography variant="caption" className="text-txt-tertiary">
+                          프로젝트: {transaction.category}
+                        </Typography>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* 데스크톱 테이블 뷰 (768px 이상) */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-bg-secondary border-b border-border-light">
+                  <tr>
+                    <th className="px-4 py-3 text-left">
+                      <Typography variant="body2" className="font-semibold text-txt-secondary">
+                        날짜
+                      </Typography>
+                    </th>
+                    <th className="px-4 py-3 text-left">
+                      <Typography variant="body2" className="font-semibold text-txt-secondary">
+                        구분
+                      </Typography>
+                    </th>
+                    <th className="px-4 py-3 text-left">
+                      <Typography variant="body2" className="font-semibold text-txt-secondary">
+                        프로젝트/공급처
+                      </Typography>
+                    </th>
+                    <th className="px-4 py-3 text-left">
+                      <Typography variant="body2" className="font-semibold text-txt-secondary">
+                        클라이언트/공급자
+                      </Typography>
+                    </th>
+                    <th className="px-4 py-3 text-right">
+                      <Typography variant="body2" className="font-semibold text-txt-secondary">
+                        공급가액
+                      </Typography>
+                    </th>
+                    <th className="px-4 py-3 text-right">
+                      <Typography variant="body2" className="font-semibold text-txt-secondary">
+                        부가세(10%)
+                      </Typography>
+                    </th>
+                    <th className="px-4 py-3 text-right">
+                      <Typography variant="body2" className="font-semibold text-txt-secondary">
+                        원천세(3.3%)
+                      </Typography>
+                    </th>
+                    <th className="px-4 py-3 text-right">
+                      <Typography variant="body2" className="font-semibold text-txt-secondary">
+                        원천세(8.8%)
+                      </Typography>
+                    </th>
+                    <th className="px-4 py-3 text-right">
+                      <Typography variant="body2" className="font-semibold text-txt-secondary">
+                        합계(입금액)
+                      </Typography>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {transactions.map((transaction) => {
+                    // 실제 입금액 계산 (매출의 경우 원천세를 제외한 금액)
+                    const actualAmount = transaction.transaction_type === '매출' 
+                      ? transaction.total_amount - transaction.withholding_tax_3_3 - transaction.withholding_tax_6_8
+                      : transaction.total_amount;
+                    
+                    return (
+                      <tr 
+                        key={transaction.id}
+                        className="border-b border-border-light hover:bg-bg-secondary transition-colors cursor-pointer"
+                        onClick={() => {
+                          // 프로젝트가 연결된 경우 프로젝트 페이지로 이동
+                          if (transaction.project_id) {
+                            window.location.href = `/projects/${transaction.project_id}`;
+                          }
+                        }}
+                      >
+                        <td className="px-4 py-3">
+                          <Typography variant="body2" className="text-txt-primary">
+                            {new Date(transaction.transaction_date).toLocaleDateString()}
+                          </Typography>
+                        </td>
+                        <td className="px-4 py-3">
+                          <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
+                            transaction.transaction_type === '매출' 
+                              ? 'bg-green-100 text-green-700' 
+                              : 'bg-red-100 text-red-700'
+                          }`}>
+                            {transaction.transaction_type}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3">
+                          <div>
+                            <Typography variant="body2" className="text-txt-primary font-medium">
+                              {transaction.category || (transaction.transaction_type === '매출' ? 'A프로젝트' : '공급처')}
+                            </Typography>
+                            {transaction.description && (
+                              <Typography variant="caption" className="text-txt-tertiary">
+                                {transaction.description}
+                              </Typography>
+                            )}
+                          </div>
+                        </td>
+                        <td className="px-4 py-3">
+                          <div>
+                            <Typography variant="body2" className="text-txt-primary">
+                              {transaction.supplier_name}
+                            </Typography>
+                            {transaction.business_number && (
+                              <Typography variant="caption" className="text-txt-tertiary">
+                                {transaction.business_number}
+                              </Typography>
+                            )}
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          <Typography variant="body2" className="text-txt-primary">
+                            ₩{Number(transaction.supply_amount).toLocaleString()}
+                          </Typography>
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          <Typography variant="body2" className="text-txt-primary">
+                            {transaction.vat_amount > 0 ? `₩${Number(transaction.vat_amount).toLocaleString()}` : '-'}
+                          </Typography>
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          <Typography variant="body2" className={transaction.withholding_tax_3_3 > 0 ? "text-orange-600" : "text-txt-tertiary"}>
+                            {transaction.withholding_tax_3_3 > 0 ? `₩${Number(transaction.withholding_tax_3_3).toLocaleString()}` : '-'}
+                          </Typography>
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          <Typography variant="body2" className={transaction.withholding_tax_6_8 > 0 ? "text-orange-600" : "text-txt-tertiary"}>
+                            {transaction.withholding_tax_6_8 > 0 ? `₩${Number(transaction.withholding_tax_6_8).toLocaleString()}` : '-'}
+                          </Typography>
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          <div>
+                            <Typography variant="body2" className="font-semibold text-txt-primary">
+                              ₩{Number(actualAmount).toLocaleString()}
+                            </Typography>
+                            {transaction.transaction_type === '매출' && (transaction.withholding_tax_3_3 > 0 || transaction.withholding_tax_6_8 > 0) && (
+                              <Typography variant="caption" className="text-txt-tertiary">
+                                (총 ₩{Number(transaction.total_amount).toLocaleString()})
+                              </Typography>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
       </Card>
     </div>
