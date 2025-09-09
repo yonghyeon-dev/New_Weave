@@ -152,9 +152,9 @@
     - 데이터 시각화 검증
     - 반응형 레이아웃 테스트
 
-- [ ] **TASK-013** | 차트 데이터 포맷터
+- [x] **TASK-013** | 차트 데이터 포맷터
   - **Description**: 차트 데이터 변환 유틸리티 함수
-  - **Status**: `pending`
+  - **Status**: `completed`
   - **Dependencies**: TASK-012
   - **Priority**: `medium`
   - **Details**: 금액 포맷팅, 축 라벨 생성, 툴팁 데이터

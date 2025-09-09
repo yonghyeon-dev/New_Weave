@@ -8,9 +8,14 @@ import { Calculator, FileSpreadsheet, FileText } from 'lucide-react';
 import TaxOverview from '@/components/tax/TaxOverview';
 import TaxTransactions from '@/components/tax/TaxTransactions';
 import TaxFiling from '@/components/tax/TaxFiling';
+import { TaxErrorBoundary } from '@/components/tax/components/TaxErrorBoundary';
+import { useTaxAutoSync } from '@/hooks/useTaxRealtime';
 
 export default function TaxManagementPage() {
   const [activeTab, setActiveTab] = useState('overview');
+  
+  // 실시간 데이터 자동 동기화
+  useTaxAutoSync();
 
   const tabs = [
     { id: 'overview', label: '개요', icon: Calculator },
@@ -57,9 +62,11 @@ export default function TaxManagementPage() {
         </div>
 
         {/* 탭 컨텐츠 */}
-        {activeTab === 'overview' && <TaxOverview />}
-        {activeTab === 'transactions' && <TaxTransactions />}
-        {activeTab === 'filing' && <TaxFiling />}
+        <TaxErrorBoundary>
+          {activeTab === 'overview' && <TaxOverview />}
+          {activeTab === 'transactions' && <TaxTransactions />}
+          {activeTab === 'filing' && <TaxFiling />}
+        </TaxErrorBoundary>
       </DataPageContainer>
     </AppLayout>
   );
