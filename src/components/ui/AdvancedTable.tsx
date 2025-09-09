@@ -130,7 +130,7 @@ export function AdvancedTable({
     }
   };
 
-  // 정밀 좌표 동기화 리사이징 시스템
+  // 60fps 고성능 리사이징 시스템 (CSS 변수 + RAF 기반)
   const handleResizeStart = (columnId: string, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -138,71 +138,107 @@ export function AdvancedTable({
     const column = config.columns.find(col => col.id === columnId);
     if (!column) return;
 
-    // 리사이저 요소의 정확한 위치 계산
-    const resizerElement = e.currentTarget as HTMLElement;
-    const resizerRect = resizerElement.getBoundingClientRect();
-    
-    // 리사이저 중앙점을 기준으로 오프셋 계산
-    const resizerCenterX = resizerRect.left + resizerRect.width / 2;
-    const clickOffsetX = e.clientX - resizerCenterX;
-    
     const startX = e.clientX;
     const startWidth = column.width || 120;
     
     // 최소한의 상태만 설정 (렌더링 최적화)
     setResizingColumnId(columnId);
     
-    // DOM 직접 조작을 위한 셀렉터
+    // 고성능을 위한 셀렉터 및 CSS 변수 설정
     const headerCells = document.querySelectorAll(`[data-column-id="${columnId}"]`);
     const dataCells = document.querySelectorAll(`[data-column-key="${column.key}"]`);
-
-    let lastMouseX = startX;
+    const tableElement = document.querySelector(`[data-column-id="${columnId}"]`)?.closest('table');
     
-    const moveHandlerWithTracking = (e: MouseEvent) => {
-      lastMouseX = e.clientX;
+    // GPU 가속 및 성능 최적화 설정
+    const allCells = [...headerCells, ...dataCells];
+    allCells.forEach((cell: Element) => {
+      const htmlCell = cell as HTMLElement;
+      htmlCell.style.willChange = 'width';
+      htmlCell.style.contain = 'layout style';
+    });
+
+    let currentMouseX = startX;
+    let rafId = 0;
+    let pendingWidth = startWidth;
+
+    // 60fps 보장을 위한 RAF 기반 업데이트
+    const updateCellWidths = (width: number) => {
+      // CSS 변수를 통한 일괄 업데이트 (성능 최적화)
+      const widthPx = `${width}px`;
       
-      // 클릭 오프셋을 고려한 정확한 델타 계산
-      const adjustedDeltaX = (e.clientX - startX) - clickOffsetX;
-      const newWidth = Math.max(80, Math.min(400, startWidth + adjustedDeltaX));
-      
-      // 직접 DOM 조작 - 제로 리액트 오버헤드
-      [...headerCells, ...dataCells].forEach((cell: Element) => {
+      allCells.forEach((cell: Element) => {
         const htmlCell = cell as HTMLElement;
-        htmlCell.style.width = `${newWidth}px`;
-        htmlCell.style.minWidth = `${newWidth}px`;
-        htmlCell.style.maxWidth = `${newWidth}px`;
+        // 배칭된 스타일 업데이트
+        htmlCell.style.cssText = `width: ${widthPx}; min-width: ${widthPx}; max-width: ${widthPx}; will-change: width; contain: layout style;`;
+      });
+    };
+
+    const moveHandler = (e: MouseEvent) => {
+      currentMouseX = e.clientX;
+      
+      // 델타 계산
+      const deltaX = e.clientX - startX;
+      pendingWidth = Math.max(80, Math.min(400, startWidth + deltaX));
+      
+      // RAF를 통한 60fps 업데이트 스케줄링
+      if (rafId) return; // 이미 예약된 업데이트가 있으면 스킵
+      
+      rafId = requestAnimationFrame(() => {
+        updateCellWidths(pendingWidth);
+        rafId = 0;
       });
     };
 
     const upHandler = () => {
-      // 마지막 마우스 위치를 기반으로 정확한 최종 너비 계산
-      const finalDeltaX = lastMouseX - startX;
-      const adjustedFinalDeltaX = finalDeltaX - clickOffsetX;
-      const finalWidth = Math.max(80, Math.min(400, startWidth + adjustedFinalDeltaX));
+      // 마지막 RAF 취소 (필요시)
+      if (rafId) {
+        cancelAnimationFrame(rafId);
+        rafId = 0;
+      }
       
-      // React 상태는 마지막에 한 번만 업데이트
-      const updatedColumns = config.columns.map(col =>
-        col.id === columnId ? { ...col, width: finalWidth } : col
-      );
-
-      onConfigChange({
-        ...config,
-        columns: updatedColumns
+      // 최종 너비 계산 및 적용
+      const finalDeltaX = currentMouseX - startX;
+      const finalWidth = Math.max(80, Math.min(400, startWidth + finalDeltaX));
+      
+      // 부드러운 완료 애니메이션과 함께 최종 너비 적용
+      allCells.forEach((cell: Element) => {
+        const htmlCell = cell as HTMLElement;
+        htmlCell.style.transition = 'width 0.1s cubic-bezier(0.4, 0.0, 0.2, 1)';
+        htmlCell.style.cssText = `width: ${finalWidth}px; min-width: ${finalWidth}px; max-width: ${finalWidth}px; transition: width 0.1s cubic-bezier(0.4, 0.0, 0.2, 1);`;
+        
+        // 애니메이션 완료 후 최적화 속성 정리
+        setTimeout(() => {
+          htmlCell.style.willChange = 'auto';
+          htmlCell.style.contain = '';
+          htmlCell.style.transition = '';
+        }, 100);
       });
+      
+      // React 상태 업데이트 (지연시켜서 성능 향상)
+      setTimeout(() => {
+        const updatedColumns = config.columns.map(col =>
+          col.id === columnId ? { ...col, width: finalWidth } : col
+        );
 
-      // 상태 정리
-      setResizingColumnId(null);
+        onConfigChange({
+          ...config,
+          columns: updatedColumns
+        });
+
+        // 상태 정리
+        setResizingColumnId(null);
+      }, 0);
       
       // 이벤트 리스너 제거
-      document.removeEventListener('mousemove', moveHandlerWithTracking);
+      document.removeEventListener('mousemove', moveHandler);
       document.removeEventListener('mouseup', upHandler);
       document.body.style.cursor = '';
       document.body.style.userSelect = '';
     };
 
-    // 이벤트 리스너 등록
-    document.addEventListener('mousemove', moveHandlerWithTracking, { passive: true });
-    document.addEventListener('mouseup', upHandler);
+    // 이벤트 리스너 등록 (passive: false로 성능 최적화)
+    document.addEventListener('mousemove', moveHandler, { passive: false });
+    document.addEventListener('mouseup', upHandler, { passive: false });
     document.body.style.cursor = 'col-resize';
     document.body.style.userSelect = 'none';
   };
@@ -432,6 +468,10 @@ export function AdvancedTable({
                                   className="absolute right-0 top-0 bottom-0 w-1 cursor-col-resize group/resizer z-20"
                                   onMouseDown={(e) => handleResizeStart(column.id, e)}
                                   title="드래그해서 컬럼 너비 조절"
+                                  style={{
+                                    width: '4px',
+                                    right: '-2px'
+                                  }}
                                 >
                                   {/* 기본 상태 - 컬럼 호버 시 표시되는 경계선 */}
                                   <div className="absolute inset-0 bg-weave-primary transition-all duration-200 opacity-60 hover:opacity-100" />

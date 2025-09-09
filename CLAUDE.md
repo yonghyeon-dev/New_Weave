@@ -1,5 +1,7 @@
 # CLAUDE.md
 
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
 이 파일은 이 저장소에서 코드 작업을 할 때 Claude Code에게 지침을 제공합니다.
 
 ## 🌐 언어 및 작업 지침
@@ -554,3 +556,87 @@ max-width: 제한 없음 (콘텐츠가 사용 가능한 공간을 최대 활용)
    - `/src/components/ui/` 디렉토리에 생성
    - Props 타입 정의 필수
    - 기본값 설정 필수
+
+## 🚀 개발 명령어
+
+### **핵심 개발 명령어**
+```bash
+# 개발 서버 시작
+npm run dev               # Next.js 개발 서버 (http://localhost:3000)
+
+# 빌드 및 프로덕션
+npm run build            # 프로덕션 빌드
+npm run start            # 프로덕션 서버 시작
+npm run clean            # 빌드 산출물 정리
+
+# 코드 품질 검사
+npm run lint             # ESLint 검사
+npm run lint:fix         # ESLint 오류 자동 수정  
+npm run type-check       # TypeScript 타입 검사
+
+# 분석
+npm run analyze          # 번들 분석 (ANALYZE=true)
+```
+
+### **유지보수 명령어**
+```bash
+npm run audit:fix        # 보안 취약점 수정
+npm test                 # 테스트 실행 (현재 성공 반환)
+```
+
+## 🏗️ 시스템 아키텍처
+
+### **핵심 아키텍처 패턴**
+
+**마스터-디테일 패턴**: 통합 상태 관리를 통한 중앙화된 프로젝트 관리
+- `useProjectMasterDetail` 훅이 모든 프로젝트 상호작용 관리
+- `view`와 `selected` 파라미터를 이용한 URL 기반 라우팅  
+- 'list'와 'detail' 뷰 간 ViewMode 전환
+
+**중앙화된 컴포넌트 시스템**: 
+- 모든 UI 컴포넌트는 `src/components/ui/`에서 제공
+- 일관된 테마를 위한 글로벌 CSS 변수 활용
+- 레이아웃 일관성을 위한 PageContainer 사용 필수
+
+**타입 안전 테이블 시스템**:
+- `ProjectTableColumn`과 `ProjectTableRow` 인터페이스로 테이블 구조 정의
+- 가시성, 너비, 정렬, 필터링을 포함한 칼럼 설정
+- 60fps 최적화된 고성능 칼럼 리사이징
+
+### **핵심 상태 관리**
+
+**프로젝트 테이블 설정**:
+```typescript
+interface ProjectTableConfig {
+  columns: ProjectTableColumn[];     // 칼럼 정의
+  filters: TableFilterState;         // 검색 및 필터링
+  sort: TableSortState;             // 정렬 설정  
+  pagination: PaginationState;       // 페이지 관리
+}
+```
+
+**통합 프로젝트 상태**:
+- `useProjectMasterDetail`을 통한 단일 진실의 원천
+- 브라우저 네비게이션과 URL 동기화
+- 컴포넌트 간 상태 공유
+
+### **AI 통합 아키텍처**
+
+**서비스 레이어**: `/src/lib/services/`에 모든 비즈니스 로직 포함
+- `chatService.ts` - AI 대화 관리
+- `supabase/` - 타입 인터페이스를 갖춘 데이터베이스 서비스 레이어
+- `rag/` - 문서 처리를 위한 RAG 파이프라인
+
+**AI 컴포넌트**: `/src/components/ai-assistant/`의 전문화된 컴포넌트
+- 컨텍스트 인식 채팅 인터페이스
+- 문서 업로드 및 처리
+- 템플릿 생성 시스템
+
+### **기술 스택**
+- **프레임워크**: Next.js 14.2.32 (App Router 사용)
+- **언어**: 엄격한 타입 검사를 갖춘 TypeScript
+- **스타일링**: 커스텀 디자인 시스템을 갖춘 Tailwind CSS
+- **UI 컴포넌트**: Lucide React 아이콘 + 커스텀 컴포넌트 라이브러리
+- **데이터베이스**: Supabase (V2.0.0에서 계획됨)
+- **AI 통합**: 다중 AI 공급자 지원
+- **개발 환경**: ESLint, TypeScript, Vercel 배포

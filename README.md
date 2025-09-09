@@ -71,9 +71,14 @@
 
 ### **기술 스택**
 - **Frontend**: Next.js 14.2.32 + TypeScript + Tailwind CSS
-- **UI Components**: Lucide React + 커스텀 디자인 시스템
-- **배포**: Vercel 자동 배포 + GitHub 연동
-- **코드 품질**: ESLint + 타입 안전성 보장
+- **UI Framework**: React 18 + 커스텀 디자인 시스템
+- **아이콘**: Lucide React (540+ 아이콘)
+- **상태 관리**: React Hooks + Context API
+- **스타일링**: Tailwind CSS + CSS Variables
+- **데이터베이스**: Supabase (PostgreSQL + 실시간 기능)
+- **인증**: Supabase Auth + JWT
+- **배포**: Vercel + GitHub Actions
+- **개발 도구**: ESLint + TypeScript + Hot Reload
 
 ### **프로젝트 구조**
 ```
@@ -108,9 +113,9 @@ src/
 ```bash
 # 1. 저장소 클론
 git clone https://github.com/yonghyeon-dev/New_Weave.git
-cd NEW_WEAVE
+cd New_Weave
 
-# 2. 의존성 설치  
+# 2. 의존성 설치
 npm install
 
 # 3. 개발 서버 실행
@@ -118,6 +123,25 @@ npm run dev
 
 # 4. 브라우저에서 확인
 open http://localhost:3000
+```
+
+### **핵심 개발 명령어**
+```bash
+# 개발 서버
+npm run dev                 # Next.js 개발 서버 (http://localhost:3000)
+
+# 빌드 및 배포
+npm run build              # 프로덕션 빌드
+npm run start              # 프로덕션 서버 실행
+
+# 코드 품질
+npm run lint               # ESLint 검사
+npm run lint:fix           # ESLint 자동 수정
+npm run type-check         # TypeScript 타입 검사
+
+# 유틸리티
+npm run clean              # 빌드 캐시 정리
+npm run analyze            # 번들 크기 분석
 ```
 
 ### **프로덕션 배포**
@@ -137,12 +161,13 @@ npm run lint
 
 ## ⚠️ **개발 현황**
 
-### **현재 상태 (V1.3.0_250827)**
-- ✅ **27/27 페이지** 정적 생성 성공
-- ✅ **프로젝트 중심 아키텍처** 완성  
-- ✅ **독립 워커 타겟팅** 브랜딩 완료
-- ✅ **일관된 탭 네비게이션** 전체 적용
-- ⚠️ **프로토타입 단계**: 목업 데이터 기반, 실제 API 연동 예정
+### **현재 상태 (V1.3.2_250905)**
+- ✅ **프로젝트 중심 통합 관리 시스템** 완성
+- ✅ **마스터-디테일 아키텍처** 구현 완료
+- ✅ **고성능 테이블 시스템** (60fps 칼럼 리사이징)
+- ✅ **통합 라우팅 시스템** 구현 완료
+- ✅ **Supabase 연동** 준비 완료
+- ⚠️ **개발 단계**: 핵심 기능 구현 완료, API 연동 및 배포 준비 중
 
 ### **알려진 제한사항**
 - AI 기능은 현재 시뮬레이션으로 구현 (실제 AI API 연동 예정)

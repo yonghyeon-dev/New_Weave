@@ -7,6 +7,7 @@ import ProjectNavigation from '@/components/ui/ProjectNavigation';
 import SimpleProjectNavigation from '@/components/ui/SimpleProjectNavigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { ProjectTableControls } from '@/components/ui/ProjectTableControls';
+import { ProjectOverviewEnhanced } from './ProjectOverviewEnhanced';
 import type { 
   ProjectTableRow,
   TableFilterState 
@@ -208,7 +209,7 @@ export function ProjectDetailPanel({
       <div className="flex-1 overflow-y-auto min-h-0">
         <div className="p-6">
           {activeTab === 'overview' && (
-            <ProjectOverviewTab project={project} />
+            <ProjectOverviewEnhanced project={project} />
           )}
 
           {activeTab === 'contract' && (
@@ -228,88 +229,6 @@ export function ProjectDetailPanel({
   );
 }
 
-// 개요 탭 컴포넌트
-function ProjectOverviewTab({ project }: { project: ProjectTableRow }) {
-  const getStatusLabel = (status: string) => {
-    const labels = {
-      planning: '기획',
-      in_progress: '진행중',
-      review: '검토',
-      completed: '완료',
-      on_hold: '보류',
-      cancelled: '취소'
-    };
-    return labels[status as keyof typeof labels] || status;
-  };
-
-  return (
-    <div className="space-y-6">
-      {/* 프로젝트 기본 정보 */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base">프로젝트 정보</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="flex justify-between">
-              <span className="text-txt-secondary">상태</span>
-              <span className="text-txt-primary">{getStatusLabel(project.status)}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-txt-secondary">진행률</span>
-              <span className="text-txt-primary">{project.progress}%</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-txt-secondary">등록일</span>
-              <span className="text-txt-primary">{new Date(project.registrationDate).toLocaleDateString('ko-KR')}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-txt-secondary">마감일</span>
-              <span className="text-txt-primary">{new Date(project.dueDate).toLocaleDateString('ko-KR')}</span>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base">클라이언트 정보</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="flex items-center gap-2">
-              <Building className="w-4 h-4 text-txt-tertiary" />
-              <span className="text-txt-primary">{project.client}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-txt-secondary">수급현황</span>
-              <span className="text-txt-primary">{project.paymentProgress}%</span>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* 진행률 차트 */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base">프로젝트 진행률</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-2">
-            <div className="text-sm text-txt-secondary mb-2">전체 진행률</div>
-            <div className="h-2 bg-bg-secondary rounded-full overflow-hidden mb-1.5">
-              <div 
-                className="h-full bg-gradient-to-r from-weave-primary to-weave-primary-dark transition-all duration-300"
-                style={{ width: `${project.progress}%` }}
-              />
-            </div>
-            <div className="text-center">
-              <span className="text-sm text-txt-primary font-medium">{project.progress}%</span>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  );
-}
 
 // 계약 탭 컴포넌트
 function ProjectContractTab({ project }: { project: ProjectTableRow }) {
