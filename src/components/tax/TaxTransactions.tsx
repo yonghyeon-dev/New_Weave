@@ -4,14 +4,17 @@ import React, { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/Card';
 import Typography from '@/components/ui/Typography';
 import Button from '@/components/ui/Button';
-import { Filter, Download, Upload, Plus } from 'lucide-react';
+import { Filter, Download, Upload, Plus, FileText, X } from 'lucide-react';
 import { taxTransactionService } from '@/lib/services/supabase/tax-transactions.service';
 import type { Transaction, TransactionFilters } from '@/lib/services/supabase/tax-transactions.service';
+import DataExtractor from '@/components/ai-assistant/DataExtractor';
+import type { ExtractedData } from '@/types/ai-assistant';
 
 export default function TaxTransactions() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [showFilter, setShowFilter] = useState(false);
+  const [showUploadModal, setShowUploadModal] = useState(false);
   const [filters, setFilters] = useState<TransactionFilters>({
     dateRange: 'thisYear',  // 2024년 전체 데이터를 표시하도록 변경
     transactionType: 'all',
@@ -35,6 +38,36 @@ export default function TaxTransactions() {
     }
   };
 
+  // 추출된 데이터를 거래로 변환
+  const handleDataExtracted = (data: ExtractedData) => {
+    console.log('Extracted data:', data);
+    
+    // 추출된 데이터를 기반으로 거래 내역 자동 생성 로직
+    // TODO: 세금계산서, 영수증 등 문서 타입에 따라 자동으로 거래 내역 생성
+    const extractedInfo = (data as any).extractedData || data;
+    
+    if (extractedInfo.documentType === '세금계산서' || extractedInfo.totalAmount) {
+      // 세금계산서나 영수증 데이터를 거래로 변환
+      const newTransaction = {
+        supplier_name: extractedInfo.vendor || extractedInfo.companyName || '',
+        business_number: extractedInfo.businessNumber || '',
+        supply_amount: extractedInfo.supplyAmount || (extractedInfo.totalAmount ? extractedInfo.totalAmount / 1.1 : 0),
+        vat_amount: extractedInfo.taxAmount || (extractedInfo.totalAmount ? extractedInfo.totalAmount * 0.1 / 1.1 : 0),
+        total_amount: extractedInfo.totalAmount || 0,
+        transaction_date: extractedInfo.date || new Date().toISOString().split('T')[0],
+        description: extractedInfo.description || '증빙 업로드로 생성'
+      };
+      
+      console.log('새로운 거래 생성 준비:', newTransaction);
+      // TODO: taxTransactionService.createTransaction(newTransaction);
+    }
+    
+    // 모달 닫기
+    setShowUploadModal(false);
+    // 거래 목록 새로고침
+    loadTransactions();
+  };
+
   return (
     <div className="space-y-6">
       {/* 툴바 */}
@@ -51,6 +84,14 @@ export default function TaxTransactions() {
         </div>
         
         <div className="flex items-center gap-2">
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => setShowUploadModal(true)}
+          >
+            <FileText className="w-4 h-4 mr-2" />
+            증빙 업로드
+          </Button>
           <Button variant="outline" size="sm">
             <Upload className="w-4 h-4 mr-2" />
             엑셀 업로드
@@ -263,7 +304,7 @@ export default function TaxTransactions() {
                     </th>
                     <th className="px-4 py-3 text-left">
                       <Typography variant="body2" className="font-semibold text-txt-secondary">
-                        프로젝트/공급처
+                        프로젝트/품목
                       </Typography>
                     </th>
                     <th className="px-4 py-3 text-left">
@@ -395,6 +436,47 @@ export default function TaxTransactions() {
           </>
         )}
       </Card>
+
+      {/* 증빙 업로드 모달 */}
+      {showUploadModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b border-border-light p-4 flex justify-between items-center">
+              <Typography variant="h2" className="text-xl font-bold text-txt-primary">
+                증빙 업로드
+              </Typography>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowUploadModal(false)}
+              >
+                <X className="w-5 h-5" />
+              </Button>
+            </div>
+            
+            <div className="p-6">
+              <div className="mb-4">
+                <Typography variant="body1" className="text-txt-secondary">
+                  세금계산서, 계산서, 영수증, 카드전표 등의 증빙 서류를 업로드하면 
+                  AI가 자동으로 내용을 인식하여 거래 내역을 생성합니다.
+                </Typography>
+                <Typography variant="body2" className="text-txt-tertiary mt-2">
+                  * 추후 홈택스 연동을 통해 세금계산서, 원천세 신고내역, 카드 매출/매입 내역을 
+                  자동으로 불러올 수 있습니다.
+                </Typography>
+              </div>
+              
+              <DataExtractor
+                onDataExtracted={handleDataExtracted}
+                onError={(error) => console.error('Data extraction error:', error)}
+                maxFileSize={10}
+                acceptedFormats={['.pdf', '.jpg', '.jpeg', '.png', '.gif', '.bmp']}
+                enableRAG={false}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
