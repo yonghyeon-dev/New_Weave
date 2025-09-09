@@ -12,7 +12,8 @@ import {
   LayoutGrid,
   List,
   Smartphone,
-  Monitor
+  Monitor,
+  Link as LinkIcon
 } from 'lucide-react';
 
 // 컴포넌트 임포트
@@ -23,6 +24,7 @@ import TransactionFilters from './filters/TransactionFilters';
 import TransactionModal from './modals/TransactionModal';
 import BatchOperations from './batch/BatchOperations';
 import StatisticsCards from './cards/StatisticsCards';
+import BatchProjectConnection from './project/BatchProjectConnection';
 
 // 서비스 임포트
 import { 
@@ -60,6 +62,7 @@ export default function TaxTransactionsView() {
   const [isMobile, setIsMobile] = useState(false);
   const [showFilters, setShowFilters] = useState(true);
   const [showStats, setShowStats] = useState(true);
+  const [showProjectConnection, setShowProjectConnection] = useState(false);
   const [modalMode, setModalMode] = useState<'add' | 'edit' | null>(null);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
   const [aggregates, setAggregates] = useState({
@@ -245,6 +248,15 @@ export default function TaxTransactionsView() {
           <Button
             variant="outline"
             size="sm"
+            onClick={() => setShowProjectConnection(!showProjectConnection)}
+          >
+            <LinkIcon className="w-4 h-4 mr-2" />
+            프로젝트 연결
+          </Button>
+          
+          <Button
+            variant="outline"
+            size="sm"
             onClick={() => handleExport('excel')}
           >
             <Download className="w-4 h-4 mr-2" />
@@ -271,6 +283,20 @@ export default function TaxTransactionsView() {
           netAmount={aggregates.totalSales - aggregates.totalPurchases}
           transactionCount={aggregates.transactionCount}
           period="전체 기간"
+        />
+      )}
+
+      {/* 일괄 프로젝트 연결 */}
+      {showProjectConnection && (
+        <BatchProjectConnection
+          transactions={selectedTransactions.length > 0 
+            ? transactions.filter(t => selectedTransactions.includes(t.id))
+            : transactions}
+          onComplete={() => {
+            setShowProjectConnection(false);
+            clearSelection();
+            loadTransactions();
+          }}
         />
       )}
 

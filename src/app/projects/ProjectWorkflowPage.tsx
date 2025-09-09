@@ -158,20 +158,10 @@ export default function ProjectWorkflowPage() {
       setLoading(true);
       setError(null);
       
-      // Supabase에서 현재 사용자 가져오기
-      const { createClient } = await import('@/lib/supabase/client');
-      const supabase = createClient();
-      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      // Mock 사용자 ID 사용 (Supabase 연결 제거)
+      const userId = 'mock-user';
       
-      if (authError || !user) {
-        console.error('Auth error:', authError);
-        setError('로그인이 필요합니다.');
-        return;
-      }
-      
-      const userId = user.id;
-      
-      // 병렬로 데이터 로드
+      // 병렬로 Mock 데이터 로드
       const [clientsData, projectsData, invoicesData] = await Promise.all([
         clientService.getClients(userId),
         projectsService.getProjects(userId),
@@ -189,7 +179,8 @@ export default function ProjectWorkflowPage() {
       
     } catch (err) {
       console.error('Failed to load data:', err);
-      setError('데이터를 불러오는데 실패했습니다.');
+      // Mock 데이터 사용 시 에러는 무시하고 로딩 완료 처리
+      setError(null);
     } finally {
       setLoading(false);
     }

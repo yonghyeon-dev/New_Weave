@@ -13,7 +13,7 @@ export default function TaxTransactions() {
   const [loading, setLoading] = useState(true);
   const [showFilter, setShowFilter] = useState(false);
   const [filters, setFilters] = useState<TransactionFilters>({
-    dateRange: 'thisMonth',
+    dateRange: 'thisYear',  // 2024년 전체 데이터를 표시하도록 변경
     transactionType: 'all',
     projectId: null,
     clientId: null

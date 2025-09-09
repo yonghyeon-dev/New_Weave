@@ -9,12 +9,10 @@ import DashboardCalendar from '@/components/dashboard/DashboardCalendar';
 import Typography from '@/components/ui/Typography';
 import type { DashboardInsight, QuickAction } from '@/components/dashboard/DashboardLayout';
 import type { CalendarEvent } from '@/components/dashboard/DashboardCalendar';
-import { createClient } from '@/lib/supabase/client';
 import { projectsService } from '@/lib/services/supabase/projects.service';
 import { clientService } from '@/lib/services/supabase/clients.service';
 import { invoicesService } from '@/lib/services/supabase/invoices.service';
 import { remindersService } from '@/lib/services/supabase/reminders.service';
-import type { RealtimeChannel } from '@supabase/supabase-js';
 
 // Mock 데이터 - 실제로는 API에서 가져올 데이터
 interface DashboardData {
@@ -50,26 +48,17 @@ export default function Dashboard() {
   const router = useRouter();
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [supabaseClient] = useState(() => createClient());
-  const [realtimeChannel, setRealtimeChannel] = useState<RealtimeChannel | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
 
-  // Supabase에서 실시간 데이터 로딩
+  // Mock 데이터 로딩
   useEffect(() => {
     const checkAuthAndFetchData = async () => {
       setIsLoading(true);
       
-      // 사용자 인증 확인 - getSession 사용
-      const { data: { session }, error } = await supabaseClient.auth.getSession();
-      
-      if (error || !session || !session.user) {
-        console.log('No valid session in dashboard, redirecting to login');
-        router.push('/login');
-        return;
-      }
-      
-      setUserId(session.user.id);
-      await fetchDashboardData(session.user.id);
+      // Mock 사용자 ID 사용 (Supabase 연결 제거)
+      const mockUserId = 'mock-user';
+      setUserId(mockUserId);
+      await fetchDashboardData(mockUserId);
     };
     
     const fetchDashboardData = async (userId: string) => {
@@ -300,64 +289,7 @@ export default function Dashboard() {
     };
 
     checkAuthAndFetchData();
-    
-    // 실시간 구독 설정
-    const setupRealtimeSubscription = (currentUserId: string) => {
-      const channel = supabaseClient
-        .channel('dashboard-updates')
-        .on(
-          'postgres_changes',
-          { event: '*', schema: 'public', table: 'projects' },
-          (payload) => {
-            console.log('Project change received:', payload);
-            fetchDashboardData(currentUserId); // userId 전달
-          }
-        )
-        .on(
-          'postgres_changes',
-          { event: '*', schema: 'public', table: 'clients' },
-          (payload) => {
-            console.log('Client change received:', payload);
-            fetchDashboardData(currentUserId); // userId 전달
-          }
-        )
-        .on(
-          'postgres_changes',
-          { event: '*', schema: 'public', table: 'invoices' },
-          (payload) => {
-            console.log('Invoice change received:', payload);
-            fetchDashboardData(currentUserId); // userId 전달
-          }
-        )
-        .on(
-          'postgres_changes',
-          { event: '*', schema: 'public', table: 'reminders' },
-          (payload) => {
-            console.log('Reminder change received:', payload);
-            fetchDashboardData(currentUserId); // userId 전달
-          }
-        )
-        .subscribe((status) => {
-          if (status === 'SUBSCRIBED') {
-            console.log('Dashboard realtime subscription active');
-          }
-        });
-      
-      setRealtimeChannel(channel);
-    };
-    
-    if (userId) {
-      setupRealtimeSubscription(userId);
-    }
-    
-    // Cleanup 함수
-    return () => {
-      if (realtimeChannel) {
-        console.log('Unsubscribing from dashboard realtime updates');
-        supabaseClient.removeChannel(realtimeChannel);
-      }
-    };
-  }, [supabaseClient, router, userId, realtimeChannel]);
+  }, [router]);
 
   // 빠른 실행 버튼들
   const quickActions: QuickAction[] = [

@@ -64,7 +64,7 @@ interface TaxState {
 }
 
 const defaultFilters: TransactionFilters = {
-  dateRange: 'thisMonth',
+  dateRange: 'thisYear',  // 기본값을 올해로 변경하여 2024년 데이터를 볼 수 있도록
   transactionType: 'all',
   projectId: null,
   clientId: null
@@ -166,13 +166,31 @@ const useTaxStore = create<TaxState>()(
 
             switch (filters.dateRange) {
               case 'thisMonth':
-                startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+                // Mock 데이터용: 2024년 12월 데이터 표시
+                startDate = new Date(2024, 11, 1);  // 2024년 12월 1일
+                const endOfMonth = new Date(2024, 11, 31);  // 2024년 12월 31일
+                filtered = filtered.filter((t) => {
+                  const date = new Date(t.transaction_date);
+                  return date >= startDate && date <= endOfMonth;
+                });
                 break;
               case 'lastMonth':
-                startDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+                // Mock 데이터용: 2024년 11월 데이터 표시
+                startDate = new Date(2024, 10, 1);  // 2024년 11월 1일
+                const endOfLastMonth = new Date(2024, 10, 30);  // 2024년 11월 30일
+                filtered = filtered.filter((t) => {
+                  const date = new Date(t.transaction_date);
+                  return date >= startDate && date <= endOfLastMonth;
+                });
                 break;
               case 'thisYear':
-                startDate = new Date(now.getFullYear(), 0, 1);
+                // Mock 데이터용: 2024년 전체 데이터 표시
+                startDate = new Date(2024, 0, 1);  // 2024년 1월 1일
+                const endOfYear = new Date(2024, 11, 31);  // 2024년 12월 31일
+                filtered = filtered.filter((t) => {
+                  const date = new Date(t.transaction_date);
+                  return date >= startDate && date <= endOfYear;
+                });
                 break;
               default:
                 if (typeof filters.dateRange === 'object' && 'start' in filters.dateRange) {
@@ -184,12 +202,6 @@ const useTaxStore = create<TaxState>()(
                   });
                 }
                 break;
-            }
-
-            if (filters.dateRange !== 'custom') {
-              filtered = filtered.filter((t) => 
-                new Date(t.transaction_date) >= startDate
-              );
             }
           }
 

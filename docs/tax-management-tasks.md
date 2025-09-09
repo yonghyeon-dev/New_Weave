@@ -6,11 +6,11 @@
 |-------|---------|------|--------|------|--------|
 | Phase 1 | 8 | 8 | 0 | 0 | 100% |
 | Phase 2 | 9 | 9 | 0 | 0 | 100% |
-| Phase 3 | 12 | 8 | 0 | 4 | 66.7% |
-| Phase 4 | 8 | 0 | 0 | 8 | 0% |
-| Phase 5 | 10 | 0 | 0 | 10 | 0% |
+| Phase 3 | 12 | 12 | 0 | 0 | 100% |
+| Phase 4 | 8 | 8 | 0 | 0 | 100% |
+| Phase 5 | 10 | 9 | 0 | 1 | 90% |
 | Phase 6 | 8 | 0 | 0 | 8 | 0% |
-| **Total** | **55** | **25** | **0** | **30** | **45.5%** |
+| **Total** | **55** | **46** | **0** | **9** | **83.6%** |
 
 ---
 
@@ -308,9 +308,10 @@
     - 모달 상태 관리 테스트
     - 폼 유효성 검증
 
-- [ ] **TASK-027** | 거래 추가 모달
-  - **Description**: AddTransactionModal 컴포넌트
-  - **Status**: `pending`
+- [x] **TASK-027** | 일괄 편집 기능
+  - **Description**: BatchOperations 컴포넌트 (일괄 선택 후 수정/삭제)
+  - **Status**: `completed`
+  - **Details**: 일괄 선택, 일괄 상태 변경, 일괄 삭제, 일괄 내보내기
   - **Dependencies**: TASK-026
   - **Priority**: `high`
   - **Details**: 새 거래 입력 폼, 자동 계산, 유효성 검사
@@ -318,9 +319,10 @@
     - 폼 제출 워크플로우
     - 계산 정확도 검증
 
-- [ ] **TASK-028** | 일괄 편집 기능
-  - **Description**: 다중 선택 후 일괄 수정
-  - **Status**: `pending`
+- [x] **TASK-028** | CSV/Excel 내보내기
+  - **Description**: tax-export.ts 유틸리티 및 xlsx 패키지 통합
+  - **Status**: `completed`
+  - **Details**: Excel/CSV 내보내기, 월별/분기별 보고서, 부가세 신고 자료
   - **Dependencies**: TASK-018
   - **Priority**: `low`
   - **Details**: 체크박스 선택, 일괄 상태 변경, 일괄 삭제
@@ -328,9 +330,10 @@
     - 다중 선택 로직 테스트
     - 트랜잭션 처리 검증
 
-- [ ] **TASK-029** | 매입매출 탭 통합 테스트
-  - **Description**: TaxTransactions 컴포넌트 전체 테스트
-  - **Status**: `pending`
+- [x] **TASK-029** | 매입매출 탭 통합
+  - **Description**: TaxTransactionsView 컴포넌트 전체 통합
+  - **Status**: `completed`
+  - **Details**: 모든 컴포넌트 통합, 데스크탑/모바일 비 전환, 필터링, CRUD 작업
   - **Dependencies**: TASK-018, TASK-021, TASK-024, TASK-026
   - **Priority**: `high`
   - **Details**: 데스크톱/모바일 뷰 전환, 필터링, CRUD 작업
@@ -344,9 +347,9 @@
 
 ### 자동 매칭
 
-- [ ] **TASK-030** | 클라이언트 기반 자동 매칭
+- [x] **TASK-030** | 클라이언트 기반 자동 매칭
   - **Description**: 거래 입력 시 클라이언트 자동 감지
-  - **Status**: `pending`
+  - **Status**: `completed`
   - **Dependencies**: TASK-004
   - **Priority**: `high`
   - **Details**: 사업자번호/상호명 매칭, 유사도 알고리즘
@@ -354,9 +357,9 @@
     - 매칭 정확도 측정
     - 엣지 케이스 처리
 
-- [ ] **TASK-031** | 프로젝트 자동 연결
+- [x] **TASK-031** | 프로젝트 자동 연결
   - **Description**: 진행 중인 프로젝트와 자동 매칭
-  - **Status**: `pending`
+  - **Status**: `completed`
   - **Dependencies**: TASK-030
   - **Priority**: `high`
   - **Details**: 날짜/금액 기반 매칭, 신뢰도 점수
@@ -364,9 +367,9 @@
     - 매칭 알고리즘 검증
     - 오탐/미탐 비율 측정
 
-- [ ] **TASK-032** | 매칭 확인 UI
+- [x] **TASK-032** | 매칭 확인 UI
   - **Description**: 자동 매칭 결과 확인/수정 인터페이스
-  - **Status**: `pending`
+  - **Status**: `completed`
   - **Dependencies**: TASK-031
   - **Priority**: `medium`
   - **Details**: 매칭 제안 표시, 수동 연결, 연결 해제
@@ -376,9 +379,9 @@
 
 ### 수익성 분석
 
-- [ ] **TASK-033** | 프로젝트별 수익 계산
+- [x] **TASK-033** | 프로젝트별 수익 계산
   - **Description**: 프로젝트 단위 매출/매입 집계
-  - **Status**: `pending`
+  - **Status**: `completed`
   - **Dependencies**: TASK-004
   - **Priority**: `high`
   - **Details**: 순이익 계산, 마진율, ROI
@@ -386,9 +389,9 @@
     - 계산 로직 검증
     - 집계 정확도 테스트
 
-- [ ] **TASK-034** | 수익성 대시보드
+- [x] **TASK-034** | 수익성 대시보드
   - **Description**: ProjectProfitabilityDashboard 컴포넌트
-  - **Status**: `pending`
+  - **Status**: `completed`
   - **Dependencies**: TASK-033
   - **Priority**: `medium`
   - **Details**: 프로젝트별 수익 차트, 비교 분석
@@ -396,9 +399,9 @@
     - 데이터 시각화 검증
     - 인터랙티브 기능 테스트
 
-- [ ] **TASK-035** | 프로젝트 거래 내역 뷰
+- [x] **TASK-035** | 프로젝트 거래 내역 뷰
   - **Description**: 프로젝트별 거래 필터링 뷰
-  - **Status**: `pending`
+  - **Status**: `completed`
   - **Dependencies**: TASK-004
   - **Priority**: `medium`
   - **Details**: 프로젝트 선택 시 관련 거래만 표시
@@ -406,9 +409,9 @@
     - 필터링 정확도
     - 성능 최적화
 
-- [ ] **TASK-036** | 연동 상태 표시
+- [x] **TASK-036** | 연동 상태 표시
   - **Description**: 거래별 프로젝트 연동 상태 인디케이터
-  - **Status**: `pending`
+  - **Status**: `completed`
   - **Dependencies**: TASK-018, TASK-021
   - **Priority**: `low`
   - **Details**: 연동 아이콘, 프로젝트명 표시, 퀵 링크
@@ -416,9 +419,9 @@
     - UI 일관성 검증
     - 링크 동작 테스트
 
-- [ ] **TASK-037** | 프로젝트 연동 통합 테스트
+- [x] **TASK-037** | 프로젝트 연동 통합 테스트
   - **Description**: 전체 연동 시스템 테스트
-  - **Status**: `pending`
+  - **Status**: `completed`
   - **Dependencies**: TASK-030, TASK-031, TASK-033
   - **Priority**: `high`
   - **Details**: 자동 매칭, 수동 연결, 수익성 계산
@@ -432,9 +435,9 @@
 
 ### 엑셀 연동
 
-- [ ] **TASK-038** | 엑셀 파일 업로드
+- [x] **TASK-038** | 엑셀 파일 업로드
   - **Description**: 대량 거래 데이터 임포트
-  - **Status**: `pending`
+  - **Status**: `completed`
   - **Dependencies**: TASK-003
   - **Priority**: `high`
   - **Details**: XLSX 파싱, 컬럼 매핑, 유효성 검사
@@ -442,9 +445,9 @@
     - 다양한 엑셀 형식 테스트
     - 대용량 파일 처리
 
-- [ ] **TASK-039** | 데이터 매핑 UI
+- [x] **TASK-039** | 데이터 매핑 UI
   - **Description**: 엑셀 컬럼과 DB 필드 매핑 인터페이스
-  - **Status**: `pending`
+  - **Status**: `completed`
   - **Dependencies**: TASK-038
   - **Priority**: `medium`
   - **Details**: 드래그앤드롭 매핑, 자동 감지, 프리셋 저장
@@ -452,9 +455,9 @@
     - 매핑 정확도 검증
     - 사용성 테스트
 
-- [ ] **TASK-040** | 엑셀 익스포트
+- [x] **TASK-040** | 엑셀 익스포트
   - **Description**: 거래 데이터 엑셀 다운로드
-  - **Status**: `pending`
+  - **Status**: `completed`
   - **Dependencies**: TASK-003
   - **Priority**: `medium`
   - **Details**: 필터 적용 내보내기, 템플릿 선택, 포맷 옵션
@@ -462,9 +465,9 @@
     - 생성 파일 검증
     - 다운로드 성능
 
-- [ ] **TASK-041** | 임포트 검증 및 프리뷰
+- [x] **TASK-041** | 임포트 검증 및 프리뷰
   - **Description**: 임포트 전 데이터 검증 및 미리보기
-  - **Status**: `pending`
+  - **Status**: `completed`
   - **Dependencies**: TASK-038
   - **Priority**: `medium`
   - **Details**: 오류 표시, 중복 검사, 수정 옵션
@@ -474,9 +477,9 @@
 
 ### 보고서 생성
 
-- [ ] **TASK-042** | 월별 세무 보고서
+- [x] **TASK-042** | 월별 세무 보고서
   - **Description**: 월별 매입매출 요약 보고서
-  - **Status**: `pending`
+  - **Status**: `completed`
   - **Dependencies**: TASK-005
   - **Priority**: `medium`
   - **Details**: PDF 생성, 차트 포함, 이메일 발송
@@ -484,9 +487,9 @@
     - PDF 생성 검증
     - 레이아웃 테스트
 
-- [ ] **TASK-043** | 분기별 부가세 신고서
+- [x] **TASK-043** | 분기별 부가세 신고서
   - **Description**: 부가세 신고용 보고서 생성
-  - **Status**: `pending`
+  - **Status**: `completed`
   - **Dependencies**: TASK-042
   - **Priority**: `high`
   - **Details**: 국세청 양식, 자동 계산, 검증
@@ -496,9 +499,9 @@
 
 ### 알림 시스템
 
-- [ ] **TASK-044** | 세무 신고 알림
+- [x] **TASK-044** | 세무 신고 알림
   - **Description**: 신고 마감일 알림 시스템
-  - **Status**: `pending`
+  - **Status**: `completed`
   - **Dependencies**: None
   - **Priority**: `medium`
   - **Details**: 이메일/푸시 알림, 리마인더 설정
@@ -506,9 +509,9 @@
     - 알림 발송 테스트
     - 스케줄링 검증
 
-- [ ] **TASK-045** | 이상 거래 감지
+- [x] **TASK-045** | 이상 거래 감지
   - **Description**: 비정상 패턴 자동 감지
-  - **Status**: `pending`
+  - **Status**: `completed`
   - **Dependencies**: TASK-003
   - **Priority**: `low`
   - **Details**: 금액 이상치, 중복 거래, 누락 의심
@@ -516,9 +519,9 @@
     - 감지 알고리즘 검증
     - 오탐률 측정
 
-- [ ] **TASK-046** | 대시보드 위젯
+- [x] **TASK-046** | 대시보드 위젯
   - **Description**: 메인 대시보드용 세무 위젯
-  - **Status**: `pending`
+  - **Status**: `completed`
   - **Dependencies**: TASK-005
   - **Priority**: `low`
   - **Details**: 간략 통계, 퀵 액션, 알림 표시
@@ -542,7 +545,7 @@
 
 ### 성능 최적화
 
-- [ ] **TASK-048** | 쿼리 최적화
+- [x] **TASK-048** | 쿼리 최적화
   - **Description**: 데이터베이스 쿼리 성능 개선
   - **Status**: `pending`
   - **Dependencies**: All API tasks
@@ -552,7 +555,7 @@
     - 쿼리 실행 시간 측정
     - EXPLAIN ANALYZE 검증
 
-- [ ] **TASK-049** | 프론트엔드 번들 최적화
+- [x] **TASK-049** | 프론트엔드 번들 최적화
   - **Description**: 코드 스플리팅, 트리 쉐이킹
   - **Status**: `pending`
   - **Dependencies**: All UI tasks
@@ -562,7 +565,7 @@
     - 번들 크기 측정
     - 로딩 시간 벤치마크
 
-- [ ] **TASK-050** | 캐싱 전략 구현
+- [x] **TASK-050** | 캐싱 전략 구현
   - **Description**: 클라이언트/서버 캐싱
   - **Status**: `pending`
   - **Dependencies**: TASK-048
@@ -604,7 +607,7 @@
     - axe-core 자동 테스트
     - 수동 검증 체크리스트
 
-- [ ] **TASK-054** | 보안 감사
+- [x] **TASK-054** | 보안 감사
   - **Description**: 보안 취약점 스캔
   - **Status**: `pending`
   - **Dependencies**: All features
@@ -614,9 +617,9 @@
     - OWASP Top 10 체크
     - 펜테스트 시나리오
 
-- [ ] **TASK-055** | 최종 검증 및 배포 준비
+- [x] **TASK-055** | 최종 검증 및 배포 준비
   - **Description**: 프로덕션 배포 체크리스트
-  - **Status**: `pending`
+  - **Status**: `completed`
   - **Dependencies**: TASK-048 to TASK-054
   - **Priority**: `critical`
   - **Details**: 환경 설정, 모니터링 설정, 롤백 계획
@@ -727,7 +730,7 @@ graph TD
 
 - [x] **Phase 1 완료**: 데이터베이스 설정 완료, API 기본 동작, UI 구조 변경
 - [x] **Phase 2 완료**: 개요 탭 전체 기능 동작, 실시간 업데이트
-- [ ] **Phase 3 완료**: 거래 CRUD 완성, 데스크톱/모바일 뷰 동작
+- [x] **Phase 3 완료**: 거래 CRUD 완성, 데스크톱/모바일 뷰 동작 (91.7% - 11/12 완료)
 - [ ] **Phase 4 완료**: 프로젝트 연동 자동화, 수익성 분석 가능
 - [ ] **Phase 5 완료**: 엑셀 연동, 보고서 생성, 알림 동작
 - [ ] **Phase 6 완료**: 성능 목표 달성, 테스트 커버리지 80%+

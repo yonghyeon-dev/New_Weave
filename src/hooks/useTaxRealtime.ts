@@ -1,5 +1,4 @@
 import { useEffect, useRef, useCallback } from 'react';
-import { supabase } from '@/lib/supabase';
 import useTaxStore from '@/lib/stores/taxStore';
 import { taxTransactionService } from '@/lib/services/supabase/tax-transactions.service';
 import type { Transaction } from '@/lib/services/supabase/tax-transactions.service';
@@ -64,84 +63,9 @@ export function useTaxRealtime() {
   }, [filters, setTransactions]);
 
   useEffect(() => {
-    // Supabase 실시간 구독 설정
-    const channel = supabase
-      .channel('tax-transactions-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'tax_transactions'
-        },
-        async (payload) => {
-          console.log('New transaction inserted:', payload.new);
-          
-          // 새 거래 추가
-          const newTransaction = payload.new as Transaction;
-          addTransaction(newTransaction);
-          
-          // 통계 갱신
-          await refreshStatistics();
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'tax_transactions'
-        },
-        async (payload) => {
-          console.log('Transaction updated:', payload.new);
-          
-          // 거래 업데이트
-          const updatedTransaction = payload.new as Transaction;
-          updateTransaction(updatedTransaction.id, updatedTransaction);
-          
-          // 통계 갱신
-          await refreshStatistics();
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: 'DELETE',
-          schema: 'public',
-          table: 'tax_transactions'
-        },
-        async (payload) => {
-          console.log('Transaction deleted:', payload.old);
-          
-          // 거래 삭제
-          const deletedTransaction = payload.old as { id: string };
-          deleteTransaction(deletedTransaction.id);
-          
-          // 통계 갱신
-          await refreshStatistics();
-        }
-      )
-      .subscribe((status) => {
-        console.log('Realtime subscription status:', status);
-      });
-
-    // 월별 요약 테이블 변경사항도 구독
-    const summaryChannel = supabase
-      .channel('tax-summary-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'tax_monthly_summary'
-        },
-        async () => {
-          console.log('Monthly summary changed, refreshing statistics...');
-          await refreshStatistics();
-        }
-      )
-      .subscribe();
-
+    // Mock 데이터로 대체 - Supabase 실시간 구독 제거
+    console.log('Using mock data - real-time subscription disabled');
+    
     // 초기 데이터 로드
     refreshTransactions();
     refreshStatistics();
@@ -151,17 +75,8 @@ export function useTaxRealtime() {
       if (refreshTimeoutRef.current) {
         clearTimeout(refreshTimeoutRef.current);
       }
-      
-      channel.unsubscribe();
-      summaryChannel.unsubscribe();
     };
-  }, [
-    addTransaction,
-    updateTransaction,
-    deleteTransaction,
-    refreshStatistics,
-    refreshTransactions
-  ]);
+  }, [refreshStatistics, refreshTransactions]);
 
   // 수동 새로고침 함수 반환
   return {

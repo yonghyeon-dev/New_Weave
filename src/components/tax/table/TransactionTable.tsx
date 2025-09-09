@@ -12,11 +12,13 @@ import {
   MoreVertical,
   Check,
   X,
-  Save
+  Save,
+  Link2
 } from 'lucide-react';
 import type { Transaction } from '@/lib/services/supabase/tax-transactions.service';
 import { formatFullCurrency, formatKoreanDate, getTransactionTypeColor, getPaymentStatusColor } from '@/lib/utils/tax-formatters';
 import useTaxStore from '@/lib/stores/taxStore';
+import ProjectConnectionButton from '../project/ProjectConnectionButton';
 
 interface TransactionTableProps {
   transactions: Transaction[];
@@ -234,6 +236,11 @@ export default function TransactionTable({
                   상태
                 </Typography>
               </th>
+              <th className="px-4 py-3 text-center">
+                <Typography variant="body2" className="font-semibold text-txt-secondary">
+                  프로젝트
+                </Typography>
+              </th>
               {editable && (
                 <th className="px-4 py-3 text-center">
                   <Typography variant="body2" className="font-semibold text-txt-secondary">
@@ -329,6 +336,15 @@ export default function TransactionTable({
                     <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${statusColor.bg} ${statusColor.text}`}>
                       {statusColor.label}
                     </span>
+                  </td>
+                  <td className="px-4 py-3">
+                    <ProjectConnectionButton 
+                      transaction={transaction}
+                      onConnectionChange={() => {
+                        // 연결 변경 시 데이터 새로고침
+                        window.location.reload();
+                      }}
+                    />
                   </td>
                   {editable && (
                     <td className="px-4 py-3">
