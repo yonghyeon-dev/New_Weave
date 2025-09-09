@@ -15,6 +15,7 @@ export default function TaxTransactions() {
   const [loading, setLoading] = useState(true);
   const [showFilter, setShowFilter] = useState(false);
   const [showUploadModal, setShowUploadModal] = useState(false);
+  const [showAddModal, setShowAddModal] = useState(false);
   const [filters, setFilters] = useState<TransactionFilters>({
     dateRange: 'thisYear',  // 2024년 전체 데이터를 표시하도록 변경
     transactionType: 'all',
@@ -68,6 +69,44 @@ export default function TaxTransactions() {
     loadTransactions();
   };
 
+  // 거래 추가 처리
+  const handleAddTransaction = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const form = e.target as HTMLFormElement;
+    const formData = new FormData(form);
+    
+    const newTransaction = {
+      transaction_date: formData.get('transaction_date') as string,
+      transaction_type: formData.get('transaction_type') as '매입' | '매출',
+      supplier_name: formData.get('supplier_name') as string,
+      business_number: formData.get('business_number') as string || '',
+      supply_amount: Number(formData.get('supply_amount')) || 0,
+      vat_amount: Number(formData.get('vat_amount')) || 0,
+      withholding_tax_3_3: Number(formData.get('withholding_tax_3_3')) || 0,
+      withholding_tax_6_8: Number(formData.get('withholding_tax_6_8')) || 0,
+      total_amount: 0, // 자동 계산
+      category: formData.get('category') as string || '',
+      description: formData.get('description') as string || '',
+      user_id: 'mock-user'
+    };
+    
+    // 합계 자동 계산
+    if (newTransaction.transaction_type === '매출') {
+      newTransaction.total_amount = newTransaction.supply_amount + newTransaction.vat_amount 
+        - newTransaction.withholding_tax_3_3 - newTransaction.withholding_tax_6_8;
+    } else {
+      newTransaction.total_amount = newTransaction.supply_amount + newTransaction.vat_amount;
+    }
+    
+    try {
+      await taxTransactionService.createTransaction(newTransaction);
+      setShowAddModal(false);
+      loadTransactions();
+    } catch (error) {
+      console.error('Failed to add transaction:', error);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* 툴바 */}
@@ -100,7 +139,11 @@ export default function TaxTransactions() {
             <Download className="w-4 h-4 mr-2" />
             내보내기
           </Button>
-          <Button variant="primary" size="sm">
+          <Button 
+            variant="primary" 
+            size="sm"
+            onClick={() => setShowAddModal(true)}
+          >
             <Plus className="w-4 h-4 mr-2" />
             거래 추가
           </Button>
@@ -436,6 +479,168 @@ export default function TaxTransactions() {
           </>
         )}
       </Card>
+
+      {/* 거래 추가 모달 */}
+      {showAddModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b border-border-light p-4 flex justify-between items-center">
+              <Typography variant="h2" className="text-xl font-bold text-txt-primary">
+                거래 추가
+              </Typography>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowAddModal(false)}
+              >
+                <X className="w-5 h-5" />
+              </Button>
+            </div>
+            
+            <form onSubmit={handleAddTransaction} className="p-6 space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-txt-secondary mb-1">
+                    거래일자 *
+                  </label>
+                  <input
+                    type="date"
+                    name="transaction_date"
+                    required
+                    defaultValue={new Date().toISOString().split('T')[0]}
+                    className="w-full px-3 py-2 border border-border-light rounded-md"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-txt-secondary mb-1">
+                    거래 유형 *
+                  </label>
+                  <select
+                    name="transaction_type"
+                    required
+                    className="w-full px-3 py-2 border border-border-light rounded-md"
+                  >
+                    <option value="매출">매출</option>
+                    <option value="매입">매입</option>
+                  </select>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-txt-secondary mb-1">
+                    거래처명 *
+                  </label>
+                  <input
+                    type="text"
+                    name="supplier_name"
+                    required
+                    placeholder="거래처명 입력"
+                    className="w-full px-3 py-2 border border-border-light rounded-md"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-txt-secondary mb-1">
+                    사업자번호
+                  </label>
+                  <input
+                    type="text"
+                    name="business_number"
+                    placeholder="123-45-67890"
+                    className="w-full px-3 py-2 border border-border-light rounded-md"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-txt-secondary mb-1">
+                    공급가액 *
+                  </label>
+                  <input
+                    type="number"
+                    name="supply_amount"
+                    required
+                    placeholder="0"
+                    className="w-full px-3 py-2 border border-border-light rounded-md"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-txt-secondary mb-1">
+                    부가세
+                  </label>
+                  <input
+                    type="number"
+                    name="vat_amount"
+                    placeholder="0"
+                    className="w-full px-3 py-2 border border-border-light rounded-md"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-txt-secondary mb-1">
+                    원천세(3.3%)
+                  </label>
+                  <input
+                    type="number"
+                    name="withholding_tax_3_3"
+                    placeholder="0"
+                    className="w-full px-3 py-2 border border-border-light rounded-md"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-txt-secondary mb-1">
+                    원천세(8.8%)
+                  </label>
+                  <input
+                    type="number"
+                    name="withholding_tax_6_8"
+                    placeholder="0"
+                    className="w-full px-3 py-2 border border-border-light rounded-md"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-txt-secondary mb-1">
+                    카테고리
+                  </label>
+                  <input
+                    type="text"
+                    name="category"
+                    placeholder="서비스, IT서비스 등"
+                    className="w-full px-3 py-2 border border-border-light rounded-md"
+                  />
+                </div>
+                
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-txt-secondary mb-1">
+                    설명
+                  </label>
+                  <textarea
+                    name="description"
+                    rows={3}
+                    placeholder="거래 내용 설명"
+                    className="w-full px-3 py-2 border border-border-light rounded-md"
+                  />
+                </div>
+              </div>
+              
+              <div className="flex justify-end gap-2 pt-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setShowAddModal(false)}
+                >
+                  취소
+                </Button>
+                <Button type="submit" variant="primary">
+                  거래 추가
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* 증빙 업로드 모달 */}
       {showUploadModal && (

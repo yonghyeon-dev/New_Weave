@@ -135,10 +135,10 @@ export default function ProjectDetailPage() {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => router.back()}
+              onClick={() => router.push('/tax-management?tab=transactions')}
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
-              뒤로
+              매입매출 상세로
             </Button>
             <div>
               <Typography variant="h1" className="text-2xl font-bold text-txt-primary">
