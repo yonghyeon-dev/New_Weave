@@ -159,15 +159,17 @@ let mockTransactions: Transaction[] = [
     user_id: 'mock-user',
     transaction_date: '2024-12-15',
     transaction_type: '매출',
-    supplier_name: '스타트업A',
-    business_number: '678-90-12345',
+    supplier_name: '프리랜서김개발',
+    business_number: '',
     supply_amount: 3500000,
-    vat_amount: 350000,
-    withholding_tax_3_3: 115500,
-    withholding_tax_6_8: 0,
-    total_amount: 3734500,
-    category: '컨설팅',
-    description: 'IT 컨설팅 서비스',
+    vat_amount: 0,  // 프리랜서는 부가세 없음
+    withholding_tax_3_3: 0,
+    withholding_tax_6_8: 308000,  // 8.8% 원천세 (3.3% 소득세 + 지방소득세 포함)
+    total_amount: 3192000,  // 공급가액 - 원천세 8.8%
+    category: '개발',
+    description: '프리랜서 개발 용역',
+    project_id: 'proj-4',
+    client_id: 'client-4',
     status: 'completed',
     created_at: '2024-12-15T11:00:00Z',
     updated_at: '2024-12-15T11:00:00Z'
@@ -273,15 +275,17 @@ let mockTransactions: Transaction[] = [
     user_id: 'mock-user',
     transaction_date: '2024-10-03',
     transaction_type: '매출',
-    supplier_name: '제조회사C',
-    business_number: '567-89-01234',
+    supplier_name: '프리랜서박디자인',
+    business_number: '',
     supply_amount: 2800000,
-    vat_amount: 280000,
-    withholding_tax_3_3: 92400,
-    withholding_tax_6_8: 0,
-    total_amount: 2987600,
-    category: '컨설팅',
-    description: 'ERP 시스템 컨설팅',
+    vat_amount: 0,  // 프리랜서는 부가세 없음
+    withholding_tax_3_3: 0,
+    withholding_tax_6_8: 246400,  // 8.8% 원천세
+    total_amount: 2553600,  // 공급가액 - 원천세
+    category: '디자인',
+    description: '프리랜서 UI/UX 디자인',
+    project_id: 'proj-5',
+    client_id: 'client-5',
     status: 'completed',
     created_at: '2024-10-03T09:00:00Z',
     updated_at: '2024-10-03T09:00:00Z'
@@ -309,15 +313,17 @@ let mockTransactions: Transaction[] = [
     user_id: 'mock-user',
     transaction_date: '2024-10-20',
     transaction_type: '매출',
-    supplier_name: '교육기관D',
-    business_number: '901-23-45678',
-    supply_amount: 4200000,
-    vat_amount: 420000,
-    withholding_tax_3_3: 138600,
+    supplier_name: '개인사업자이마케팅',
+    business_number: '234-56-78901',
+    supply_amount: 1000000,
+    vat_amount: 100000,
+    withholding_tax_3_3: 33000,  // 개인사업자 원천세 3.3%
     withholding_tax_6_8: 0,
-    total_amount: 4481400,
-    category: '교육',
-    description: '온라인 교육 플랫폼 구축',
+    total_amount: 1067000,  // 공급가액 + 부가세 - 원천세
+    category: '마케팅',
+    description: '개인사업자 마케팅 대행',
+    project_id: 'proj-6',
+    client_id: 'client-6',
     status: 'completed',
     created_at: '2024-10-20T10:00:00Z',
     updated_at: '2024-10-20T10:00:00Z'
@@ -520,32 +526,26 @@ export class TaxTransactionService {
   }
 
   async getYearlyProjection(year: number): Promise<YearlyProjection> {
-    // Mock 데이터용: 2024년 데이터 사용
-    const yearTransactions = mockTransactions.filter(t => {
-      const date = new Date(t.transaction_date);
-      return date.getFullYear() === 2024 && t.transaction_type === '매출';
-    });
+    // 전체 월별 트렌드 데이터 가져오기
+    const monthlyTrend = await this.getMonthlyTrend(2024);
+    
+    // 연간 총 매출 계산 (원천세 제외된 실제 입금액 기준)
+    const totalRevenue = monthlyTrend.reduce((sum, month) => sum + month.매출, 0);
+    
+    // 12월과 11월 매출 계산
+    const currentMonthRevenue = monthlyTrend[11].매출;  // 12월
+    const previousMonthRevenue = monthlyTrend[10].매출;  // 11월
 
-    // Mock: 3개월 데이터 기준으로 연간 예측
-    const currentMonth = 3;  // 10, 11, 12월 데이터가 있으므로 3개월
-    const totalRevenue = yearTransactions.reduce((sum, t) => sum + t.total_amount, 0);
-    const monthlyAverage = currentMonth > 0 ? totalRevenue / currentMonth : 0;
-    const expectedRevenue = monthlyAverage * 12;
-
-    // Get current and previous month revenue (Mock: 12월과 11월 데이터)
-    const currentMonthRevenue = yearTransactions
-      .filter(t => new Date(t.transaction_date).getMonth() === 11)  // 12월 (월은 0부터 시작)
-      .reduce((sum, t) => sum + t.total_amount, 0);
-
-    const previousMonthRevenue = yearTransactions
-      .filter(t => new Date(t.transaction_date).getMonth() === 10)  // 11월
-      .reduce((sum, t) => sum + t.total_amount, 0);
-
-    // Calculate growth rate (mock data)
-    const lastYearTotal = 15000000; // Mock last year total
+    // 전년도 대비 성장률 계산 (Mock: 작년 총 매출 50,000,000원으로 가정)
+    const lastYearTotal = 50000000;
     const growthRate = lastYearTotal > 0 
-      ? ((expectedRevenue / lastYearTotal - 1) * 100) 
+      ? ((totalRevenue / lastYearTotal - 1) * 100) 
       : 0;
+
+    // 연간 예상 매출 (현재까지의 평균을 기준으로 계산)
+    const currentMonth = 12;  // 12월까지 데이터가 있음
+    const monthlyAverage = totalRevenue / currentMonth;
+    const expectedRevenue = totalRevenue;  // 이미 12개월 데이터가 있으므로 총합이 예상치
 
     return {
       expectedRevenue,
@@ -562,19 +562,43 @@ export class TaxTransactionService {
       return date.getFullYear() === 2024;
     });
 
+    // 12개월 데이터 초기화
     const monthlyData = Array.from({ length: 12 }, (_, i) => ({
       month: i + 1,
       매출: 0,
       매입: 0
     }));
 
+    // 실제 거래 데이터 집계
     yearTransactions.forEach(transaction => {
       const month = new Date(transaction.transaction_date).getMonth();
       if (transaction.transaction_type === '매출') {
-        monthlyData[month].매출 += transaction.total_amount;
+        // 매출은 원천세를 제외한 실제 입금액으로 계산
+        const actualRevenue = transaction.total_amount - transaction.withholding_tax_3_3 - transaction.withholding_tax_6_8;
+        monthlyData[month].매출 += actualRevenue;
       } else {
         monthlyData[month].매입 += transaction.total_amount;
       }
+    });
+
+    // Mock 데이터 보강 - 1월부터 9월까지 임의 데이터 추가
+    // 실제 데이터가 10, 11, 12월에만 있으므로 나머지 월에 샘플 데이터 추가
+    const mockMonthlyTrends = [
+      { month: 1, additionalRevenue: 3500000, additionalExpense: 1200000 },
+      { month: 2, additionalRevenue: 4200000, additionalExpense: 1500000 },
+      { month: 3, additionalRevenue: 5100000, additionalExpense: 1800000 },
+      { month: 4, additionalRevenue: 4800000, additionalExpense: 2100000 },
+      { month: 5, additionalRevenue: 5500000, additionalExpense: 2000000 },
+      { month: 6, additionalRevenue: 6200000, additionalExpense: 2300000 },
+      { month: 7, additionalRevenue: 5800000, additionalExpense: 2500000 },
+      { month: 8, additionalRevenue: 6500000, additionalExpense: 2800000 },
+      { month: 9, additionalRevenue: 7200000, additionalExpense: 3000000 }
+    ];
+
+    // Mock 데이터를 1-9월에 추가
+    mockMonthlyTrends.forEach(trend => {
+      monthlyData[trend.month - 1].매출 += trend.additionalRevenue;
+      monthlyData[trend.month - 1].매입 += trend.additionalExpense;
     });
 
     return monthlyData;

@@ -50,10 +50,10 @@ export default function MonthlyTrendChart({
 
     return data.map(item => ({
       month: `${item.month}월`,
-      revenue: item.revenue,
-      expense: item.expense,
-      profit: item.revenue - item.expense,
-      vat: item.vat
+      revenue: item.매출 || 0,  // MonthlyTrend 인터페이스에 맞게 수정
+      expense: item.매입 || 0,  // MonthlyTrend 인터페이스에 맞게 수정
+      profit: (item.매출 || 0) - (item.매입 || 0),
+      vat: Math.floor((item.매출 || 0) * 0.1)  // 부가세 10% 계산
     }));
   }, [data]);
 
