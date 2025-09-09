@@ -103,9 +103,8 @@ ${item.warnings ? '주의사항: ' + item.warnings.join(', ') : ''}
         await this.vectorStore.indexDocument(content, {
           source: 'tax_knowledge',
           category: item.category,
-          itemId: item.id,
           timestamp: new Date(),
-          type: 'knowledge'
+          tags: [item.id, 'knowledge']
         });
       }
     }
@@ -135,7 +134,7 @@ ${item.warnings ? '주의사항: ' + item.warnings.join(', ') : ''}
         userId,
         projectId: project.id,
         timestamp: new Date(),
-        type: 'project'
+        tags: ['project']
       });
     }
   }
@@ -160,9 +159,8 @@ ${item.warnings ? '주의사항: ' + item.warnings.join(', ') : ''}
       await this.vectorStore.indexDocument(content, {
         source: 'client',
         userId,
-        clientId: client.id,
         timestamp: new Date(),
-        type: 'client'
+        tags: [client.id, 'client']
       });
     }
   }

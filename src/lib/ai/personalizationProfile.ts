@@ -99,10 +99,10 @@ export interface PersonalizationProfile {
 export const ProfileTemplates = {
   BUSINESS_OWNER: {
     responseStyle: {
-      length: 'moderate',
-      tone: 'professional',
-      technicality: 'balanced',
-      formatting: 'structured'
+      length: 'moderate' as const,
+      tone: 'professional' as const,
+      technicality: 'balanced' as const,
+      formatting: 'structured' as const
     },
     contentPreferences: {
       includeExamples: true,
@@ -113,7 +113,7 @@ export const ProfileTemplates = {
     },
     domainSettings: {
       primaryDomain: 'business',
-      expertiseLevel: 'intermediate',
+      expertiseLevel: 'intermediate' as const,
       industryContext: 'general',
       regionalSettings: 'ko-KR'
     },
@@ -128,10 +128,10 @@ export const ProfileTemplates = {
   
   TAX_PROFESSIONAL: {
     responseStyle: {
-      length: 'detailed',
-      tone: 'formal',
-      technicality: 'technical',
-      formatting: 'structured'
+      length: 'detailed' as const,
+      tone: 'formal' as const,
+      technicality: 'technical' as const,
+      formatting: 'structured' as const
     },
     contentPreferences: {
       includeExamples: true,
@@ -142,7 +142,7 @@ export const ProfileTemplates = {
     },
     domainSettings: {
       primaryDomain: 'tax',
-      expertiseLevel: 'expert',
+      expertiseLevel: 'expert' as const,
       industryContext: 'accounting',
       regionalSettings: 'ko-KR'
     },
@@ -227,7 +227,7 @@ export class PersonalizationProfileManager {
       userId,
       createdAt: new Date(),
       lastUpdated: new Date(),
-      settings: { ...baseSettings },
+      settings: { ...baseSettings } as PersonalizationSettings,
       patterns: [],
       contextHistory: [],
       metrics: {

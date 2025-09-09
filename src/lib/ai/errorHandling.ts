@@ -128,10 +128,8 @@ export class CircuitBreaker {
     } catch (error) {
       this.onFailure();
       
-      if (this.state === CircuitBreakerState.OPEN && fallback) {
-        return fallback();
-      }
-      
+      // 에러가 발생했으므로 그대로 throw
+      // fallback은 Circuit이 이미 OPEN 상태일 때만 사용 (위에서 처리됨)
       throw error;
     }
   }

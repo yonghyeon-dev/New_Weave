@@ -154,8 +154,8 @@ export class UnifiedAIOrchestrator {
     }
     
     // 컨텍스트 복잡도에 따른 조정
-    if (context.business?.projects?.length > 5 || 
-        context.knowledge?.chunks?.length > 10) {
+    if ((context.business?.projects?.length ?? 0) > 5 || 
+        (context.knowledge?.chunks?.length ?? 0) > 10) {
       model = 'gemini-pro';
       maxTokens = Math.min(maxTokens * 1.5, 8000);
     }
@@ -238,35 +238,35 @@ export class UnifiedAIOrchestrator {
     prompt += '\n\n';
     
     // 컨텍스트 주입
-    if (strategy.context.business?.projects?.length > 0) {
+    if ((strategy.context.business?.projects?.length ?? 0) > 0) {
       prompt += '현재 프로젝트 정보:\n';
-      strategy.context.business.projects.forEach(project => {
+      strategy.context.business?.projects?.forEach(project => {
         prompt += `- ${project.name}: ${project.status} (진행률: ${project.progress}%)\n`;
       });
       prompt += '\n';
     }
     
-    if (strategy.context.business?.clients?.length > 0) {
+    if ((strategy.context.business?.clients?.length ?? 0) > 0) {
       prompt += '클라이언트 정보:\n';
-      strategy.context.business.clients.forEach(client => {
+      strategy.context.business?.clients?.forEach(client => {
         prompt += `- ${client.name}: ${client.projects}개 프로젝트\n`;
       });
       prompt += '\n';
     }
     
     // 지식 베이스 정보
-    if (strategy.context.knowledge?.chunks?.length > 0) {
+    if ((strategy.context.knowledge?.chunks?.length ?? 0) > 0) {
       prompt += '관련 정보:\n';
-      strategy.context.knowledge.chunks.forEach(chunk => {
+      strategy.context.knowledge?.chunks?.forEach(chunk => {
         prompt += `- ${chunk.content}\n`;
       });
       prompt += '\n';
     }
     
     // 이전 대화 컨텍스트
-    if (strategy.context.user?.history?.length > 0) {
+    if ((strategy.context.user?.history?.length ?? 0) > 0) {
       prompt += '이전 대화:\n';
-      strategy.context.user.history.slice(-3).forEach(msg => {
+      strategy.context.user?.history?.slice(-3).forEach(msg => {
         prompt += `${msg.role === 'user' ? '사용자' : 'AI'}: ${msg.content}\n`;
       });
       prompt += '\n';
@@ -344,8 +344,8 @@ export class UnifiedAIOrchestrator {
     const sources: AIResponse['sources'] = [];
     
     // 각 데이터 타입별로 소스 추출
-    if (data.projects?.length > 0) {
-      data.projects.forEach(project => {
+    if ((data.projects?.length ?? 0) > 0) {
+      data.projects?.forEach(project => {
         sources.push({
           type: 'project',
           title: project.name,
@@ -354,8 +354,8 @@ export class UnifiedAIOrchestrator {
       });
     }
     
-    if (data.clients?.length > 0) {
-      data.clients.forEach(client => {
+    if ((data.clients?.length ?? 0) > 0) {
+      data.clients?.forEach(client => {
         sources.push({
           type: 'client',
           title: client.name,
@@ -364,8 +364,8 @@ export class UnifiedAIOrchestrator {
       });
     }
     
-    if (data.taxKnowledge?.length > 0) {
-      data.taxKnowledge.forEach(knowledge => {
+    if ((data.taxKnowledge?.length ?? 0) > 0) {
+      data.taxKnowledge?.forEach(knowledge => {
         sources.push({
           type: 'tax',
           title: knowledge.title,
@@ -423,11 +423,11 @@ export class UnifiedAIOrchestrator {
     }
     
     // 컨텍스트 기반 추가 제안
-    if (context.business?.projects?.some(p => p.status === 'overdue')) {
-      suggestions.push('지연된 프로젝트 확인');
+    if (context.business?.projects?.some(p => p.status === 'on_hold' || p.status === 'cancelled')) {
+      suggestions.push('보류 또는 취소된 프로젝트 확인');
     }
     
-    if (context.business?.invoices?.some(i => i.status === 'pending')) {
+    if (context.business?.invoices?.some(i => i.status === 'overdue' || i.status === 'sent')) {
       suggestions.push('미결제 인보이스 확인');
     }
     
@@ -444,10 +444,10 @@ export class UnifiedAIOrchestrator {
     let confidence = intent.confidence;
     
     // 데이터 가용성에 따른 조정
-    const hasProjectData = data.projects?.length > 0;
-    const hasClientData = data.clients?.length > 0;
-    const hasKnowledgeData = data.taxKnowledge?.length > 0 || 
-                            data.generalKnowledge?.length > 0;
+    const hasProjectData = (data.projects?.length ?? 0) > 0;
+    const hasClientData = (data.clients?.length ?? 0) > 0;
+    const hasKnowledgeData = (data.taxKnowledge?.length ?? 0) > 0 || 
+                            (data.generalKnowledge?.length ?? 0) > 0;
     
     if (hasProjectData && hasClientData) {
       confidence = Math.min(confidence * 1.2, 1.0);

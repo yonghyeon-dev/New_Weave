@@ -37,6 +37,7 @@ export default function ChatInterface() {
   const [hasUploadedDocs, setHasUploadedDocs] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
   const [isMaximized, setIsMaximized] = useState(false);
+  const [chatType, setChatType] = useState<'general' | 'rag' | 'tax'>('general'); // chatType 추가
   const { toasts, addToast, hideToast } = useToast();
   const { addReaction, getReactions } = useReactions();
   

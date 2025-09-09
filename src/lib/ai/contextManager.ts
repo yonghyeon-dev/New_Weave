@@ -356,7 +356,19 @@ export class ContextManager {
    */
   private async getClients(userId: string): Promise<ClientSummary[]> {
     const { ClientService } = await import('../services/clientService');
-    return await ClientService.getClientsByUserId(userId);
+    const clients = await ClientService.getClientsByUserId(userId);
+    
+    // Map ClientService's ClientSummary to contextManager's ClientSummary
+    return clients.map(client => ({
+      id: client.id,
+      name: client.name,
+      projects: client.activeProjects, // Map activeProjects to projects
+      totalRevenue: client.totalRevenue,
+      lastContact: client.lastContact,
+      status: client.status === 'active' ? 'active' : 
+              client.status === 'inactive' ? 'inactive' : 'prospect',
+      relevanceScore: 0
+    }));
   }
 
   /**

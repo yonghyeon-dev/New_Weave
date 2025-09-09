@@ -495,7 +495,9 @@ export class DataIntegrationLayer {
     // 캐시 크기 제한 (최대 100개)
     if (this.cache.size > 100) {
       const oldestKey = this.cache.keys().next().value;
-      this.cache.delete(oldestKey);
+      if (oldestKey) {
+        this.cache.delete(oldestKey);
+      }
     }
   }
 

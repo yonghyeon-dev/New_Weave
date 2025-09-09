@@ -15,10 +15,7 @@ import { GlobalPerformanceMonitor } from './performanceMonitor';
 import { GlobalErrorHandler, SystemError, ErrorType, RetryMechanism } from './errorHandling';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
-// Gemini AI 초기화 (gemini-2.5-flash-lite 고정)
-const genAI = process.env.GEMINI_API_KEY 
-  ? new GoogleGenerativeAI(process.env.GEMINI_API_KEY)
-  : null;
+// Gemini AI 초기화는 생성자에서 처리
 
 /**
  * 최종 AI 응답
@@ -69,8 +66,14 @@ export class UnifiedAIOrchestratorV3 {
   private cacheManager: CacheManager;
   private performanceMonitor: GlobalPerformanceMonitor;
   private errorHandler: GlobalErrorHandler;
+  private genAI: GoogleGenerativeAI | null = null;
 
-  constructor() {
+  constructor(apiKey?: string) {
+    // Gemini AI 초기화
+    const geminiApiKey = apiKey || process.env.GEMINI_API_KEY;
+    if (geminiApiKey) {
+      this.genAI = new GoogleGenerativeAI(geminiApiKey);
+    }
     // Phase 1-3 시스템
     this.intentAnalyzer = new IntentAnalyzer();
     this.contextManager = new ContextManager();
@@ -119,6 +122,10 @@ export class UnifiedAIOrchestratorV3 {
         return {
           ...cachedResponse,
           metadata: {
+            processingTime: cachedResponse.metadata?.processingTime || 0,
+            tokensUsed: cachedResponse.metadata?.tokensUsed || 0,
+            modelUsed: cachedResponse.metadata?.modelUsed || 'gemini-2.5-flash-lite',
+            timestamp: cachedResponse.metadata?.timestamp || new Date(),
             ...cachedResponse.metadata,
             cached: true,
             performance: {
@@ -259,7 +266,7 @@ export class UnifiedAIOrchestratorV3 {
         confidence: intent.confidence,
         data: { 
           intent: intent.primaryIntent, 
-          domain: intent.subIntent 
+          domain: intent.subIntents?.[0] || intent.primaryIntent 
         }
       });
       
@@ -270,10 +277,12 @@ export class UnifiedAIOrchestratorV3 {
       return {
         ...response,
         metadata: {
+          processingTime,
+          tokensUsed: response.metadata?.tokensUsed || 0,
+          modelUsed: response.metadata?.modelUsed || 'gemini-2.5-flash-lite',
           ...response.metadata,
           sessionId,
           timestamp: new Date(),
-          processingTime,
           personalization: {
             profileActive: true,
             adaptationScore: profile.metrics.adaptationScore
@@ -305,7 +314,7 @@ export class UnifiedAIOrchestratorV3 {
     data: IntegratedData,
     personalization: any
   ): Promise<AIResponseV3> {
-    if (!genAI) {
+    if (!this.genAI) {
       throw new SystemError(
         'Gemini AI가 초기화되지 않았습니다',
         ErrorType.PROCESSING,
@@ -331,7 +340,7 @@ export class UnifiedAIOrchestratorV3 {
     );
 
     // Gemini 모델 초기화 (gemini-2.5-flash-lite 고정)
-    const model = genAI.getGenerativeModel({ 
+    const model = this.genAI.getGenerativeModel({ 
       model: 'gemini-2.5-flash-lite',
       generationConfig: {
         temperature,
@@ -368,12 +377,13 @@ export class UnifiedAIOrchestratorV3 {
         metadata: {
           processingTime: 0,
           tokensUsed: this.estimateTokens(message, content),
-          modelUsed: 'gemini-2.5-flash-lite'
+          modelUsed: 'gemini-2.5-flash-lite',
+          timestamp: new Date()
         }
       };
     } catch (error) {
       throw new SystemError(
-        `AI 응답 생성 실패: ${error.message}`,
+        `AI 응답 생성 실패: ${error instanceof Error ? error.message : String(error)}`,
         ErrorType.API_LIMIT,
         'HIGH' as any,
         true
@@ -400,17 +410,17 @@ export class UnifiedAIOrchestratorV3 {
     // 컨텍스트 주입 (최적화된 크기)
     const contextLimit = personalization?.responseStyle?.length === 'brief' ? 3 : 5;
     
-    if (context.business?.projects?.length > 0) {
+    if ((context.business?.projects?.length ?? 0) > 0) {
       prompt += '현재 프로젝트 정보:\n';
-      context.business.projects.slice(0, contextLimit).forEach(project => {
+      context.business?.projects?.slice(0, contextLimit).forEach(project => {
         prompt += `- ${project.name}: ${project.status} (${project.progress}%)\n`;
       });
       prompt += '\n';
     }
     
-    if (context.business?.clients?.length > 0) {
+    if ((context.business?.clients?.length ?? 0) > 0) {
       prompt += '클라이언트 정보:\n';
-      context.business.clients.slice(0, contextLimit).forEach(client => {
+      context.business?.clients?.slice(0, contextLimit).forEach(client => {
         prompt += `- ${client.name}: ${client.projects}개 프로젝트\n`;
       });
       prompt += '\n';
@@ -488,8 +498,8 @@ export class UnifiedAIOrchestratorV3 {
   private extractSources(data: IntegratedData): any[] {
     const sources: any[] = [];
     
-    if (data.projects?.length > 0) {
-      data.projects.forEach(project => {
+    if ((data.projects?.length ?? 0) > 0) {
+      data.projects?.forEach(project => {
         sources.push({
           type: 'project',
           title: project.name,
@@ -498,8 +508,8 @@ export class UnifiedAIOrchestratorV3 {
       });
     }
     
-    if (data.clients?.length > 0) {
-      data.clients.forEach(client => {
+    if ((data.clients?.length ?? 0) > 0) {
+      data.clients?.forEach(client => {
         sources.push({
           type: 'client',
           title: client.name,
@@ -508,8 +518,8 @@ export class UnifiedAIOrchestratorV3 {
       });
     }
     
-    if (data.taxKnowledge?.length > 0) {
-      data.taxKnowledge.forEach(knowledge => {
+    if ((data.taxKnowledge?.length ?? 0) > 0) {
+      data.taxKnowledge?.forEach(knowledge => {
         sources.push({
           type: 'tax',
           title: knowledge.title,
@@ -561,9 +571,9 @@ export class UnifiedAIOrchestratorV3 {
   ): number {
     let confidence = intent.confidence;
     
-    const hasData = (data.projects?.length > 0) ||
-                   (data.clients?.length > 0) ||
-                   (data.taxKnowledge?.length > 0);
+    const hasData = ((data.projects?.length ?? 0) > 0) ||
+                   ((data.clients?.length ?? 0) > 0) ||
+                   ((data.taxKnowledge?.length ?? 0) > 0);
     
     if (hasData) {
       confidence = Math.min(confidence * 1.2, 1.0);

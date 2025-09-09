@@ -382,6 +382,122 @@ export interface Database {
           metadata?: Json | null
         }
       }
+
+      // 세무 거래 테이블
+      tax_transactions: {
+        Row: {
+          id: string
+          created_at: string
+          updated_at: string
+          user_id: string
+          transaction_date: string
+          transaction_type: '매입' | '매출'
+          project_id: string | null
+          client_id: string | null
+          supplier_name: string
+          business_number: string | null
+          supply_amount: number
+          vat_amount: number
+          withholding_tax_3_3: number
+          withholding_tax_6_8: number
+          total_amount: number
+          category: string | null
+          description: string | null
+          status: string
+          document_url: string | null
+          document_type: string | null
+          metadata: Json | null
+        }
+        Insert: {
+          id?: string
+          created_at?: string
+          updated_at?: string
+          user_id: string
+          transaction_date: string
+          transaction_type: '매입' | '매출'
+          project_id?: string | null
+          client_id?: string | null
+          supplier_name: string
+          business_number?: string | null
+          supply_amount: number
+          vat_amount?: number
+          withholding_tax_3_3?: number
+          withholding_tax_6_8?: number
+          total_amount: number
+          category?: string | null
+          description?: string | null
+          status?: string
+          document_url?: string | null
+          document_type?: string | null
+          metadata?: Json | null
+        }
+        Update: {
+          id?: string
+          created_at?: string
+          updated_at?: string
+          user_id?: string
+          transaction_date?: string
+          transaction_type?: '매입' | '매출'
+          project_id?: string | null
+          client_id?: string | null
+          supplier_name?: string
+          business_number?: string | null
+          supply_amount?: number
+          vat_amount?: number
+          withholding_tax_3_3?: number
+          withholding_tax_6_8?: number
+          total_amount?: number
+          category?: string | null
+          description?: string | null
+          status?: string
+          document_url?: string | null
+          document_type?: string | null
+          metadata?: Json | null
+        }
+      }
+
+      // 월별 세무 집계 테이블
+      tax_monthly_summary: {
+        Row: {
+          id: string
+          user_id: string
+          year: number
+          month: number
+          total_sales: number
+          total_purchases: number
+          vat_payable: number
+          withholding_tax_collected: number
+          withholding_tax_paid: number
+          transaction_count: number
+          last_updated: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          year: number
+          month: number
+          total_sales?: number
+          total_purchases?: number
+          vat_payable?: number
+          withholding_tax_collected?: number
+          withholding_tax_paid?: number
+          transaction_count?: number
+          last_updated?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          year?: number
+          month?: number
+          total_sales?: number
+          total_purchases?: number
+          vat_payable?: number
+          withholding_tax_collected?: number
+          withholding_tax_paid?: number
+          transaction_count?: number
+          last_updated?: string
+        }
+      }
     }
     Views: {
       [_ in never]: never

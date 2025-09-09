@@ -175,7 +175,7 @@ export class DynamicContextInjector {
     chatHistory: any[] = []
   ): Promise<EnrichedContext> {
     // 1. 의도 분석
-    const intent = await this.intentAnalyzer.analyzeIntent(message);
+    const intent = this.intentAnalyzer.analyze(message);
     
     // 2. 트리거 매칭
     const matchedTriggers = this.matchTriggers(message);
@@ -295,9 +295,10 @@ export class DynamicContextInjector {
       
       case 'client':
         const { ClientService } = await import('../services/clientService');
+        const allClients = await ClientService.getClientsByUserId(userId);
         return {
-          activeClients: await ClientService.getActiveClients(userId),
-          recentContacts: await ClientService.getRecentContacts(userId, 5)
+          activeClients: allClients.filter(c => c.status === 'active'),
+          recentContacts: await ClientService.getClientsNeedingFollowUp(userId)
         };
       
       case 'tax':
@@ -305,10 +306,10 @@ export class DynamicContextInjector {
         const currentMonth = new Date().getMonth();
         return {
           currentTaxDeadlines: taxKnowledgeDB
-            .filter(item => item.category === '세무일정')
+            .filter(item => item.category === '세무신고')
             .slice(0, 3),
           relevantRules: taxKnowledgeDB
-            .filter(item => item.priority === 'high')
+            .filter(item => item.category === '종합소득세' || item.category === '부가가치세')
             .slice(0, 5)
         };
       
