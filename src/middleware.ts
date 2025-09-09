@@ -49,14 +49,17 @@ export async function middleware(request: NextRequest) {
   const isMockMode = process.env.USE_MOCK_DATA === 'true';
   
   // 세션 확인을 위해 쿠키에서 Supabase 토큰 확인
-  // 모의 데이터 모드에서는 항상 세션이 있다고 간주
-  const hasSession = isMockMode || request.cookies.getAll().some(cookie => 
+  // auth-token이 있고 실제 값이 있는 경우만 세션이 있다고 판단
+  const hasSupabaseSession = request.cookies.getAll().some(cookie => 
     cookie.name.includes('sb-') && 
     cookie.name.includes('auth-token') && 
     cookie.value && 
     cookie.value !== 'null' && 
     cookie.value !== 'undefined'
   );
+  
+  // 세션이 있거나 Mock 모드인 경우 인증된 것으로 처리
+  const hasSession = hasSupabaseSession || isMockMode;
 
   // 보호된 경로에 인증 없이 접근 시 로그인 페이지로 리다이렉트
   const isProtectedPath = protectedPaths.some(path => pathname.startsWith(path));

@@ -9,12 +9,10 @@ import DashboardCalendar from '@/components/dashboard/DashboardCalendar';
 import Typography from '@/components/ui/Typography';
 import type { DashboardInsight, QuickAction } from '@/components/dashboard/DashboardLayout';
 import type { CalendarEvent } from '@/components/dashboard/DashboardCalendar';
-import { getSupabaseClientSafe } from '@/lib/supabase/client';
 import { projectsService } from '@/lib/services/supabase/projects.service';
 import { clientService } from '@/lib/services/supabase/clients.service';
 import { invoicesService } from '@/lib/services/supabase/invoices.service';
 import { remindersService } from '@/lib/services/supabase/reminders.service';
-import type { RealtimeChannel } from '@supabase/supabase-js';
 
 // Mock 데이터 - 실제로는 API에서 가져올 데이터
 interface DashboardData {
@@ -50,46 +48,17 @@ export default function Dashboard() {
   const router = useRouter();
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [supabaseClient] = useState(() => getSupabaseClientSafe());
-  const [realtimeChannel, setRealtimeChannel] = useState<RealtimeChannel | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
 
-  // 데이터 로딩 - 모의 데이터 모드 지원
+  // Mock 데이터 로딩
   useEffect(() => {
     const checkAuthAndFetchData = async () => {
       setIsLoading(true);
       
-      // 모의 데이터 모드 확인
-      const isUsingMockData = 
-        process.env.NEXT_PUBLIC_USE_MOCK_DATA === 'true' || 
-        !process.env.NEXT_PUBLIC_SUPABASE_URL;
-      
-      if (isUsingMockData) {
-        // 모의 데이터 모드: Mock 사용자 ID 사용
-        console.log('Using mock data mode for dashboard');
-        setUserId('mock-user-id');
-        await fetchDashboardData('mock-user-id');
-        return;
-      }
-      
-      // 실제 Supabase 인증 모드
-      if (!supabaseClient) {
-        console.log('Supabase client not available, using mock data');
-        setUserId('mock-user-id');
-        await fetchDashboardData('mock-user-id');
-        return;
-      }
-      
-      const { data: { session }, error } = await supabaseClient.auth.getSession();
-      
-      if (error || !session || !session.user) {
-        console.log('No valid session in dashboard, redirecting to login');
-        router.push('/login');
-        return;
-      }
-      
-      setUserId(session.user.id);
-      await fetchDashboardData(session.user.id);
+      // Mock 사용자 ID 사용 (Supabase 연결 제거)
+      const mockUserId = 'mock-user';
+      setUserId(mockUserId);
+      await fetchDashboardData(mockUserId);
     };
     
     const fetchDashboardData = async (userId: string) => {
@@ -320,71 +289,7 @@ export default function Dashboard() {
     };
 
     checkAuthAndFetchData();
-    
-    // 실시간 구독 설정
-    const setupRealtimeSubscription = (currentUserId: string) => {
-      if (!supabaseClient) return;
-      
-      const channel = supabaseClient
-        .channel('dashboard-updates')
-        .on(
-          'postgres_changes',
-          { event: '*', schema: 'public', table: 'projects' },
-          (payload) => {
-            console.log('Project change received:', payload);
-            fetchDashboardData(currentUserId); // userId 전달
-          }
-        )
-        .on(
-          'postgres_changes',
-          { event: '*', schema: 'public', table: 'clients' },
-          (payload) => {
-            console.log('Client change received:', payload);
-            fetchDashboardData(currentUserId); // userId 전달
-          }
-        )
-        .on(
-          'postgres_changes',
-          { event: '*', schema: 'public', table: 'invoices' },
-          (payload) => {
-            console.log('Invoice change received:', payload);
-            fetchDashboardData(currentUserId); // userId 전달
-          }
-        )
-        .on(
-          'postgres_changes',
-          { event: '*', schema: 'public', table: 'reminders' },
-          (payload) => {
-            console.log('Reminder change received:', payload);
-            fetchDashboardData(currentUserId); // userId 전달
-          }
-        )
-        .subscribe((status) => {
-          if (status === 'SUBSCRIBED') {
-            console.log('Dashboard realtime subscription active');
-          }
-        });
-      
-      setRealtimeChannel(channel);
-    };
-    
-    // 모의 데이터 모드에서는 실시간 구독 사용 안 함
-    const isUsingMockData = 
-      process.env.NEXT_PUBLIC_USE_MOCK_DATA === 'true' || 
-      !process.env.NEXT_PUBLIC_SUPABASE_URL;
-      
-    if (userId && !isUsingMockData) {
-      setupRealtimeSubscription(userId);
-    }
-    
-    // Cleanup 함수
-    return () => {
-      if (realtimeChannel) {
-        console.log('Unsubscribing from dashboard realtime updates');
-        supabaseClient?.removeChannel(realtimeChannel);
-      }
-    };
-  }, [router, userId, realtimeChannel]);
+  }, [router]);
 
   // 빠른 실행 버튼들
   const quickActions: QuickAction[] = [
