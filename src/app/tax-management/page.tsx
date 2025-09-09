@@ -19,7 +19,7 @@ export default function TaxManagementPage() {
 
   const tabs = [
     { id: 'overview', label: '개요', icon: Calculator },
-    { id: 'transactions', label: '매입매출 상세', icon: FileSpreadsheet },
+    { id: 'transactions', label: '매출/매입', icon: FileSpreadsheet },
     { id: 'filing', label: '세무 신고', icon: FileText }
   ];
 

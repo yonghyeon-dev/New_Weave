@@ -28,6 +28,24 @@ export default function LoginPage() {
     setLoading(true)
 
     try {
+      // Mock 로그인 처리 (개발용)
+      if (email === 'test@example.com' && password === 'test123456') {
+        // Mock 사용자 세션 생성
+        localStorage.setItem('mock_user', JSON.stringify({
+          id: 'mock-user-id',
+          email: 'test@example.com',
+          name: '테스트 사용자',
+          role: 'admin'
+        }))
+        
+        // 로그인 성공 - 약간의 지연 후 리다이렉트
+        setTimeout(() => {
+          router.push(redirect)
+        }, 500)
+        return
+      }
+      
+      // Supabase 로그인 시도 (실제 환경용)
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -226,16 +244,28 @@ export default function LoginPage() {
           </form>
         </Card>
 
-        {/* 테스트 계정 안내 (개발용) */}
-        {process.env.NODE_ENV === 'development' && (
-          <Card className="mt-4 p-4 bg-bg-secondary">
-            <Typography variant="body2" className="text-txt-secondary text-center">
-              <strong>테스트 계정:</strong><br />
-              Email: test@example.com<br />
-              Password: test123456
-            </Typography>
-          </Card>
-        )}
+        {/* 테스트 계정 안내 */}
+        <Card className="mt-4 p-4 bg-yellow-50 border border-yellow-200">
+          <Typography variant="body2" className="text-txt-primary text-center">
+            <strong className="text-yellow-700">📌 테스트 계정</strong><br />
+            <span className="text-sm">
+              Email: <code className="bg-yellow-100 px-1 rounded">test@example.com</code><br />
+              Password: <code className="bg-yellow-100 px-1 rounded">test123456</code>
+            </span>
+          </Typography>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="w-full mt-3 border-yellow-400 hover:bg-yellow-100"
+            onClick={() => {
+              setEmail('test@example.com');
+              setPassword('test123456');
+            }}
+          >
+            테스트 계정 자동 입력
+          </Button>
+        </Card>
       </div>
     </div>
   )
