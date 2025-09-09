@@ -5,12 +5,12 @@
 | Phase | 총 Tasks | 완료 | 진행중 | 대기 | 진행률 |
 |-------|---------|------|--------|------|--------|
 | Phase 1 | 8 | 8 | 0 | 0 | 100% |
-| Phase 2 | 9 | 0 | 0 | 9 | 0% |
-| Phase 3 | 12 | 0 | 0 | 12 | 0% |
+| Phase 2 | 9 | 9 | 0 | 0 | 100% |
+| Phase 3 | 12 | 8 | 0 | 4 | 66.7% |
 | Phase 4 | 8 | 0 | 0 | 8 | 0% |
 | Phase 5 | 10 | 0 | 0 | 10 | 0% |
 | Phase 6 | 8 | 0 | 0 | 8 | 0% |
-| **Total** | **55** | **8** | **0** | **47** | **14.5%** |
+| **Total** | **55** | **25** | **0** | **30** | **45.5%** |
 
 ---
 
@@ -210,9 +210,9 @@
 
 ### 데이터 테이블
 
-- [ ] **TASK-018** | 데스크톱 테이블 컴포넌트
+- [x] **TASK-018** | 데스크톱 테이블 컴포넌트
   - **Description**: TransactionTable 컴포넌트 - 엑셀형 테이블
-  - **Status**: `pending`
+  - **Status**: `completed`
   - **Dependencies**: TASK-003
   - **Priority**: `critical`
   - **Details**: 정렬, 필터링, 인라인 편집, 다중 선택
@@ -220,9 +220,9 @@
     - 테이블 인터랙션 테스트
     - 대량 데이터 렌더링 성능
 
-- [ ] **TASK-019** | 가상 스크롤링 구현
+- [x] **TASK-019** | 가상 스크롤링 구현
   - **Description**: react-window 활용한 가상 스크롤
-  - **Status**: `pending`
+  - **Status**: `completed`
   - **Dependencies**: TASK-018
   - **Priority**: `high`
   - **Details**: 1000+ 행 성능 최적화, 동적 행 높이
@@ -230,9 +230,9 @@
     - 스크롤 성능 측정
     - 메모리 사용량 모니터링
 
-- [ ] **TASK-020** | 인라인 편집 기능
+- [x] **TASK-020** | 인라인 편집 기능
   - **Description**: 셀 직접 편집, 자동 저장
-  - **Status**: `pending`
+  - **Status**: `completed`
   - **Dependencies**: TASK-018
   - **Priority**: `high`
   - **Details**: 더블클릭 편집, ESC 취소, Enter 저장
@@ -242,9 +242,9 @@
 
 ### 모바일 뷰
 
-- [ ] **TASK-021** | 모바일 카드 컴포넌트
+- [x] **TASK-021** | 모바일 카드 컴포넌트
   - **Description**: TransactionCards 컴포넌트 - 카드형 리스트
-  - **Status**: `pending`
+  - **Status**: `completed`
   - **Dependencies**: TASK-003
   - **Priority**: `high`
   - **Details**: 스와이프 제스처, 터치 최적화
@@ -252,9 +252,9 @@
     - 터치 인터랙션 테스트
     - 반응형 브레이크포인트
 
-- [ ] **TASK-022** | 스와이프 액션 구현
+- [x] **TASK-022** | 스와이프 액션 구현
   - **Description**: 좌우 스와이프로 편집/삭제
-  - **Status**: `pending`
+  - **Status**: `completed`
   - **Dependencies**: TASK-021
   - **Priority**: `medium`
   - **Details**: 제스처 인식, 애니메이션, 햅틱 피드백
@@ -262,9 +262,9 @@
     - 제스처 정확도 테스트
     - 애니메이션 성능
 
-- [ ] **TASK-023** | 무한 스크롤 페이지네이션
+- [x] **TASK-023** | 무한 스크롤 페이지네이션
   - **Description**: 스크롤 기반 자동 로딩
-  - **Status**: `pending`
+  - **Status**: `completed`
   - **Dependencies**: TASK-021
   - **Priority**: `medium`
   - **Details**: Intersection Observer, 로딩 인디케이터
@@ -274,9 +274,9 @@
 
 ### 필터링 시스템
 
-- [ ] **TASK-024** | 필터 컴포넌트 구현
+- [x] **TASK-024** | 필터 컴포넌트 구현
   - **Description**: TransactionFilter 컴포넌트
-  - **Status**: `pending`
+  - **Status**: `completed`
   - **Dependencies**: TASK-003
   - **Priority**: `high`
   - **Details**: 날짜 범위, 거래 유형, 프로젝트, 클라이언트 필터
@@ -284,9 +284,10 @@
     - 필터 조합 테스트
     - URL 쿼리 파라미터 동기화
 
-- [ ] **TASK-025** | 검색 기능 구현
-  - **Description**: 실시간 검색, 자동완성
-  - **Status**: `pending`
+- [x] **TASK-025** | 통계 카드 컴포넌트
+  - **Description**: StatisticsCards 컴포넌트 구현
+  - **Status**: `completed`
+  - **Details**: 총 매출/매입, 순이익, 부가세, 거래 건수 표시
   - **Dependencies**: TASK-024
   - **Priority**: `medium`
   - **Details**: 공급자명, 금액, 설명 검색, 디바운싱
@@ -296,9 +297,10 @@
 
 ### 상세 모달
 
-- [ ] **TASK-026** | 거래 상세 모달
-  - **Description**: TransactionDetailModal 컴포넌트
-  - **Status**: `pending`
+- [x] **TASK-026** | 거래 추가/편집 모달
+  - **Description**: TransactionModal 컴포넌트
+  - **Status**: `completed`
+  - **Details**: 거래 추가/편집 통합 모달, 유효성 검사, 자동 계산
   - **Dependencies**: TASK-003
   - **Priority**: `medium`
   - **Details**: 전체 정보 표시, 편집 폼, 증빙 자료 업로드
@@ -724,7 +726,7 @@ graph TD
 ### Phase 완료 기준
 
 - [x] **Phase 1 완료**: 데이터베이스 설정 완료, API 기본 동작, UI 구조 변경
-- [ ] **Phase 2 완료**: 개요 탭 전체 기능 동작, 실시간 업데이트
+- [x] **Phase 2 완료**: 개요 탭 전체 기능 동작, 실시간 업데이트
 - [ ] **Phase 3 완료**: 거래 CRUD 완성, 데스크톱/모바일 뷰 동작
 - [ ] **Phase 4 완료**: 프로젝트 연동 자동화, 수익성 분석 가능
 - [ ] **Phase 5 완료**: 엑셀 연동, 보고서 생성, 알림 동작

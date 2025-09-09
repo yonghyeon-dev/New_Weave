@@ -47,6 +47,7 @@
     "@types/marked": "^5.0.2",
     "@types/react-syntax-highlighter": "^15.5.13",
     "@types/react-window": "^1.8.8",
+    "@types/xlsx": "^0.0.35",
     "@uiw/react-md-editor": "^4.0.8",
     "clsx": "^2.0.0",
     "date-fns": "^4.1.0",
@@ -67,7 +68,8 @@
     "react-window": "^2.1.0",
     "react-window-infinite-loader": "^1.0.10",
     "recharts": "^3.2.0",
-    "tailwind-merge": "^2.0.0"
+    "tailwind-merge": "^2.0.0",
+    "xlsx": "^0.18.5"
   },
   "repository": {
     "type": "git",
