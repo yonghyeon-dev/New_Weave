@@ -1,5 +1,7 @@
 // Mock 데이터 서비스 - Supabase 연결 제거
 import { queryCache } from './query-optimizer.service';
+import { UNIFIED_TRANSACTIONS } from '@/lib/data/unified-mock-data';
+import { dataMapper } from '@/lib/utils/data-mapper';
 
 // Type definitions (Mock)
 export interface Transaction {
@@ -75,278 +77,8 @@ export interface MonthlyTrend {
   매입: number;
 }
 
-// Mock 데이터 저장소 - 풍부한 데이터 추가
-let mockTransactions: Transaction[] = [
-  // 2024년 12월 데이터
-  {
-    id: '1',
-    user_id: 'mock-user',
-    transaction_date: '2024-12-01',
-    transaction_type: '매출',
-    supplier_name: '테크스타트',
-    business_number: '123-45-67890',
-    supply_amount: 1000000,
-    vat_amount: 100000,
-    withholding_tax_3_3: 33000,
-    withholding_tax_6_8: 0,
-    total_amount: 1067000,
-    category: '서비스',
-    description: '웹사이트 개발',
-    project_id: 'proj-1',
-    client_id: 'client-1',
-    status: 'completed',
-    created_at: '2024-12-01T09:00:00Z',
-    updated_at: '2024-12-01T09:00:00Z'
-  },
-  {
-    id: '2',
-    user_id: 'mock-user',
-    transaction_date: '2024-12-05',
-    transaction_type: '매입',
-    supplier_name: '클라우드서비스',
-    business_number: '987-65-43210',
-    supply_amount: 300000,
-    vat_amount: 30000,
-    withholding_tax_3_3: 0,
-    withholding_tax_6_8: 0,
-    total_amount: 330000,
-    category: 'IT서비스',
-    description: '서버 호스팅',
-    status: 'pending',
-    created_at: '2024-12-05T10:00:00Z',
-    updated_at: '2024-12-05T10:00:00Z'
-  },
-  {
-    id: '3',
-    user_id: 'mock-user',
-    transaction_date: '2024-12-10',
-    transaction_type: '매출',
-    supplier_name: '디자인컴퍼니',
-    business_number: '456-78-90123',
-    supply_amount: 2000000,
-    vat_amount: 200000,
-    withholding_tax_3_3: 66000,
-    withholding_tax_6_8: 0,
-    total_amount: 2134000,
-    category: '디자인',
-    description: 'UI/UX 디자인',
-    project_id: 'proj-2',
-    client_id: 'client-2',
-    status: 'completed',
-    created_at: '2024-12-10T14:00:00Z',
-    updated_at: '2024-12-10T14:00:00Z'
-  },
-  {
-    id: '6',
-    user_id: 'mock-user',
-    transaction_date: '2024-12-12',
-    transaction_type: '매입',
-    supplier_name: '구글코리아',
-    business_number: '105-81-51510',
-    supply_amount: 150000,
-    vat_amount: 15000,
-    withholding_tax_3_3: 0,
-    withholding_tax_6_8: 0,
-    total_amount: 165000,
-    category: 'IT서비스',
-    description: 'Google Workspace 구독',
-    status: 'completed',
-    created_at: '2024-12-12T10:00:00Z',
-    updated_at: '2024-12-12T10:00:00Z'
-  },
-  {
-    id: '7',
-    user_id: 'mock-user',
-    transaction_date: '2024-12-15',
-    transaction_type: '매출',
-    supplier_name: '프리랜서김개발',
-    business_number: '',
-    supply_amount: 3500000,
-    vat_amount: 0,  // 프리랜서는 부가세 없음
-    withholding_tax_3_3: 0,
-    withholding_tax_6_8: 308000,  // 8.8% 원천세 (3.3% 소득세 + 지방소득세 포함)
-    total_amount: 3192000,  // 공급가액 - 원천세 8.8%
-    category: '개발',
-    description: '프리랜서 개발 용역',
-    project_id: 'proj-4',
-    client_id: 'client-4',
-    status: 'completed',
-    created_at: '2024-12-15T11:00:00Z',
-    updated_at: '2024-12-15T11:00:00Z'
-  },
-  {
-    id: '8',
-    user_id: 'mock-user',
-    transaction_date: '2024-12-18',
-    transaction_type: '매입',
-    supplier_name: '아마존웹서비스',
-    business_number: '120-87-65281',
-    supply_amount: 450000,
-    vat_amount: 45000,
-    withholding_tax_3_3: 0,
-    withholding_tax_6_8: 0,
-    total_amount: 495000,
-    category: 'IT서비스',
-    description: 'AWS 클라우드 서비스',
-    status: 'completed',
-    created_at: '2024-12-18T09:00:00Z',
-    updated_at: '2024-12-18T09:00:00Z'
-  },
-  
-  // 2024년 11월 데이터
-  {
-    id: '4',
-    user_id: 'mock-user',
-    transaction_date: '2024-11-15',
-    transaction_type: '매출',
-    supplier_name: '이커머스플러스',
-    business_number: '234-56-78901',
-    supply_amount: 1500000,
-    vat_amount: 150000,
-    withholding_tax_3_3: 49500,
-    withholding_tax_6_8: 0,
-    total_amount: 1600500,
-    category: '개발',
-    description: '쇼핑몰 구축',
-    project_id: 'proj-3',
-    client_id: 'client-3',
-    status: 'completed',
-    created_at: '2024-11-15T11:00:00Z',
-    updated_at: '2024-11-15T11:00:00Z'
-  },
-  {
-    id: '5',
-    user_id: 'mock-user',
-    transaction_date: '2024-11-20',
-    transaction_type: '매입',
-    supplier_name: '오피스렌탈',
-    business_number: '345-67-89012',
-    supply_amount: 500000,
-    vat_amount: 50000,
-    withholding_tax_3_3: 0,
-    withholding_tax_6_8: 0,
-    total_amount: 550000,
-    category: '임대료',
-    description: '사무실 임대',
-    status: 'completed',
-    created_at: '2024-11-20T09:00:00Z',
-    updated_at: '2024-11-20T09:00:00Z'
-  },
-  {
-    id: '9',
-    user_id: 'mock-user',
-    transaction_date: '2024-11-05',
-    transaction_type: '매출',
-    supplier_name: '금융회사B',
-    business_number: '890-12-34567',
-    supply_amount: 5000000,
-    vat_amount: 500000,
-    withholding_tax_3_3: 165000,
-    withholding_tax_6_8: 0,
-    total_amount: 5335000,
-    category: '개발',
-    description: '금융 시스템 개발',
-    status: 'completed',
-    created_at: '2024-11-05T10:00:00Z',
-    updated_at: '2024-11-05T10:00:00Z'
-  },
-  {
-    id: '10',
-    user_id: 'mock-user',
-    transaction_date: '2024-11-10',
-    transaction_type: '매입',
-    supplier_name: '노션코리아',
-    business_number: '208-81-45678',
-    supply_amount: 120000,
-    vat_amount: 12000,
-    withholding_tax_3_3: 0,
-    withholding_tax_6_8: 0,
-    total_amount: 132000,
-    category: 'IT서비스',
-    description: 'Notion 팀 플랜',
-    status: 'completed',
-    created_at: '2024-11-10T11:00:00Z',
-    updated_at: '2024-11-10T11:00:00Z'
-  },
-  
-  // 2024년 10월 데이터
-  {
-    id: '11',
-    user_id: 'mock-user',
-    transaction_date: '2024-10-03',
-    transaction_type: '매출',
-    supplier_name: '프리랜서박디자인',
-    business_number: '',
-    supply_amount: 2800000,
-    vat_amount: 0,  // 프리랜서는 부가세 없음
-    withholding_tax_3_3: 0,
-    withholding_tax_6_8: 246400,  // 8.8% 원천세
-    total_amount: 2553600,  // 공급가액 - 원천세
-    category: '디자인',
-    description: '프리랜서 UI/UX 디자인',
-    project_id: 'proj-5',
-    client_id: 'client-5',
-    status: 'completed',
-    created_at: '2024-10-03T09:00:00Z',
-    updated_at: '2024-10-03T09:00:00Z'
-  },
-  {
-    id: '12',
-    user_id: 'mock-user',
-    transaction_date: '2024-10-10',
-    transaction_type: '매입',
-    supplier_name: '피그마인터내셔널',
-    business_number: '542-88-00123',
-    supply_amount: 180000,
-    vat_amount: 18000,
-    withholding_tax_3_3: 0,
-    withholding_tax_6_8: 0,
-    total_amount: 198000,
-    category: '디자인툴',
-    description: 'Figma 프로페셔널 플랜',
-    status: 'completed',
-    created_at: '2024-10-10T14:00:00Z',
-    updated_at: '2024-10-10T14:00:00Z'
-  },
-  {
-    id: '13',
-    user_id: 'mock-user',
-    transaction_date: '2024-10-20',
-    transaction_type: '매출',
-    supplier_name: '개인사업자이마케팅',
-    business_number: '234-56-78901',
-    supply_amount: 1000000,
-    vat_amount: 100000,
-    withholding_tax_3_3: 33000,  // 개인사업자 원천세 3.3%
-    withholding_tax_6_8: 0,
-    total_amount: 1067000,  // 공급가액 + 부가세 - 원천세
-    category: '마케팅',
-    description: '개인사업자 마케팅 대행',
-    project_id: 'proj-6',
-    client_id: 'client-6',
-    status: 'completed',
-    created_at: '2024-10-20T10:00:00Z',
-    updated_at: '2024-10-20T10:00:00Z'
-  },
-  {
-    id: '14',
-    user_id: 'mock-user',
-    transaction_date: '2024-10-25',
-    transaction_type: '매입',
-    supplier_name: '통신사E',
-    business_number: '106-81-23456',
-    supply_amount: 88000,
-    vat_amount: 8800,
-    withholding_tax_3_3: 0,
-    withholding_tax_6_8: 0,
-    total_amount: 96800,
-    category: '통신비',
-    description: '인터넷 회선 비용',
-    status: 'completed',
-    created_at: '2024-10-25T15:00:00Z',
-    updated_at: '2024-10-25T15:00:00Z'
-  }
-];
+// Mock 데이터 저장소 - 통합 데이터 사용
+let mockTransactions: Transaction[] = dataMapper.unifiedToTransactions(UNIFIED_TRANSACTIONS);
 
 let mockMonthlySummaries: MonthlySummary[] = [];
 
@@ -672,7 +404,45 @@ export class TaxTransactionService {
       unsubscribe: () => {}
     };
   }
+
+  // 페이지네이션과 함께 거래 조회
+  async fetchTransactionsWithPagination(options: {
+    pageSize?: number;
+    page?: number;
+    filters?: Partial<TransactionFilters>;
+  }): Promise<{
+    data: Transaction[];
+    total: number;
+    page: number;
+    pageSize: number;
+    hasMore: boolean;
+  }> {
+    const { pageSize = 20, page = 1, filters = {} } = options;
+    
+    // 모든 거래 조회
+    const allTransactions = await this.getTransactions(filters as TransactionFilters);
+    
+    // 페이지네이션 적용
+    const startIndex = (page - 1) * pageSize;
+    const endIndex = startIndex + pageSize;
+    const data = allTransactions.slice(startIndex, endIndex);
+    
+    return {
+      data,
+      total: allTransactions.length,
+      page,
+      pageSize,
+      hasMore: endIndex < allTransactions.length
+    };
+  }
 }
 
 // Singleton instance
 export const taxTransactionService = new TaxTransactionService();
+
+// 편의 함수 exports
+export const fetchTransactionsWithPagination = (options: {
+  pageSize?: number;
+  page?: number;
+  filters?: Partial<TransactionFilters>;
+}) => taxTransactionService.fetchTransactionsWithPagination(options);

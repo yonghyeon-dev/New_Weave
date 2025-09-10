@@ -319,7 +319,7 @@ export default function ProjectIntegrationTest() {
       // 매칭 결과 중 하나를 선택하여 연결 테스트
       const response = await fetchTransactionsWithPagination({
         pageSize: 1,
-        filters: { project_id: null }
+        filters: { projectId: null }
       });
       
       if (response.data.length === 0) {

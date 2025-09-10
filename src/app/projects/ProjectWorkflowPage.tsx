@@ -89,6 +89,7 @@ type Invoice = {
   project_id?: string;
   status: 'draft' | 'sent' | 'paid' | 'overdue' | 'cancelled';
   total?: number;
+  issue_date?: string;
   due_date?: string;
   created_at: string;
   updated_at: string;

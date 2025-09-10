@@ -74,21 +74,8 @@ export const TaxNotificationBadge = dynamic(
 );
 
 // 차트 컴포넌트 (recharts 라이브러리)
-export const TaxAnalyticsChart = dynamic(
-  () => import('./charts/TaxAnalyticsChart'),
-  {
-    loading: LoadingComponent,
-    ssr: false,
-  }
-);
-
-export const VATTrendChart = dynamic(
-  () => import('./charts/VATTrendChart'),
-  {
-    loading: LoadingComponent,
-    ssr: false,
-  }
-);
+// VATTrendChart - 현재 구현되지 않음. MonthlyTrendChart에서 VAT 데이터 제공
+// 필요시 별도 구현 예정
 
 // 테스트 컴포넌트 (개발/테스트 환경에서만 로드)
 export const AdvancedFeaturesTest = dynamic(
@@ -111,7 +98,7 @@ export const QueryOptimizationTest = dynamic(
 export const preloadCriticalComponents = () => {
   // 자주 사용되는 컴포넌트 프리로드
   import('./widgets/TaxDashboardWidget');
-  import('./charts/TaxAnalyticsChart');
+  import('./charts/MonthlyTrendChart');
 };
 
 // 조건부 프리로드 (특정 페이지에서만)
@@ -154,7 +141,7 @@ export const optimizationConfig = {
   prefetch: {
     enabled: true,
     priority: {
-      critical: ['TaxDashboardWidget', 'TaxAnalyticsChart'],
+      critical: ['TaxDashboardWidget', 'MonthlyTrendChart'],
       high: ['MonthlyTaxReport', 'QuarterlyVATReport'],
       medium: ['ExcelImportModal', 'TaxNotificationCenter'],
       low: ['AdvancedFeaturesTest', 'QueryOptimizationTest']

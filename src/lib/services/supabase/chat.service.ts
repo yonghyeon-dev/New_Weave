@@ -71,6 +71,24 @@ export class ChatService {
     } as ChatMessage
   }
 
+  // 메시지 저장 (ChatInterfaceV2 호환용)
+  async saveMessage(params: {
+    sessionId: string;
+    role: 'user' | 'assistant' | 'system';
+    content: string;
+    userId: string;
+  }) {
+    // TODO: chat_messages 테이블이 생성되면 활성화
+    return {
+      id: Date.now().toString(),
+      session_id: params.sessionId,
+      role: params.role,
+      content: params.content,
+      metadata: { userId: params.userId },
+      created_at: new Date().toISOString()
+    } as ChatMessage
+  }
+
   // 세션의 메시지 조회
   async getMessages(sessionId: string, limit: number = 100): Promise<ChatMessage[]> {
     // TODO: chat_messages 테이블이 생성되면 활성화

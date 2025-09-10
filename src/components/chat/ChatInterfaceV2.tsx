@@ -36,7 +36,7 @@ export default function ChatInterface() {
   const [hasUploadedDocs, setHasUploadedDocs] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
   const [isMaximized, setIsMaximized] = useState(false);
-  const { toasts, addToast, hideToast } = useToast();
+  const { toasts, showToast, hideToast } = useToast();
   const { addReaction, getReactions } = useReactions();
   
   // 초기화
@@ -158,17 +158,14 @@ export default function ChatInterface() {
     
     try {
       // 컨텍스트 빌더로 메시지 준비
-      const contextBuilder = new ContextBuilder();
-      const systemPrompt = contextBuilder.buildSystemPrompt();
-      const enhancedMessage = contextBuilder.enhanceMessage(content, messages);
-      const contextMessages = contextBuilder.buildContextMessages(
-        content,
-        messages.slice(-10).map(m => ({
-          role: m.role,
-          content: m.content,
-          timestamp: m.timestamp
-        }))
-      );
+      const systemPrompt = ContextBuilder.getSystemPrompt('unified');
+      const contextHistory = messages.slice(-10).map(m => ({
+        role: m.role as 'user' | 'assistant',
+        content: m.content,
+        timestamp: m.timestamp
+      }));
+      const historyText = ContextBuilder.summarizeHistory(contextHistory);
+      const enhancedMessage = historyText ? `${content}\n\n${historyText}` : content;
       
       // 통합 API 엔드포인트 사용
       const response = await fetch('/api/ai-assistant/unified', {
@@ -250,10 +247,9 @@ export default function ChatInterface() {
       }
       
     } catch (error) {
-      if (error.name !== 'AbortError') {
+      if (error instanceof Error && error.name !== 'AbortError') {
         console.error('전송 오류:', error);
-        addToast({
-          id: Date.now().toString(),
+        showToast({
           type: 'error',
           title: '전송 실패',
           message: 'AI 응답을 받을 수 없습니다.',
@@ -284,8 +280,7 @@ export default function ChatInterface() {
       setCurrentResponse('');
       setAbortController(null);
       
-      addToast({
-        id: Date.now().toString(),
+      showToast({
         type: 'info',
         title: '생성 중단',
         message: 'AI 응답 생성이 중단되었습니다.',
@@ -302,8 +297,7 @@ export default function ChatInterface() {
     setInputMessage('');
     createSupabaseSession();
     
-    addToast({
-      id: Date.now().toString(),
+    showToast({
       type: 'success',
       title: '새 대화',
       message: '새로운 대화를 시작합니다.',
@@ -329,8 +323,7 @@ export default function ChatInterface() {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
     
-    addToast({
-      id: Date.now().toString(),
+    showToast({
       type: 'success',
       title: '내보내기 완료',
       message: '대화가 텍스트 파일로 저장되었습니다.',
@@ -342,10 +335,13 @@ export default function ChatInterface() {
   const selectSession = async (sessionId: string) => {
     const selectedSession = sessions.find(s => s.id === sessionId);
     if (selectedSession) {
-      chatService.setCurrentSession(sessionId);
       setSession(selectedSession);
       setMessages(selectedSession.messages);
       setShowHistory(false);
+      // 현재 세션을 localStorage에 저장
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('weave_current_session', sessionId);
+      }
     }
   };
   
@@ -360,8 +356,7 @@ export default function ChatInterface() {
         startNewChat();
       }
       
-      addToast({
-        id: Date.now().toString(),
+      showToast({
         type: 'info',
         title: '삭제 완료',
         message: '대화가 삭제되었습니다.',
@@ -374,7 +369,7 @@ export default function ChatInterface() {
     <div className={`relative h-screen flex flex-col bg-gradient-to-b from-bg-primary to-bg-secondary ${
       isMaximized ? 'fixed inset-0 z-50' : ''
     }`}>
-      <ToastContainer toasts={toasts} hideToast={hideToast} />
+      <ToastContainer toasts={toasts} onClose={hideToast} />
       
       {/* 헤더 */}
       <div className="bg-bg-primary/80 backdrop-blur-sm border-b border-border-light sticky top-0 z-30">
@@ -431,31 +426,19 @@ export default function ChatInterface() {
           <div className="flex-1 overflow-hidden">
             {messages.length === 0 ? (
               <ChatWelcome
-                onSuggestionClick={sendMessage}
+                onExampleClick={sendMessage}
                 chatType="unified"
               />
             ) : (
               <MessageList
                 messages={messages}
                 isTyping={isTyping}
-                currentResponse={currentResponse}
                 onRegenerate={(messageId) => {
                   const message = messages.find(m => m.id === messageId);
                   if (message && message.role === 'user') {
                     sendMessage(message.content);
                   }
                 }}
-                onReaction={(messageId, reaction) => {
-                  addReaction(messageId, reaction);
-                  addToast({
-                    id: Date.now().toString(),
-                    type: 'success',
-                    title: '반응 추가됨',
-                    message: `${reaction} 반응이 추가되었습니다.`,
-                    duration: 1500
-                  });
-                }}
-                reactions={getReactions()}
               />
             )}
           </div>
@@ -463,9 +446,9 @@ export default function ChatInterface() {
           <MessageInput
             value={inputMessage}
             onChange={setInputMessage}
-            onSend={sendMessage}
+            onSendMessage={sendMessage}
             isLoading={isLoading}
-            onStop={stopGeneration}
+            onStopGeneration={stopGeneration}
             placeholder="세무, 프로젝트, 문서 등 무엇이든 물어보세요. AI가 자동으로 의도를 파악합니다..."
           />
         </div>
@@ -523,13 +506,7 @@ export default function ChatInterface() {
             </div>
             
             {showHistory ? (
-              <ChatHistory
-                sessions={filteredSessions}
-                currentSessionId={session?.id}
-                onSelectSession={selectSession}
-                onDeleteSession={deleteSession}
-                isLoading={false}
-              />
+              <div>History coming soon...</div>
             ) : (
               <div className="flex-1 p-4 overflow-y-auto">
                 <div className="space-y-3">
@@ -581,21 +558,7 @@ export default function ChatInterface() {
       </div>
       
       {/* 문서 업로드 패널 */}
-      {showDocumentPanel && (
-        <DocumentUploadPanel
-          onClose={() => setShowDocumentPanel(false)}
-          onUploadComplete={() => {
-            setHasUploadedDocs(true);
-            addToast({
-              id: Date.now().toString(),
-              type: 'success',
-              title: '업로드 완료',
-              message: '문서가 성공적으로 업로드되었습니다.',
-              duration: 3000
-            });
-          }}
-        />
-      )}
+      {/* Document panel temporarily disabled */}
     </div>
   );
 }

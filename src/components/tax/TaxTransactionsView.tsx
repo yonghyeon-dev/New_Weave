@@ -18,7 +18,7 @@ import {
 
 // 컴포넌트 임포트
 import TransactionTable from './table/TransactionTable';
-import VirtualTransactionTable from './table/VirtualTransactionTable';
+// import VirtualTransactionTable from './table/VirtualTransactionTable'; // TODO: react-window 호환성 문제로 임시 비활성화
 import TransactionCards from './mobile/TransactionCards';
 import TransactionFilters from './filters/TransactionFilters';
 import TransactionModal from './modals/TransactionModal';
@@ -46,7 +46,7 @@ import {
 import useTaxStore from '@/lib/stores/taxStore';
 import type { Transaction } from '@/lib/services/supabase/tax-transactions.service';
 
-type ViewMode = 'table' | 'virtual' | 'cards';
+type ViewMode = 'table' | 'cards'; // 'virtual' 임시 제거
 
 export default function TaxTransactionsView() {
   const { 
@@ -222,6 +222,7 @@ export default function TaxTransactionsView() {
               >
                 <List className="w-4 h-4" />
               </button>
+              {/* Virtual 뷰 임시 비활성화
               <button
                 onClick={() => setViewMode('virtual')}
                 className={`p-2 rounded transition-colors ${
@@ -233,6 +234,7 @@ export default function TaxTransactionsView() {
               >
                 <LayoutGrid className="w-4 h-4" />
               </button>
+              */}
             </div>
           )}
 
@@ -334,22 +336,6 @@ export default function TaxTransactionsView() {
             setTransactions([...transactions, ...newData]);
           }}
           hasMore={scrollManager.current.getHasMore()}
-        />
-      ) : viewMode === 'virtual' ? (
-        <VirtualTransactionTable
-          transactions={transactions}
-          loading={loading}
-          onEdit={(t) => {
-            setEditingTransaction(t);
-            setModalMode('edit');
-          }}
-          onDelete={handleDeleteTransaction}
-          hasMore={scrollManager.current.getHasMore()}
-          loadMore={async () => {
-            const newData = await scrollManager.current.loadMore();
-            setTransactions([...transactions, ...newData]);
-          }}
-          height={600}
         />
       ) : (
         <TransactionTable

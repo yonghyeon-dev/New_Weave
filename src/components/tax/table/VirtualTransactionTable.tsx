@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState, useMemo, useCallback, CSSProperties } from 'react';
-import { FixedSizeList as List } from 'react-window';
+import ReactWindow from 'react-window';
+const List = ReactWindow.FixedSizeList;
 import InfiniteLoader from 'react-window-infinite-loader';
 import { Card } from '@/components/ui/Card';
 import Typography from '@/components/ui/Typography';

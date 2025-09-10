@@ -94,9 +94,8 @@ export default function ProjectTransactionView() {
     try {
       // 프로젝트 거래 조회
       const txResponse = await fetchTransactionsWithPagination({
-        filters: { project_id: projectId },
-        sortField: 'transaction_date',
-        sortOrder: 'desc'
+        filters: { projectId: projectId },
+        pageSize: 50
       });
       setTransactions(txResponse.data);
 

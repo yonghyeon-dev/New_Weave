@@ -4,6 +4,8 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { ProjectFullPageDetail } from '@/components/projects/ProjectFullPageDetail';
 import type { ProjectTableRow } from '@/lib/types/project-table.types';
+import { UNIFIED_PROJECTS } from '@/lib/data/unified-mock-data';
+import { dataMapper } from '@/lib/utils/data-mapper';
 
 export interface ProjectDetailPageProps {
   params: {
@@ -36,125 +38,10 @@ export default function ProjectDetailPage({
   const [selectedProject, setSelectedProject] = useState<ProjectTableRow | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // 더미 데이터 생성 함수 (통일된 데이터 사용)
+  // 통합 데이터 사용 (기존 더미 데이터 생성 함수 대체)
   const generateMockData = (): ProjectTableRow[] => {
-    const clients = ['A개발', 'B디자인', 'C마케팅', 'D컨설팅', 'E업체', 'F자체', 'A학교'];
-    const statuses: Array<'planning' | 'in_progress' | 'review' | 'completed' | 'on_hold' | 'cancelled'> = 
-      ['planning', 'in_progress', 'review', 'completed', 'on_hold', 'cancelled'];
-
-    const seededRandom = (seed: number): number => {
-      const x = Math.sin(seed) * 10000;
-      return x - Math.floor(x);
-    };
-
-    const baseDate = new Date(2024, 0, 1);
-    const dayInterval = 7;
-
-    const projects = Array.from({ length: 20 }, (_, i) => {
-      const seed1 = i * 1234 + 5678;
-      const seed2 = i * 2345 + 6789;
-      const seed3 = i * 3456 + 7890;
-      const seed4 = i * 4567 + 8901;
-      const seed5 = i * 5678 + 9012;
-
-      const registrationDate = new Date(
-        baseDate.getTime() + 
-        (i * dayInterval * 24 * 60 * 60 * 1000) + 
-        (Math.floor(seededRandom(seed1) * 3) * 24 * 60 * 60 * 1000)
-      );
-      const dueDate = new Date(registrationDate.getTime() + Math.floor(seededRandom(seed2) * 90) * 24 * 60 * 60 * 1000);
-      
-      const currentDate = new Date();
-      const maxModifyTime = Math.min(currentDate.getTime(), registrationDate.getTime() + 180 * 24 * 60 * 60 * 1000);
-      const modifyTimeRange = maxModifyTime - registrationDate.getTime();
-      const modifiedDate = new Date(registrationDate.getTime() + Math.floor(seededRandom(seed3) * modifyTimeRange));
-
-      const progress = Math.floor(seededRandom(seed4) * 101);
-      let paymentProgress = 0;
-      
-      if (progress >= 80) {
-        paymentProgress = Math.floor(80 + seededRandom(seed5) * 21);
-      } else if (progress >= 50) {
-        paymentProgress = Math.floor(30 + seededRandom(seed5) * 51);
-      } else if (progress >= 20) {
-        paymentProgress = Math.floor(10 + seededRandom(seed5) * 31);
-      } else {
-        paymentProgress = Math.floor(seededRandom(seed5) * 21);
-      }
-      
-      const statusIndex = Math.floor(seededRandom(seed1 + seed2) * statuses.length);
-      if (statuses[statusIndex] === 'completed' && seededRandom(seed3 + seed4) > 0.3) {
-        paymentProgress = 100;
-      }
-
-      // 문서 상태 생성
-      const generateDocumentStatus = () => {
-        const statuses = ['none', 'draft', 'completed', 'approved', 'sent'] as const;
-        
-        return {
-          contract: {
-            exists: seededRandom(seed1 + 1000) > 0.5,
-            status: statuses[Math.floor(seededRandom(seed1 + 2000) * statuses.length)] as any,
-            lastUpdated: modifiedDate.toISOString(),
-            count: 1
-          },
-          invoice: {
-            exists: seededRandom(seed2 + 1000) > 0.3,
-            status: statuses[Math.floor(seededRandom(seed2 + 2000) * statuses.length)] as any,
-            lastUpdated: modifiedDate.toISOString(),
-            count: seededRandom(seed2 + 3000) > 0.7 ? Math.floor(seededRandom(seed2 + 4000) * 3) + 1 : 1
-          },
-          report: {
-            exists: seededRandom(seed3 + 1000) > 0.6,
-            status: statuses[Math.floor(seededRandom(seed3 + 2000) * statuses.length)] as any,
-            lastUpdated: modifiedDate.toISOString(),
-            count: seededRandom(seed3 + 3000) > 0.5 ? Math.floor(seededRandom(seed3 + 4000) * 2) + 1 : 1
-          },
-          estimate: {
-            exists: seededRandom(seed4 + 1000) > 0.4,
-            status: statuses[Math.floor(seededRandom(seed4 + 2000) * statuses.length)] as any,
-            lastUpdated: modifiedDate.toISOString(),
-            count: 1
-          },
-          other: {
-            exists: seededRandom(seed5 + 1000) > 0.7,
-            status: statuses[Math.floor(seededRandom(seed5 + 2000) * statuses.length)] as any,
-            lastUpdated: modifiedDate.toISOString(),
-            count: seededRandom(seed5 + 3000) > 0.8 ? Math.floor(seededRandom(seed5 + 4000) * 4) + 1 : 1
-          }
-        };
-      };
-
-      return {
-        id: `project-${i + 1}`,
-        no: `WEAVE_${String(i + 1).padStart(3, '0')}`,
-        name: `${['A개발', 'B디자인', 'C마케팅', 'D컨설팅', '카페 관리', '피시방 관리', 'A교육 강의'][i % 7]} 프로젝트`,
-        registrationDate: registrationDate.toISOString(),
-        client: clients[i % clients.length],
-        progress,
-        paymentProgress,
-        status: statuses[statusIndex],
-        dueDate: dueDate.toISOString(),
-        modifiedDate: modifiedDate.toISOString(),
-        hasContract: seededRandom(seed1 + 1000) > 0.5,
-        hasBilling: seededRandom(seed2 + 1000) > 0.3,
-        hasDocuments: seededRandom(seed3 + 1000) > 0.4,
-        documentStatus: {
-          contract: generateDocumentStatus().contract,
-          invoice: generateDocumentStatus().invoice,
-          report: generateDocumentStatus().report,
-          estimate: generateDocumentStatus().estimate,
-          etc: generateDocumentStatus().other
-        }
-      };
-    });
-
-    // 최신 프로젝트가 상단에 오도록 내림차순 정렬 (no 기준)
-    return projects.sort((a, b) => {
-      const aNum = parseInt(a.no.split('_')[1] || '0');
-      const bNum = parseInt(b.no.split('_')[1] || '0');
-      return bNum - aNum;
-    });
+    // 통합 프로젝트 데이터를 기존 형식으로 변환
+    return dataMapper.unifiedToProjects(UNIFIED_PROJECTS);
   };
 
   // 데이터 로딩

@@ -137,16 +137,15 @@ export function ProjectCreateModal({
       const newProject = await projectsService.createProject({
         user_id: 'system', // TODO: 실제 사용자 ID로 교체 필요
         name: formData.name,
-        description: formData.description || null,
+        description: formData.description || undefined,
         client_id: formData.client_id,
-        status: formData.status,
-        priority: formData.priority,
-        budget_estimated: formData.budget || null,
-        budget_spent: 0,
+        status: formData.status === 'cancelled' ? 'on_hold' : 
+               formData.status === 'review' ? 'in_progress' : 
+               formData.status,
+        budget_estimated: formData.budget || undefined,
         start_date: formData.start_date,
-        due_date: formData.end_date || null,
-        progress: formData.progress
-      }) as any;
+        due_date: formData.end_date || undefined
+      });
 
       // null 안전 확인
       if (!newProject) {
@@ -159,7 +158,7 @@ export function ProjectCreateModal({
         name: newProject.name,
         registrationDate: newProject.created_at,
         client: clients.find(c => c.id === newProject.client_id)?.company || 'Unknown',
-        progress: newProject.progress,
+        progress: formData.progress, // 폼 데이터에서 가져오기
         paymentProgress: 0, // 초기값
         status: newProject.status,
         dueDate: newProject.due_date || new Date().toISOString(),

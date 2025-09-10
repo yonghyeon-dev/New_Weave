@@ -51,7 +51,7 @@ const mockInvoice: Invoice = {
 
 interface InvoiceDetailPageProps {
   params: {
-    id: string;
+    invoiceId: string;
   };
 }
 
@@ -138,7 +138,7 @@ export default function InvoiceDetailPage({ params }: InvoiceDetailPageProps) {
     };
 
     fetchInvoice();
-  }, [params.id]);
+  }, [params.invoiceId]);
 
   const handleMarkAsPaid = async () => {
     if (!invoice || invoice.status === 'paid') return;
@@ -252,7 +252,7 @@ export default function InvoiceDetailPage({ params }: InvoiceDetailPageProps) {
             {invoice.status === 'draft' && (
               <Button 
                 variant="secondary"
-                onClick={() => router.push(`/invoices/${invoice.id}/edit`)}
+                onClick={() => router.push(`/invoices/${params.invoiceId}/edit`)}
                 className="flex items-center space-x-2"
               >
                 <Edit className="w-4 h-4" />

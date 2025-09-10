@@ -107,9 +107,9 @@ export default function YearlyProjectionCard({
           </div>
           
           {/* 추가 통계 */}
-          {projection.previousYearRevenue > 0 && (
+          {projection.previousMonthRevenue > 0 && (
             <div className="mt-2 text-xs text-txt-tertiary">
-              작년: ₩{formatAmount(projection.previousYearRevenue)}
+              지난 달: ₩{formatAmount(projection.previousMonthRevenue)}
             </div>
           )}
         </div>
