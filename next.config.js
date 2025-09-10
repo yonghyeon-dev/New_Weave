@@ -93,16 +93,26 @@ const nextConfig = {
 
   // Webpack 설정
   webpack: (config, { isServer, dev }) => {
-    // SSR에서 xlsx 모듈을 fallback으로 처리
-    if (isServer) {
-      config.externals = config.externals || [];
-      config.externals.push('xlsx');
-    } else {
-      // 클라이언트 사이드에서만 xlsx를 번들에 포함
-      config.resolve = config.resolve || {};
-      config.resolve.fallback = config.resolve.fallback || {};
-      config.resolve.fallback.fs = false;
+    // 서버와 클라이언트 모두에서 xlsx 완전 제외 (CDN 사용)
+    config.externals = config.externals || [];
+    
+    // xlsx 패키지를 외부 종속성으로 처리하여 번들에서 제외
+    if (Array.isArray(config.externals)) {
+      config.externals.push(function({ request }, callback) {
+        if (request === 'xlsx' || request?.startsWith('xlsx/') || request?.includes('xlsx')) {
+          // 완전히 제외하고 undefined로 처리
+          return callback(null, 'var void 0');
+        }
+        callback();
+      });
     }
+    
+    // resolve fallback 설정
+    config.resolve = config.resolve || {};
+    config.resolve.fallback = config.resolve.fallback || {};
+    config.resolve.fallback.fs = false;
+    config.resolve.fallback.path = false;
+    config.resolve.fallback.stream = false;
 
     // 프로덕션 빌드 최적화
     if (!dev) {

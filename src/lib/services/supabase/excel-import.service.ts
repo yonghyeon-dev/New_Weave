@@ -1,4 +1,12 @@
-// Mock 모드: Supabase 클라이언트 제거
+/**
+ * Excel Import Service - New Architecture
+ * 
+ * 새로운 설계:
+ * 1. 브라우저 전용 모듈 사용
+ * 2. SSR 호환성 보장
+ * 3. CDN 기반 동적 로딩
+ */
+
 import type { Transaction } from './tax-transactions.service';
 
 export interface ExcelColumn {
@@ -38,28 +46,39 @@ export interface ImportError {
 }
 
 /**
- * 엑셀 파일 파싱
+ * 엑셀 파일 파싱 (브라우저 전용)
  */
 export function parseExcelFile(file: File): Promise<ImportPreview> {
   return new Promise(async (resolve, reject) => {
+    // 브라우저 환경 체크
+    if (typeof window === 'undefined') {
+      reject(new Error('Excel parsing is only available in browser environment'));
+      return;
+    }
+
     const reader = new FileReader();
     
     reader.onload = async (e) => {
       try {
-        // 동적 import로 XLSX 로드
-        const XLSX = await import('xlsx');
+        // 브라우저 전용 Excel 모듈 로드
+        const { browserExcel } = await import('@/lib/browser-modules/excel-module');
+        
         const data = e.target?.result;
-        const workbook = XLSX.read(data, { type: 'binary', cellDates: true });
+        const workbook = await browserExcel.execute(async (excel) => {
+          return excel.read(data, { type: 'binary', cellDates: true });
+        });
         
         // 첫 번째 시트 선택
         const sheetName = workbook.SheetNames[0];
         const worksheet = workbook.Sheets[sheetName];
         
         // JSON으로 변환
-        const jsonData = XLSX.utils.sheet_to_json(worksheet, { 
-          header: 1,
-          raw: false,
-          dateNF: 'yyyy-mm-dd'
+        const jsonData = await browserExcel.execute(async (excel) => {
+          return excel.utils.sheet_to_json(worksheet, { 
+            header: 1,
+            raw: false,
+            dateNF: 'yyyy-mm-dd'
+          });
         });
         
         if (jsonData.length === 0) {
@@ -126,6 +145,84 @@ export function parseExcelFile(file: File): Promise<ImportPreview> {
     
     reader.readAsBinaryString(file);
   });
+}
+
+/**
+ * 템플릿 엑셀 파일 생성 (브라우저 전용)
+ */
+export async function generateImportTemplate(): Promise<Blob> {
+  // 브라우저 환경 체크
+  if (typeof window === 'undefined') {
+    throw new Error('Excel template generation is only available in browser environment');
+  }
+
+  try {
+    const { browserExcel } = await import('@/lib/browser-modules/excel-module');
+    
+    return await browserExcel.execute(async (excel) => {
+      const headers = [
+        '거래일',
+        '거래구분',
+        '거래처명',
+        '사업자번호',
+        '공급가액',
+        '부가세',
+        '합계',
+        '설명',
+        '문서번호',
+        '결제상태',
+        '결제일'
+      ];
+      
+      const sampleData = [
+        [
+          '2025-01-01',
+          '매입',
+          '(주)테스트기업',
+          '123-45-67890',
+          '1000000',
+          '100000',
+          '1100000',
+          '사무용품 구매',
+          'INV-2025-001',
+          '완료',
+          '2025-01-05'
+        ],
+        [
+          '2025-01-02',
+          '매출',
+          '(주)고객사',
+          '987-65-43210',
+          '2000000',
+          '200000',
+          '2200000',
+          '서비스 제공',
+          'INV-2025-002',
+          '대기',
+          ''
+        ]
+      ];
+      
+      const worksheet = excel.utils.aoa_to_sheet([headers, ...sampleData]);
+      const workbook = excel.utils.book_new();
+      excel.utils.book_append_sheet(workbook, worksheet, '거래내역');
+      
+      // 컬럼 너비 설정
+      worksheet['!cols'] = headers.map(() => ({ wch: 15 }));
+      
+      // Blob 생성
+      const wbout = excel.write(workbook, { bookType: 'xlsx', type: 'binary' });
+      const buf = new ArrayBuffer(wbout.length);
+      const view = new Uint8Array(buf);
+      for (let i = 0; i < wbout.length; i++) {
+        view[i] = wbout.charCodeAt(i) & 0xFF;
+      }
+      
+      return new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    });
+  } catch (error) {
+    throw new Error(`Template generation failed: ${error}`);
+  }
 }
 
 /**
@@ -214,7 +311,7 @@ export function suggestColumnMappings(columns: ExcelColumn[]): ColumnMapping[] {
     'memo': 'description',
     'description': 'description',
     
-    // 상태 (결제상태를 status 필드로 매핑)
+    // 상태
     '결제상태': 'status',
     '결제': 'status',
     '상태': 'status',
@@ -251,13 +348,12 @@ function getDefaultTransform(field: keyof Transaction, dataType: ExcelColumn['da
         if (!value) return null;
         if (value instanceof Date) return value.toISOString().split('T')[0];
         
-        // 다양한 날짜 형식 처리
         const dateStr = value.toString().trim();
         const patterns = [
-          /^(\d{4})-(\d{2})-(\d{2})$/,  // YYYY-MM-DD
-          /^(\d{4})\/(\d{2})\/(\d{2})$/, // YYYY/MM/DD
-          /^(\d{2})-(\d{2})-(\d{4})$/,  // DD-MM-YYYY
-          /^(\d{2})\/(\d{2})\/(\d{4})$/, // DD/MM/YYYY
+          /^(\d{4})-(\d{2})-(\d{2})$/,
+          /^(\d{4})\/(\d{2})\/(\d{2})$/,
+          /^(\d{2})-(\d{2})-(\d{4})$/,
+          /^(\d{2})\/(\d{2})\/(\d{4})$/,
         ];
         
         for (const pattern of patterns) {
@@ -283,7 +379,7 @@ function getDefaultTransform(field: keyof Transaction, dataType: ExcelColumn['da
         if (val.includes('매입') || val.includes('purchase') || val.includes('지출')) {
           return 'purchase';
         }
-        return 'purchase'; // 기본값
+        return 'purchase';
       };
     
     case 'supply_amount':
@@ -291,7 +387,6 @@ function getDefaultTransform(field: keyof Transaction, dataType: ExcelColumn['da
     case 'total_amount':
       return (value: any) => {
         if (!value) return 0;
-        // 숫자가 아닌 문자 제거 (콤마, 원 등)
         const cleaned = value.toString().replace(/[^0-9.-]/g, '');
         return parseFloat(cleaned) || 0;
       };
@@ -323,7 +418,6 @@ export function validateImportData(
   const errors: ImportError[] = [];
   
   rows.forEach((row, rowIndex) => {
-    // 필수 필드 체크
     const requiredFields: (keyof Transaction)[] = [
       'transaction_date',
       'supplier_name',
@@ -335,7 +429,7 @@ export function validateImportData(
       const mapping = mappings.find(m => m.dbField === field);
       if (!mapping) {
         errors.push({
-          row: rowIndex + 2, // Excel 행 번호 (헤더 제외)
+          row: rowIndex + 2,
           field,
           message: `필수 필드 '${field}' 매핑이 없습니다.`
         });
@@ -353,58 +447,9 @@ export function validateImportData(
         }
       }
     });
-    
-    // 날짜 형식 검증
-    const dateMapping = mappings.find(m => m.dbField === 'transaction_date');
-    if (dateMapping) {
-      const columnIndex = getColumnIndex(dateMapping.excelColumn);
-      const value = row[columnIndex];
-      
-      if (value && dateMapping.transform) {
-        const transformed = dateMapping.transform(value);
-        if (!transformed || !/^\d{4}-\d{2}-\d{2}$/.test(transformed)) {
-          errors.push({
-            row: rowIndex + 2,
-            field: 'transaction_date',
-            value,
-            message: `잘못된 날짜 형식: ${value}`
-          });
-        }
-      }
-    }
-    
-    // 금액 검증
-    const amountFields: (keyof Transaction)[] = ['supply_amount', 'vat_amount', 'total_amount'];
-    amountFields.forEach(field => {
-      const mapping = mappings.find(m => m.dbField === field);
-      if (mapping) {
-        const columnIndex = getColumnIndex(mapping.excelColumn);
-        const value = row[columnIndex];
-        
-        if (value && mapping.transform) {
-          const transformed = mapping.transform(value);
-          if (isNaN(transformed) || transformed < 0) {
-            errors.push({
-              row: rowIndex + 2,
-              field,
-              value,
-              message: `잘못된 금액: ${value}`
-            });
-          }
-        }
-      }
-    });
   });
   
   return errors;
-}
-
-/**
- * 컬럼 인덱스 찾기
- */
-function getColumnIndex(header: string): number {
-  // 실제 구현 시 ImportPreview의 columns에서 찾아야 함
-  return 0;
 }
 
 /**
@@ -419,8 +464,8 @@ export function transformToTransactions(
   
   rows.forEach((row, rowIndex) => {
     const transaction: Partial<Transaction> = {
-      id: '', // Supabase에서 생성
-      user_id: '', // 현재 사용자
+      id: '',
+      user_id: '',
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     };
@@ -445,12 +490,11 @@ export function transformToTransactions(
       transaction.status = 'pending';
     }
     
-    // VAT 자동 계산 (없는 경우)
+    // VAT 자동 계산
     if (transaction.supply_amount && !transaction.vat_amount) {
       transaction.vat_amount = transaction.supply_amount * 0.1;
     }
     
-    // 합계 자동 계산 (없는 경우)
     if (transaction.supply_amount && transaction.vat_amount && !transaction.total_amount) {
       transaction.total_amount = transaction.supply_amount + transaction.vat_amount;
     }
@@ -462,20 +506,17 @@ export function transformToTransactions(
 }
 
 /**
- * 거래 데이터 임포트 (Mock 모드)
+ * 거래 데이터 임포트 (Mock)
  */
 export async function importTransactions(
   transactions: Transaction[]
 ): Promise<ImportResult> {
-  // Mock 모드: 실제 데이터베이스 대신 시뮬레이션
   const errors: ImportError[] = [];
   const imported: Transaction[] = [];
   let successCount = 0;
   let failCount = 0;
   
-  // Mock 데이터베이스 시뮬레이션
   try {
-    // ID 생성 및 기본값 설정
     const processedTransactions = transactions.map((transaction, index) => ({
       ...transaction,
       id: `mock-tx-${Date.now()}-${index}`,
@@ -483,7 +524,6 @@ export async function importTransactions(
       updated_at: new Date().toISOString()
     }));
     
-    // Mock 성공 (실제로는 외부 서비스나 파일 시스템에 저장)
     successCount = processedTransactions.length;
     imported.push(...processedTransactions);
     
@@ -504,69 +544,6 @@ export async function importTransactions(
   };
 }
 
-/**
- * 템플릿 엑셀 파일 생성
- */
-export async function generateImportTemplate(): Promise<Blob> {
-  // 동적 import로 XLSX 로드
-  const XLSX = await import('xlsx');
-  const headers = [
-    '거래일',
-    '거래구분',
-    '거래처명',
-    '사업자번호',
-    '공급가액',
-    '부가세',
-    '합계',
-    '설명',
-    '문서번호',
-    '결제상태',
-    '결제일'
-  ];
-  
-  const sampleData = [
-    [
-      '2025-01-01',
-      '매입',
-      '(주)테스트기업',
-      '123-45-67890',
-      '1000000',
-      '100000',
-      '1100000',
-      '사무용품 구매',
-      'INV-2025-001',
-      '완료',
-      '2025-01-05'
-    ],
-    [
-      '2025-01-02',
-      '매출',
-      '(주)고객사',
-      '987-65-43210',
-      '2000000',
-      '200000',
-      '2200000',
-      '서비스 제공',
-      'INV-2025-002',
-      '대기',
-      ''
-    ]
-  ];
-  
-  const worksheet = XLSX.utils.aoa_to_sheet([headers, ...sampleData]);
-  const workbook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(workbook, worksheet, '거래내역');
-  
-  // 컬럼 너비 설정
-  worksheet['!cols'] = headers.map(() => ({ wch: 15 }));
-  
-  // Blob 생성
-  const wbout = XLSX.write(workbook, { bookType: 'xlsx', type: 'binary' });
-  const buf = new ArrayBuffer(wbout.length);
-  const view = new Uint8Array(buf);
-  for (let i = 0; i < wbout.length; i++) {
-    view[i] = wbout.charCodeAt(i) & 0xFF;
-  }
-  
-  return new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+function getColumnIndex(header: string): number {
+  return 0;
 }
