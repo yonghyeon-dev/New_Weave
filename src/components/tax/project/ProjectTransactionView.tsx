@@ -125,9 +125,9 @@ export default function ProjectTransactionView() {
     setShowProjectSelector(false);
   };
 
-  const handleExport = () => {
+  const handleExport = async () => {
     if (selectedProject) {
-      exportTransactionsToExcel(
+      await exportTransactionsToExcel(
         transactions,
         `${selectedProject.name}_거래내역_${new Date().toISOString().split('T')[0]}.xlsx`
       );

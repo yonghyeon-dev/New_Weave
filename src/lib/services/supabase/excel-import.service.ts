@@ -1,4 +1,3 @@
-import * as XLSX from 'xlsx';
 // Mock 모드: Supabase 클라이언트 제거
 import type { Transaction } from './tax-transactions.service';
 
@@ -42,11 +41,13 @@ export interface ImportError {
  * 엑셀 파일 파싱
  */
 export function parseExcelFile(file: File): Promise<ImportPreview> {
-  return new Promise((resolve, reject) => {
+  return new Promise(async (resolve, reject) => {
     const reader = new FileReader();
     
-    reader.onload = (e) => {
+    reader.onload = async (e) => {
       try {
+        // 동적 import로 XLSX 로드
+        const XLSX = await import('xlsx');
         const data = e.target?.result;
         const workbook = XLSX.read(data, { type: 'binary', cellDates: true });
         
@@ -506,7 +507,9 @@ export async function importTransactions(
 /**
  * 템플릿 엑셀 파일 생성
  */
-export function generateImportTemplate(): Blob {
+export async function generateImportTemplate(): Promise<Blob> {
+  // 동적 import로 XLSX 로드
+  const XLSX = await import('xlsx');
   const headers = [
     '거래일',
     '거래구분',

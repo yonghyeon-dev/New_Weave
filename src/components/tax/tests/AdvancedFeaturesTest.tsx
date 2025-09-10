@@ -289,7 +289,7 @@ export default function AdvancedFeaturesTest() {
       // 엑셀 연동 테스트
       case 'excel-1':
         try {
-          const blob = generateImportTemplate();
+          const blob = await generateImportTemplate();
           return {
             status: 'passed',
             message: '템플릿 생성 성공',

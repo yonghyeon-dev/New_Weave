@@ -177,13 +177,13 @@ export default function TaxTransactionsView() {
   };
 
   // 내보내기 처리
-  const handleExport = (format: 'excel' | 'csv') => {
+  const handleExport = async (format: 'excel' | 'csv') => {
     const exportData = selectedTransactions.length > 0
       ? transactions.filter(t => selectedTransactions.includes(t.id))
       : transactions;
 
     if (format === 'excel') {
-      exportTransactionsToExcel(exportData);
+      await exportTransactionsToExcel(exportData);
     } else {
       exportTransactionsToCSV(exportData);
     }
@@ -307,9 +307,9 @@ export default function TaxTransactionsView() {
         <BatchOperations
           onBatchEdit={handleBatchEdit}
           onBatchDelete={handleBatchDelete}
-          onBatchExport={(ids) => {
+          onBatchExport={async (ids) => {
             const exportData = transactions.filter(t => ids.includes(t.id));
-            exportTransactionsToExcel(exportData);
+            await exportTransactionsToExcel(exportData);
           }}
         />
       )}

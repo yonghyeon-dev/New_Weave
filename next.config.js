@@ -33,7 +33,6 @@ const nextConfig = {
       'recharts',
       'react-use',
       '@tanstack/react-table',
-      'xlsx',
       'jspdf',
       'react-dropzone',
       'zustand'
@@ -94,6 +93,17 @@ const nextConfig = {
 
   // Webpack 설정
   webpack: (config, { isServer, dev }) => {
+    // SSR에서 xlsx 모듈을 fallback으로 처리
+    if (isServer) {
+      config.externals = config.externals || [];
+      config.externals.push('xlsx');
+    } else {
+      // 클라이언트 사이드에서만 xlsx를 번들에 포함
+      config.resolve = config.resolve || {};
+      config.resolve.fallback = config.resolve.fallback || {};
+      config.resolve.fallback.fs = false;
+    }
+
     // 프로덕션 빌드 최적화
     if (!dev) {
       // Tree Shaking 강화

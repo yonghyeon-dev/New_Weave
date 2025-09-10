@@ -1,4 +1,3 @@
-import * as XLSX from 'xlsx';
 import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import type { Transaction } from '@/lib/services/supabase/tax-transactions.service';
@@ -6,10 +5,12 @@ import type { Transaction } from '@/lib/services/supabase/tax-transactions.servi
 /**
  * 거래 데이터를 Excel 파일로 내보내기
  */
-export function exportTransactionsToExcel(
+export async function exportTransactionsToExcel(
   transactions: Transaction[],
   filename?: string
-): void {
+): Promise<void> {
+  // 동적 import로 XLSX 로드 (클라이언트 사이드에서만)
+  const XLSX = await import('xlsx');
   // 데이터 준비
   const data = transactions.map(t => ({
     '거래일': format(new Date(t.transaction_date), 'yyyy-MM-dd', { locale: ko }),
@@ -128,11 +129,13 @@ export function exportTransactionsToCSV(
 /**
  * 월별 요약 보고서 Excel 내보내기
  */
-export function exportMonthlySummaryToExcel(
+export async function exportMonthlySummaryToExcel(
   transactions: Transaction[],
   year: number,
   month: number
-): void {
+): Promise<void> {
+  // 동적 import로 XLSX 로드 (클라이언트 사이드에서만)
+  const XLSX = await import('xlsx');
   // 월별 데이터 필터링
   const startDate = new Date(year, month - 1, 1);
   const endDate = new Date(year, month, 0);
@@ -205,11 +208,13 @@ export function exportMonthlySummaryToExcel(
 /**
  * 부가세 신고용 데이터 내보내기
  */
-export function exportVATReport(
+export async function exportVATReport(
   transactions: Transaction[],
   year: number,
   quarter: number
-): void {
+): Promise<void> {
+  // 동적 import로 XLSX 로드 (클라이언트 사이드에서만)
+  const XLSX = await import('xlsx');
   // 분기별 기간 계산
   const startMonth = (quarter - 1) * 3;
   const endMonth = quarter * 3 - 1;

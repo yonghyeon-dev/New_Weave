@@ -162,8 +162,8 @@ export default function ExcelImportModal({
   };
 
   // 템플릿 다운로드
-  const downloadTemplate = () => {
-    const blob = generateImportTemplate();
+  const downloadTemplate = async () => {
+    const blob = await generateImportTemplate();
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
@@ -241,7 +241,7 @@ export default function ExcelImportModal({
           {step === 'upload' && (
             <div className="space-y-6">
               <button
-                onClick={downloadTemplate}
+                onClick={() => downloadTemplate()}
                 className="w-full p-4 border border-dashed border-weave-primary rounded-lg hover:bg-blue-50 transition-colors"
               >
                 <div className="flex items-center justify-center gap-3">
