@@ -202,6 +202,16 @@ const nextConfig = {
       },
     ];
   },
+
+  // 빌드 시 API 라우트 정적 생성 방지
+  generateBuildId: async () => {
+    // 고유한 빌드 ID 생성
+    return process.env.BUILD_ID || `build-${Date.now()}`;
+  },
+
+  // API 라우트가 빌드 타임에 실행되지 않도록 설정
+  trailingSlash: false,
+  generateEtags: false, // ETag 생성 비활성화로 빌드 시간 단축
 };
 
 export default nextConfig;

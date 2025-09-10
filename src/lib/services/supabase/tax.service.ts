@@ -34,6 +34,11 @@ const mockTaxRecords: TaxRecord[] = [
 export class TaxService {
   // 세무 기록 생성 (Mock)
   async createTaxRecord(record: TaxRecordInsert): Promise<TaxRecord> {
+    // Mock 모드에서는 환경변수 확인
+    if (typeof process !== 'undefined' && process.env.NODE_ENV !== 'production') {
+      console.log('Supabase client disabled - using mock mode');
+    }
+    
     const newRecord: TaxRecord = {
       ...record,
       id: `tax-record-${Date.now()}`,
