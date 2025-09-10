@@ -79,7 +79,9 @@ export default function ClientsPage() {
       const clientsWithStats = await Promise.all(
         clientsData.map(async (client) => {
           try {
-            const projects = await projectsService.getProjectsByClient(client.id);
+            // 모든 프로젝트를 가져와서 클라이언트별로 필터링
+            const allProjects = await projectsService.getProjects('mock-user');
+            const projects = allProjects.filter(p => p.client_id === client.id);
             const totalRevenue = projects.reduce((sum, p) => sum + (p.budget_estimated || 0), 0);
             
             return {

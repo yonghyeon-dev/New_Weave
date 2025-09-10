@@ -14,9 +14,24 @@ import { projectsService, type Project } from '@/lib/services/supabase/projects.
 import type { Database } from '@/lib/supabase/database.types';
 import { cn } from '@/lib/utils';
 
-// Supabase 타입
-type Invoice = Database['public']['Tables']['invoices']['Row'];
-type InvoiceStatus = Database['public']['Tables']['invoices']['Row']['status'];
+// Mock 타입 정의 (Supabase 연동 전까지 사용)
+type Invoice = {
+  id: string;
+  invoice_number: string;
+  client_id: string;
+  project_id?: string;
+  issue_date: string;
+  due_date: string;
+  amount: number;
+  tax_amount: number;
+  total_amount: number;
+  status: 'draft' | 'sent' | 'paid' | 'overdue' | 'cancelled';
+  payment_date?: string;
+  notes?: string;
+  created_at: string;
+  updated_at: string;
+};
+type InvoiceStatus = Invoice['status'];
 
 type InvoiceWithRelations = Invoice & {
   client?: Client | null;
