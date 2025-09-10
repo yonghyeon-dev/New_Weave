@@ -139,7 +139,13 @@ export default function ProjectDetailPage({
         hasContract: seededRandom(seed1 + 1000) > 0.5,
         hasBilling: seededRandom(seed2 + 1000) > 0.3,
         hasDocuments: seededRandom(seed3 + 1000) > 0.4,
-        documents: generateDocumentStatus()
+        documentStatus: {
+          contract: generateDocumentStatus().contract,
+          invoice: generateDocumentStatus().invoice,
+          report: generateDocumentStatus().report,
+          estimate: generateDocumentStatus().estimate,
+          etc: generateDocumentStatus().other
+        }
       };
     });
 

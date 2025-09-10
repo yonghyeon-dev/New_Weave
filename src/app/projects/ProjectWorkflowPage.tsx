@@ -59,9 +59,40 @@ enum ProjectStage {
   COMPLETED = 'completed'
 }
 
-// 타입 정의
-type Project = Database['public']['Tables']['projects']['Row'];
-type Invoice = Database['public']['Tables']['invoices']['Row'];
+// Mock 타입 정의 (Supabase 연동 전까지 사용)
+type Project = {
+  id: string;
+  name: string;
+  client_id?: string;
+  status: 'planning' | 'in_progress' | 'completed' | 'on_hold';
+  created_at: string;
+  updated_at: string;
+  user_id: string;
+  description?: string;
+  start_date?: string;
+  due_date?: string;
+  budget_estimated?: number;
+  budget_actual?: number;
+  progress?: number;
+  clients?: {
+    id: string;
+    name?: string;
+    company?: string;
+    email?: string;
+    phone?: string;
+  };
+};
+type Invoice = {
+  id: string;
+  invoice_number: string;
+  client_id?: string;
+  project_id?: string;
+  status: 'draft' | 'sent' | 'paid' | 'overdue' | 'cancelled';
+  total?: number;
+  due_date?: string;
+  created_at: string;
+  updated_at: string;
+};
 
 export default function ProjectWorkflowPage() {
   const router = useRouter();

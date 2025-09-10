@@ -18,18 +18,19 @@ import { cn } from '@/lib/utils';
 type Invoice = {
   id: string;
   invoice_number: string;
-  client_id: string;
+  client_id?: string;
   project_id?: string;
-  issue_date: string;
-  due_date: string;
-  amount: number;
-  tax_amount: number;
-  total_amount: number;
+  issue_date?: string;
+  due_date?: string;
+  subtotal?: number;
+  tax?: number;
+  total?: number;
   status: 'draft' | 'sent' | 'paid' | 'overdue' | 'cancelled';
   payment_date?: string;
   notes?: string;
   created_at: string;
   updated_at: string;
+  user_id: string;
 };
 type InvoiceStatus = Invoice['status'];
 
