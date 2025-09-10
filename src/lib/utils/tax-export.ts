@@ -13,16 +13,16 @@ export function exportTransactionsToExcel(
   // 데이터 준비
   const data = transactions.map(t => ({
     '거래일': format(new Date(t.transaction_date), 'yyyy-MM-dd', { locale: ko }),
-    '구분': t.transaction_type === 'sales' ? '매출' : '매입',
+    '구분': (t.transaction_type as string) === 'sales' ? '매출' : '매입',
     '거래처명': t.supplier_name,
-    '사업자번호': t.supplier_business_number || '',
+    '사업자번호': t.business_number || '',
     '공급가액': Number(t.supply_amount),
     '부가세': Number(t.vat_amount),
     '합계': Number(t.total_amount),
-    '결제상태': getPaymentStatusLabel(t.payment_status),
-    '계산서번호': t.invoice_number || '',
+    '결제상태': getPaymentStatusLabel(t.status),
+    '계산서번호': '',
     '프로젝트': t.project_id || '',
-    '메모': t.notes || ''
+    '메모': t.description || ''
   }));
 
   // 워크시트 생성
@@ -81,16 +81,16 @@ export function exportTransactionsToCSV(
   // CSV 데이터 준비
   const rows = transactions.map(t => [
     format(new Date(t.transaction_date), 'yyyy-MM-dd', { locale: ko }),
-    t.transaction_type === 'sales' ? '매출' : '매입',
+    t.transaction_type,
     t.supplier_name,
-    t.supplier_business_number || '',
+    t.business_number || '',
     Number(t.supply_amount).toString(),
     Number(t.vat_amount).toString(),
     Number(t.total_amount).toString(),
-    getPaymentStatusLabel(t.payment_status),
-    t.invoice_number || '',
+    getPaymentStatusLabel(t.status),
+    '',
     t.project_id || '',
-    t.notes || ''
+    t.description || ''
   ]);
 
   // CSV 문자열 생성 (BOM 추가로 한글 깨짐 방지)
@@ -145,10 +145,10 @@ export function exportMonthlySummaryToExcel(
   // 요약 데이터 계산
   const summary = {
     totalSales: monthlyTransactions
-      .filter(t => t.transaction_type === 'sales')
+      .filter(t => t.transaction_type === '매출')
       .reduce((sum, t) => sum + Number(t.total_amount), 0),
     totalPurchases: monthlyTransactions
-      .filter(t => t.transaction_type === 'purchase')
+      .filter(t => t.transaction_type === '매입')
       .reduce((sum, t) => sum + Number(t.total_amount), 0),
     totalVat: monthlyTransactions
       .reduce((sum, t) => sum + Number(t.vat_amount), 0),
@@ -182,12 +182,12 @@ export function exportMonthlySummaryToExcel(
   // 상세 거래 시트
   const detailData = monthlyTransactions.map(t => ({
     '거래일': format(new Date(t.transaction_date), 'yyyy-MM-dd'),
-    '구분': t.transaction_type === 'sales' ? '매출' : '매입',
+    '구분': (t.transaction_type as string) === 'sales' ? '매출' : '매입',
     '거래처': t.supplier_name,
     '공급가액': Number(t.supply_amount),
     '부가세': Number(t.vat_amount),
     '합계': Number(t.total_amount),
-    '결제상태': getPaymentStatusLabel(t.payment_status)
+    '결제상태': getPaymentStatusLabel(t.status)
   }));
 
   const detailSheet = XLSX.utils.json_to_sheet(detailData);
@@ -222,8 +222,8 @@ export function exportVATReport(
   });
 
   // 매출/매입 분리
-  const sales = quarterTransactions.filter(t => t.transaction_type === 'sales');
-  const purchases = quarterTransactions.filter(t => t.transaction_type === 'purchase');
+  const sales = quarterTransactions.filter(t => t.transaction_type === '매출');
+  const purchases = quarterTransactions.filter(t => t.transaction_type === '매입');
 
   // 워크북 생성
   const wb = XLSX.utils.book_new();
@@ -232,11 +232,11 @@ export function exportVATReport(
   const salesData = sales.map(t => ({
     '거래일': format(new Date(t.transaction_date), 'yyyy-MM-dd'),
     '거래처': t.supplier_name,
-    '사업자번호': t.supplier_business_number || '',
+    '사업자번호': t.business_number || '',
     '공급가액': Number(t.supply_amount),
     '부가세': Number(t.vat_amount),
     '합계': Number(t.total_amount),
-    '계산서번호': t.invoice_number || ''
+    '계산서번호': ''
   }));
 
   if (salesData.length > 0) {
@@ -252,11 +252,11 @@ export function exportVATReport(
   const purchasesData = purchases.map(t => ({
     '거래일': format(new Date(t.transaction_date), 'yyyy-MM-dd'),
     '거래처': t.supplier_name,
-    '사업자번호': t.supplier_business_number || '',
+    '사업자번호': t.business_number || '',
     '공급가액': Number(t.supply_amount),
     '부가세': Number(t.vat_amount),
     '합계': Number(t.total_amount),
-    '계산서번호': t.invoice_number || ''
+    '계산서번호': ''
   }));
 
   if (purchasesData.length > 0) {

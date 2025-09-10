@@ -83,7 +83,7 @@ export default function ProjectProfitabilityDashboard() {
       const [profs, aggs, ranking] = await Promise.all([
         calculateMultipleProjectsProfitability(),
         getProjectProfitabilityAggregates(filters),
-        getProjectProfitabilityRanking(5, selectedMetric)
+        getProjectProfitabilityRanking(5)
       ]);
 
       setProfitabilities(profs);
@@ -221,8 +221,8 @@ export default function ProjectProfitabilityDashboard() {
               </Typography>
               <DollarSign className="w-5 h-5 text-green-600" />
             </div>
-            <Typography variant="h3" className={`text-2xl font-bold ${getMetricColor(aggregates.totalProfit, 'profit')}`}>
-              {formatFullCurrency(aggregates.totalProfit)}
+            <Typography variant="h3" className={`text-2xl font-bold ${getMetricColor(aggregates.totalNetProfit, 'profit')}`}>
+              {formatFullCurrency(aggregates.totalNetProfit)}
             </Typography>
             <Typography variant="body2" className="text-xs text-txt-tertiary mt-1">
               매출 {formatFullCurrency(aggregates.totalRevenue)} - 매입 {formatFullCurrency(aggregates.totalExpense)}
@@ -280,7 +280,7 @@ export default function ProjectProfitabilityDashboard() {
               </div>
               <div className="text-center">
                 <Typography variant="body1" className="font-semibold text-blue-600">
-                  {aggregates.activeProjects}
+                  {aggregates.inProgressProjects}
                 </Typography>
                 <Typography variant="body2" className="text-xs text-txt-tertiary">
                   진행중
@@ -299,76 +299,49 @@ export default function ProjectProfitabilityDashboard() {
         </div>
       )}
 
-      {/* 최고/최악 프로젝트 */}
-      {aggregates?.bestProject && aggregates?.worstProject && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* 최고 수익 프로젝트 */}
-          <Card className="p-4 border-l-4 border-green-500">
-            <div className="flex items-center gap-2 mb-3">
-              <Award className="w-5 h-5 text-green-600" />
-              <Typography variant="h4" className="text-sm font-semibold text-green-700">
-                최고 수익 프로젝트
+      {/* 최고/최악 프로젝트 - Mock 모드에서는 임시 비활성화 
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Card className="p-4 border-l-4 border-green-500">
+          <div className="flex items-center gap-2 mb-3">
+            <Award className="w-5 h-5 text-green-600" />
+            <Typography variant="h4" className="text-sm font-semibold text-green-700">
+              최고 수익 프로젝트
+            </Typography>
+          </div>
+          <Typography variant="h3" className="text-lg font-bold text-txt-primary mb-1">
+            프로젝트명 예정
+          </Typography>
+          <div className="grid grid-cols-3 gap-2 text-sm">
+            <div>
+              <Typography variant="body2" className="text-txt-tertiary">수익</Typography>
+              <Typography variant="body2" className="font-semibold text-green-600">
+                Mock 데이터 예정
               </Typography>
             </div>
-            <Typography variant="h3" className="text-lg font-bold text-txt-primary mb-1">
-              {aggregates.bestProject.projectName}
+          </div>
+        </Card>
+        
+        <Card className="p-4 border-l-4 border-red-500">
+          <div className="flex items-center gap-2 mb-3">
+            <AlertTriangle className="w-5 h-5 text-red-600" />
+            <Typography variant="h4" className="text-sm font-semibold text-red-700">
+              개선 필요 프로젝트
             </Typography>
-            <div className="grid grid-cols-3 gap-2 text-sm">
-              <div>
-                <Typography variant="body2" className="text-txt-tertiary">수익</Typography>
-                <Typography variant="body2" className="font-semibold text-green-600">
-                  {formatFullCurrency(aggregates.bestProject.netProfit)}
-                </Typography>
-              </div>
-              <div>
-                <Typography variant="body2" className="text-txt-tertiary">이익률</Typography>
-                <Typography variant="body2" className="font-semibold">
-                  {aggregates.bestProject.profitMargin.toFixed(1)}%
-                </Typography>
-              </div>
-              <div>
-                <Typography variant="body2" className="text-txt-tertiary">ROI</Typography>
-                <Typography variant="body2" className="font-semibold">
-                  {aggregates.bestProject.roi.toFixed(1)}%
-                </Typography>
-              </div>
-            </div>
-          </Card>
-
-          {/* 최악 수익 프로젝트 */}
-          <Card className="p-4 border-l-4 border-red-500">
-            <div className="flex items-center gap-2 mb-3">
-              <AlertTriangle className="w-5 h-5 text-red-600" />
-              <Typography variant="h4" className="text-sm font-semibold text-red-700">
-                개선 필요 프로젝트
+          </div>
+          <Typography variant="h3" className="text-lg font-bold text-txt-primary mb-1">
+            프로젝트명 예정
+          </Typography>
+          <div className="grid grid-cols-3 gap-2 text-sm">
+            <div>
+              <Typography variant="body2" className="text-txt-tertiary">수익</Typography>
+              <Typography variant="body2" className="font-semibold text-red-600">
+                Mock 데이터 예정
               </Typography>
             </div>
-            <Typography variant="h3" className="text-lg font-bold text-txt-primary mb-1">
-              {aggregates.worstProject.projectName}
-            </Typography>
-            <div className="grid grid-cols-3 gap-2 text-sm">
-              <div>
-                <Typography variant="body2" className="text-txt-tertiary">수익</Typography>
-                <Typography variant="body2" className="font-semibold text-red-600">
-                  {formatFullCurrency(aggregates.worstProject.netProfit)}
-                </Typography>
-              </div>
-              <div>
-                <Typography variant="body2" className="text-txt-tertiary">이익률</Typography>
-                <Typography variant="body2" className="font-semibold">
-                  {aggregates.worstProject.profitMargin.toFixed(1)}%
-                </Typography>
-              </div>
-              <div>
-                <Typography variant="body2" className="text-txt-tertiary">ROI</Typography>
-                <Typography variant="body2" className="font-semibold">
-                  {aggregates.worstProject.roi.toFixed(1)}%
-                </Typography>
-              </div>
-            </div>
-          </Card>
-        </div>
-      )}
+          </div>
+        </Card>
+      </div>
+      */}
 
       {/* 차트 섹션 */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

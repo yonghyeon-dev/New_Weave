@@ -1,258 +1,148 @@
-import { getSupabaseClient } from '@/lib/supabase/client'
-import type { Database } from '@/lib/supabase/database.types'
+// Mock 모드: Supabase 클라이언트 제거
 
-type TaxRecord = Database['public']['Tables']['tax_records']['Row']
-type TaxRecordInsert = Database['public']['Tables']['tax_records']['Insert']
-type TaxRecordUpdate = Database['public']['Tables']['tax_records']['Update']
+// Mock 타입 정의
+interface TaxRecord {
+  id: string;
+  user_id: string;
+  year: number;
+  month: number;
+  total_income: number;
+  total_expense: number;
+  vat_payable: number;
+  created_at: string;
+  updated_at: string;
+}
+
+type TaxRecordInsert = Omit<TaxRecord, 'id' | 'created_at' | 'updated_at'>;
+type TaxRecordUpdate = Partial<TaxRecordInsert>;
+
+// Mock 데이터
+const mockTaxRecords: TaxRecord[] = [
+  {
+    id: 'tax-record-1',
+    user_id: 'mock-user',
+    year: 2025,
+    month: 1,
+    total_income: 15000000,
+    total_expense: 8000000,
+    vat_payable: 700000,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  }
+];
 
 export class TaxService {
-  private supabase = getSupabaseClient()
-
-  // 세무 기록 생성
-  async createTaxRecord(record: Omit<TaxRecordInsert, 'id' | 'created_at' | 'updated_at'>) {
-    const insertData: any = record;
-    const { data, error } = await this.supabase
-      .from('tax_records')
-      .insert(insertData)
-      .select()
-      .single()
-
-    if (error) throw error
-    return data
+  // 세무 기록 생성 (Mock)
+  async createTaxRecord(record: TaxRecordInsert): Promise<TaxRecord> {
+    const newRecord: TaxRecord = {
+      ...record,
+      id: `tax-record-${Date.now()}`,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
+    
+    mockTaxRecords.push(newRecord);
+    return newRecord;
   }
 
-  // 세무 기록 목록 조회
-  async getTaxRecords(userId: string, year?: number, quarter?: number) {
-    let query = this.supabase
-      .from('tax_records')
-      .select(`
-        *,
-        clients (
-          id,
-          name,
-          company,
-          business_number
-        )
-      `)
-      .eq('user_id', userId)
-      .order('year', { ascending: false })
-      .order('quarter', { ascending: false, nullsFirst: false })
-
+  // 세무 기록 목록 조회 (Mock)
+  async getTaxRecords(userId: string, year?: number, month?: number): Promise<TaxRecord[]> {
+    let filtered = mockTaxRecords.filter(record => record.user_id === userId);
+    
     if (year) {
-      query = query.eq('year', year)
+      filtered = filtered.filter(record => record.year === year);
     }
-
-    if (quarter) {
-      query = query.eq('quarter', quarter)
+    
+    if (month) {
+      filtered = filtered.filter(record => record.month === month);
     }
-
-    const { data, error } = await query
-
-    if (error) throw error
-    return data
+    
+    return filtered.sort((a, b) => b.year - a.year || b.month - a.month);
   }
 
-  // 특정 세무 기록 조회
-  async getTaxRecordById(id: string) {
-    const { data, error } = await this.supabase
-      .from('tax_records')
-      .select(`
-        *,
-        clients (
-          id,
-          name,
-          company,
-          business_number,
-          tax_type
-        )
-      `)
-      .eq('id', id)
-      .single()
-
-    if (error) throw error
-    return data
+  // 특정 세무 기록 조회 (Mock)
+  async getTaxRecordById(id: string): Promise<TaxRecord | null> {
+    return mockTaxRecords.find(record => record.id === id) || null;
   }
 
-  // 세무 기록 업데이트
-  async updateTaxRecord(id: string, updates: TaxRecordUpdate) {
-    const { data, error } = await (this.supabase
-      .from('tax_records') as any)
-      .update(updates)
-      .eq('id', id)
-      .select()
-      .single()
-
-    if (error) throw error
-    return data
+  // 세무 기록 업데이트 (Mock)
+  async updateTaxRecord(id: string, updates: TaxRecordUpdate): Promise<TaxRecord> {
+    const index = mockTaxRecords.findIndex(record => record.id === id);
+    if (index === -1) throw new Error('Record not found');
+    
+    mockTaxRecords[index] = {
+      ...mockTaxRecords[index],
+      ...updates,
+      updated_at: new Date().toISOString()
+    };
+    
+    return mockTaxRecords[index];
   }
 
-  // 세무 기록 삭제
-  async deleteTaxRecord(id: string) {
-    const { error } = await this.supabase
-      .from('tax_records')
-      .delete()
-      .eq('id', id)
-
-    if (error) throw error
-    return true
+  // 세무 기록 삭제 (Mock)
+  async deleteTaxRecord(id: string): Promise<boolean> {
+    const index = mockTaxRecords.findIndex(record => record.id === id);
+    if (index === -1) throw new Error('Record not found');
+    
+    mockTaxRecords.splice(index, 1);
+    return true;
   }
 
-  // 사업자번호별 세무 기록 조회
-  async getTaxRecordsByBusinessNumber(businessNumber: string, userId: string) {
-    const { data, error } = await this.supabase
-      .from('tax_records')
-      .select('*')
-      .eq('user_id', userId)
-      .eq('business_number', businessNumber)
-      .order('year', { ascending: false })
-      .order('quarter', { ascending: false, nullsFirst: false })
-
-    if (error) throw error
-    return data
+  // 사업자번호별 세무 기록 조회 (Mock) - 기본 Mock에서는 단순 반환
+  async getTaxRecordsByBusinessNumber(businessNumber: string, userId: string): Promise<TaxRecord[]> {
+    return mockTaxRecords.filter(record => record.user_id === userId);
   }
 
-  // 클라이언트별 세무 기록 조회
-  async getTaxRecordsByClient(clientId: string) {
-    const { data, error } = await this.supabase
-      .from('tax_records')
-      .select('*')
-      .eq('client_id', clientId)
-      .order('year', { ascending: false })
-      .order('quarter', { ascending: false, nullsFirst: false })
-
-    if (error) throw error
-    return data
+  // 클라이언트별 세무 기록 조회 (Mock) - 기본 Mock에서는 단순 반환
+  async getTaxRecordsByClient(clientId: string): Promise<TaxRecord[]> {
+    return mockTaxRecords.slice(0, 2); // Mock 반환
   }
 
-  // 마감일 임박 세무 신고 조회
-  async getUpcomingTaxDeadlines(userId: string, days: number = 30) {
-    const futureDate = new Date()
-    futureDate.setDate(futureDate.getDate() + days)
-
-    const { data, error } = await this.supabase
-      .from('tax_records')
-      .select(`
-        *,
-        clients (
-          name,
-          company,
-          business_number
-        )
-      `)
-      .eq('user_id', userId)
-      .eq('status', 'pending')
-      .lte('due_date', futureDate.toISOString())
-      .gte('due_date', new Date().toISOString())
-      .order('due_date', { ascending: true })
-
-    if (error) throw error
-    return data
+  // 마감일 임박 세무 신고 조회 (Mock)
+  async getUpcomingTaxDeadlines(userId: string, days: number = 30): Promise<TaxRecord[]> {
+    // Mock: 빈 배열 반환 (임박한 마감일 없음)
+    return [];
   }
 
-  // 연도별 세무 통계
+  // 연도별 세무 통계 (Mock)
   async getTaxStatsByYear(userId: string, year: number) {
-    const { data, error } = await this.supabase
-      .from('tax_records')
-      .select('*')
-      .eq('user_id', userId)
-      .eq('year', year)
-
-    if (error) throw error
-
     const stats = {
       year,
-      total: data?.length || 0,
-      totalAmount: 0,
-      byQuarter: {
-        1: { count: 0, amount: 0 },
-        2: { count: 0, amount: 0 },
-        3: { count: 0, amount: 0 },
-        4: { count: 0, amount: 0 }
-      },
-      byStatus: {} as Record<string, number>,
-      byTaxType: {} as Record<string, { count: number; amount: number }>
+      total: 12,
+      totalAmount: 180000000,
+      byMonth: {} as Record<number, { count: number; amount: number }>,
+      totalIncome: 180000000,
+      totalExpense: 96000000,
+      totalVatPayable: 8400000
     }
 
-    data?.forEach((record: any) => {
-      // 총액
-      stats.totalAmount += record.amount || 0
-
-      // 분기별
-      if (record.quarter) {
-        stats.byQuarter[record.quarter as 1 | 2 | 3 | 4].count++
-        stats.byQuarter[record.quarter as 1 | 2 | 3 | 4].amount += record.amount || 0
-      }
-
-      // 상태별
-      stats.byStatus[record.status] = (stats.byStatus[record.status] || 0) + 1
-
-      // 세금 유형별
-      if (!stats.byTaxType[record.tax_type]) {
-        stats.byTaxType[record.tax_type] = { count: 0, amount: 0 }
-      }
-      stats.byTaxType[record.tax_type].count++
-      stats.byTaxType[record.tax_type].amount += record.amount || 0
-    })
-
-    return stats
+    return stats;
   }
 
-  // 세무 달력 데이터 조회
-  async getTaxCalendar(userId: string, year: number, month: number) {
-    const startDate = new Date(year, month - 1, 1)
-    const endDate = new Date(year, month, 0)
-
-    const { data, error } = await this.supabase
-      .from('tax_records')
-      .select(`
-        *,
-        clients (
-          name,
-          company
-        )
-      `)
-      .eq('user_id', userId)
-      .gte('due_date', startDate.toISOString())
-      .lte('due_date', endDate.toISOString())
-      .order('due_date', { ascending: true })
-
-    if (error) throw error
-    return data
+  // 세무 달력 데이터 조회 (Mock)
+  async getTaxCalendar(userId: string, year: number, month: number): Promise<TaxRecord[]> {
+    // Mock: 해당 월의 세무 기록들 반환
+    return mockTaxRecords.filter(record => 
+      record.user_id === userId && 
+      record.year === year && 
+      record.month === month
+    );
   }
 
-  // 세무 신고 상태 업데이트
-  async updateTaxStatus(id: string, status: string, filedDate?: string) {
-    const updates: TaxRecordUpdate = {
-      status,
-      filed_date: filedDate
-    }
-
-    const { data, error } = await (this.supabase
-      .from('tax_records') as any)
-      .update(updates)
-      .eq('id', id)
-      .select()
-      .single()
-
-    if (error) throw error
-    return data
+  // 세무 신고 상태 업데이트 (Mock)
+  async updateTaxStatus(id: string, status: string, filedDate?: string): Promise<TaxRecord> {
+    const record = await this.updateTaxRecord(id, { 
+      // status: status (Mock에서는 status 필드가 없으므로 생략)
+    });
+    return record;
   }
 
-  // 실시간 구독 설정
+  // 실시간 구독 설정 (Mock)
   subscribeToChanges(userId: string, callback: (payload: any) => void) {
-    return this.supabase
-      .channel('tax_records_changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'tax_records',
-          filter: `user_id=eq.${userId}`
-        },
-        callback
-      )
-      .subscribe()
+    // Mock: 실제 구독 없이 빈 객체 반환
+    return {
+      unsubscribe: () => {}
+    };
   }
 }
 

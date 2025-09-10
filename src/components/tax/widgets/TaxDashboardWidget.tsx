@@ -79,7 +79,7 @@ export default function TaxDashboardWidget() {
         currentMonth: {
           totalSales: currentMonth.totalSales,
           totalPurchases: currentMonth.totalPurchases,
-          netVat: currentMonth.totalSalesVat - currentMonth.totalPurchasesVat,
+          netVat: currentMonth.vatPayable,
           transactionCount: currentMonth.transactionCount
         },
         previousMonth: {
@@ -281,7 +281,7 @@ export function TaxMiniWidget() {
       
       setData({
         netAmount: stats.totalSales - stats.totalPurchases,
-        netVat: stats.totalSalesVat - stats.totalPurchasesVat,
+        netVat: stats.vatPayable,
         nextDeadline: deadlines[0] || null
       });
     } catch (error) {

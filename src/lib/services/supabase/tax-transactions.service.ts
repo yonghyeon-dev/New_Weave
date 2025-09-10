@@ -446,3 +446,15 @@ export const fetchTransactionsWithPagination = (options: {
   page?: number;
   filters?: Partial<TransactionFilters>;
 }) => taxTransactionService.fetchTransactionsWithPagination(options);
+
+export const createTransaction = (data: Omit<TransactionInsert, 'id' | 'created_at' | 'updated_at'>) => 
+  taxTransactionService.createTransaction(data);
+
+export const updateTransaction = (id: string, data: TransactionUpdate) => 
+  taxTransactionService.updateTransaction(id, data);
+
+export const deleteTransaction = (id: string) => 
+  taxTransactionService.deleteTransaction(id);
+
+export const fetchMonthlyStatistics = (year: number, month: number) => 
+  taxTransactionService.getMonthlyStatistics(year, month);

@@ -122,7 +122,7 @@ export default function TaxTransactionsView() {
   const handleSaveTransaction = async (data: Partial<Transaction>) => {
     try {
       if (modalMode === 'add') {
-        await createTransaction(data);
+        await createTransaction(data as any);
       } else if (modalMode === 'edit' && editingTransaction) {
         await updateTransaction(editingTransaction.id, data);
       }

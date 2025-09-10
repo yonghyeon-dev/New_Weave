@@ -27,7 +27,7 @@ import {
 } from '@/lib/services/supabase/project-matching.service';
 import {
   calculateProjectProfitability,
-  calculateProjectProfitabilityTrend,
+  analyzeProfitabilityTrends,
   type ProjectProfitability
 } from '@/lib/services/supabase/project-profitability.service';
 import { 
@@ -59,7 +59,7 @@ export default function ProjectTransactionView() {
   const [trendData, setTrendData] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [showProjectSelector, setShowProjectSelector] = useState(true);
-  const [trendPeriod, setTrendPeriod] = useState<'daily' | 'weekly' | 'monthly'>('monthly');
+  const [trendPeriod, setTrendPeriod] = useState<'monthly' | 'quarterly' | 'yearly'>('monthly');
 
   // 초기 데이터 로드
   useEffect(() => {
@@ -104,7 +104,7 @@ export default function ProjectTransactionView() {
       setProfitability(prof);
 
       // 트렌드 데이터
-      const trend = await calculateProjectProfitabilityTrend(projectId, trendPeriod);
+      const trend = await analyzeProfitabilityTrends(projectId, trendPeriod);
       setTrendData(trend);
     } catch (error) {
       console.error('Error loading project data:', error);
@@ -421,9 +421,9 @@ export default function ProjectTransactionView() {
               onChange={(e) => setTrendPeriod(e.target.value as any)}
               className="text-sm px-3 py-1 border border-border-light rounded-lg"
             >
-              <option value="daily">일별</option>
-              <option value="weekly">주별</option>
               <option value="monthly">월별</option>
+              <option value="quarterly">분기별</option>
+              <option value="yearly">연별</option>
             </select>
           </div>
           <ResponsiveContainer width="100%" height={250}>

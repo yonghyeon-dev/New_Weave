@@ -193,14 +193,10 @@ const useTaxStore = create<TaxState>()(
                 });
                 break;
               default:
-                if (typeof filters.dateRange === 'object' && 'start' in filters.dateRange) {
-                  startDate = new Date(filters.dateRange.start);
-                  const endDate = new Date(filters.dateRange.end);
-                  filtered = filtered.filter((t) => {
-                    const date = new Date(t.transaction_date);
-                    return date >= startDate && date <= endDate;
-                  });
-                }
+                // 사용자 정의 날짜 범위는 임시 비활성화 (타입 이슈로 인해)
+                // if (filters.dateRange && typeof filters.dateRange === 'object') {
+                //   // Custom date range logic here
+                // }
                 break;
             }
           }

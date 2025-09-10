@@ -3,8 +3,6 @@
  * 다층 캐싱 시스템 구현
  */
 
-import { createClient } from '@/lib/services/supabase/client';
-
 // 캐시 타입 정의
 export interface CacheEntry<T> {
   data: T;

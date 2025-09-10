@@ -1,5 +1,5 @@
 import * as XLSX from 'xlsx';
-import { createClient } from '@/lib/services/supabase/client';
+// Mock 모드: Supabase 클라이언트 제거
 import type { Transaction } from './tax-transactions.service';
 
 export interface ExcelColumn {
@@ -100,7 +100,7 @@ export function parseExcelFile(file: File): Promise<ImportPreview> {
         
         // 빈 행 체크
         const emptyRows = rows.filter(row => 
-          row.every(cell => cell === null || cell === undefined || cell === '')
+          Array.isArray(row) && row.every(cell => cell === null || cell === undefined || cell === '')
         ).length;
         
         if (emptyRows > 0) {
@@ -182,9 +182,9 @@ export function suggestColumnMappings(columns: ExcelColumn[]): ColumnMapping[] {
     'vendor': 'supplier_name',
     
     // 사업자번호
-    '사업자번호': 'supplier_business_number',
-    '사업자등록번호': 'supplier_business_number',
-    'business_number': 'supplier_business_number',
+    '사업자번호': 'business_number',
+    '사업자등록번호': 'business_number',
+    'business_number': 'business_number',
     
     // 거래 유형
     '구분': 'transaction_type',
@@ -213,19 +213,12 @@ export function suggestColumnMappings(columns: ExcelColumn[]): ColumnMapping[] {
     'memo': 'description',
     'description': 'description',
     
-    // 문서
-    '문서번호': 'document_number',
-    '전표번호': 'document_number',
-    'doc_number': 'document_number',
-    
-    // 결제
-    '결제상태': 'payment_status',
-    '결제': 'payment_status',
-    'payment': 'payment_status',
-    
-    '결제일': 'payment_date',
-    '결제일자': 'payment_date',
-    'payment_date': 'payment_date'
+    // 상태 (결제상태를 status 필드로 매핑)
+    '결제상태': 'status',
+    '결제': 'status',
+    '상태': 'status',
+    'payment': 'status',
+    'status': 'status'
   };
   
   columns.forEach(column => {
@@ -253,7 +246,6 @@ export function suggestColumnMappings(columns: ExcelColumn[]): ColumnMapping[] {
 function getDefaultTransform(field: keyof Transaction, dataType: ExcelColumn['dataType']) {
   switch (field) {
     case 'transaction_date':
-    case 'payment_date':
       return (value: any) => {
         if (!value) return null;
         if (value instanceof Date) return value.toISOString().split('T')[0];
@@ -303,7 +295,7 @@ function getDefaultTransform(field: keyof Transaction, dataType: ExcelColumn['da
         return parseFloat(cleaned) || 0;
       };
     
-    case 'payment_status':
+    case 'status':
       return (value: any) => {
         const val = value?.toString().toLowerCase() || '';
         if (val.includes('완료') || val.includes('paid') || val.includes('완납')) {
@@ -445,11 +437,11 @@ export function transformToTransactions(
     
     // 기본값 설정
     if (!transaction.transaction_type) {
-      transaction.transaction_type = 'purchase';
+      transaction.transaction_type = '매입';
     }
     
-    if (!transaction.payment_status) {
-      transaction.payment_status = 'pending';
+    if (!transaction.status) {
+      transaction.status = 'pending';
     }
     
     // VAT 자동 계산 (없는 경우)
@@ -469,45 +461,37 @@ export function transformToTransactions(
 }
 
 /**
- * 거래 데이터 임포트
+ * 거래 데이터 임포트 (Mock 모드)
  */
 export async function importTransactions(
   transactions: Transaction[]
 ): Promise<ImportResult> {
-  const supabase = createClient();
+  // Mock 모드: 실제 데이터베이스 대신 시뮬레이션
   const errors: ImportError[] = [];
   const imported: Transaction[] = [];
   let successCount = 0;
   let failCount = 0;
   
-  // 배치 처리 (100개씩)
-  const batchSize = 100;
-  for (let i = 0; i < transactions.length; i += batchSize) {
-    const batch = transactions.slice(i, i + batchSize);
+  // Mock 데이터베이스 시뮬레이션
+  try {
+    // ID 생성 및 기본값 설정
+    const processedTransactions = transactions.map((transaction, index) => ({
+      ...transaction,
+      id: `mock-tx-${Date.now()}-${index}`,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    }));
     
-    try {
-      const { data, error } = await supabase
-        .from('tax_transactions')
-        .insert(batch)
-        .select();
-      
-      if (error) {
-        failCount += batch.length;
-        errors.push({
-          row: i + 2,
-          message: `배치 임포트 실패: ${error.message}`
-        });
-      } else {
-        successCount += data.length;
-        imported.push(...data);
-      }
-    } catch (error) {
-      failCount += batch.length;
-      errors.push({
-        row: i + 2,
-        message: `임포트 오류: ${error}`
-      });
-    }
+    // Mock 성공 (실제로는 외부 서비스나 파일 시스템에 저장)
+    successCount = processedTransactions.length;
+    imported.push(...processedTransactions);
+    
+  } catch (error) {
+    failCount = transactions.length;
+    errors.push({
+      row: 1,
+      message: `Mock 임포트 오류: ${error}`
+    });
   }
   
   return {

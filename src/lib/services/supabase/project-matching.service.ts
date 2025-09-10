@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/services/supabase/client';
+// Mock 모드: Supabase 클라이언트 제거
 import type { Transaction } from './tax-transactions.service';
 
 export interface Client {
@@ -35,50 +35,70 @@ export interface MatchingResult {
 }
 
 /**
- * 클라이언트 목록 조회
+ * 클라이언트 목록 조회 (Mock 모드)
  */
 export async function fetchClients(): Promise<Client[]> {
-  const supabase = createClient();
-  
-  const { data, error } = await supabase
-    .from('clients')
-    .select('*')
-    .order('name');
-
-  if (error) {
-    console.error('Error fetching clients:', error);
-    throw error;
-  }
-
-  return data || [];
+  // Mock 데이터 반환
+  return [
+    {
+      id: 'client-1',
+      name: '(주)테스트기업',
+      business_number: '123-45-67890',
+      contact_email: 'test@company.com',
+      contact_phone: '02-1234-5678',
+      address: '서울시 강남구',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    },
+    {
+      id: 'client-2',
+      name: '(주)고객사',
+      business_number: '987-65-43210',
+      contact_email: 'client@company.com',
+      contact_phone: '02-9876-5432',
+      address: '서울시 서초구',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    }
+  ];
 }
 
 /**
- * 프로젝트 목록 조회
+ * 프로젝트 목록 조회 (Mock 모드)
  */
 export async function fetchProjects(clientId?: string): Promise<Project[]> {
-  const supabase = createClient();
-  
-  let query = supabase
-    .from('projects')
-    .select(`
-      *,
-      client:clients(*)
-    `)
-    .order('created_at', { ascending: false });
+  // Mock 데이터
+  const allProjects = [
+    {
+      id: 'project-1',
+      name: '웹사이트 리뉴얼 프로젝트',
+      client_id: 'client-1',
+      status: 'in_progress' as const,
+      start_date: '2025-01-01',
+      end_date: '2025-06-30',
+      budget: 50000000,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    },
+    {
+      id: 'project-2',
+      name: '모바일 앱 개발',
+      client_id: 'client-2',
+      status: 'planning' as const,
+      start_date: '2025-02-01',
+      end_date: '2025-12-31',
+      budget: 80000000,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    }
+  ];
 
+  // 클라이언트 ID 필터링
   if (clientId) {
-    query = query.eq('client_id', clientId);
+    return allProjects.filter(project => project.client_id === clientId);
   }
 
-  const { data, error } = await query;
-
-  if (error) {
-    console.error('Error fetching projects:', error);
-    throw error;
-  }
-
-  return data || [];
+  return allProjects;
 }
 
 /**
@@ -157,8 +177,8 @@ export async function matchTransactionToClient(
   let bestReason = '';
 
   // 1. 사업자번호 정확히 일치
-  if (transaction.supplier_business_number) {
-    const normalizedTransactionBN = normalizeBusinessNumber(transaction.supplier_business_number);
+  if (transaction.business_number) {
+    const normalizedTransactionBN = normalizeBusinessNumber(transaction.business_number);
     
     for (const client of clientList) {
       if (client.business_number) {
@@ -319,7 +339,7 @@ export async function autoMatchTransaction(
     const clientMatch = await matchTransactionToClient(transaction);
     
     // 2. 프로젝트 매칭
-    let projectMatch = { project: undefined, confidence: 0, reason: '' };
+    let projectMatch: { project?: Project; confidence: number; reason: string } = { project: undefined, confidence: 0, reason: '' };
     if (clientMatch.client) {
       projectMatch = await matchTransactionToProject(
         transaction, 
@@ -379,9 +399,9 @@ export async function batchAutoMatch(
   for (const transaction of transactions) {
     const clientMatch = await matchTransactionToClient(transaction, clients);
     
-    let projectMatch = { project: undefined, confidence: 0, reason: '' };
+    let projectMatch: { project?: Project; confidence: number; reason: string } = { project: undefined, confidence: 0, reason: '' };
     if (clientMatch.client) {
-      const clientProjects = projects.filter(p => p.client_id === clientMatch.client.id);
+      const clientProjects = projects.filter(p => p.client_id === clientMatch.client!.id);
       projectMatch = await matchTransactionToProject(
         transaction,
         clientMatch.client,
@@ -417,54 +437,31 @@ export async function batchAutoMatch(
 }
 
 /**
- * 거래에 프로젝트 연결
+ * 거래에 프로젝트 연결 (Mock 모드)
  */
 export async function linkTransactionToProject(
   transactionId: string,
   projectId: string,
   clientId?: string
 ): Promise<void> {
-  const supabase = createClient();
+  // Mock 모드: 실제 업데이트 대신 콘솔 로그
+  console.log(`Mock: Linking transaction ${transactionId} to project ${projectId}`, {
+    clientId
+  });
   
-  const updateData: any = {
-    project_id: projectId,
-    updated_at: new Date().toISOString()
-  };
-
-  if (clientId) {
-    updateData.client_id = clientId;
-  }
-
-  const { error } = await supabase
-    .from('tax_transactions')
-    .update(updateData)
-    .eq('id', transactionId);
-
-  if (error) {
-    console.error('Error linking transaction to project:', error);
-    throw error;
-  }
+  // 성공 시뮬레이션
+  return Promise.resolve();
 }
 
 /**
- * 거래 프로젝트 연결 해제
+ * 거래 프로젝트 연결 해제 (Mock 모드)
  */
 export async function unlinkTransactionFromProject(
   transactionId: string
 ): Promise<void> {
-  const supabase = createClient();
+  // Mock 모드: 실제 업데이트 대신 콘솔 로그
+  console.log(`Mock: Unlinking transaction ${transactionId} from project`);
   
-  const { error } = await supabase
-    .from('tax_transactions')
-    .update({
-      project_id: null,
-      client_id: null,
-      updated_at: new Date().toISOString()
-    })
-    .eq('id', transactionId);
-
-  if (error) {
-    console.error('Error unlinking transaction from project:', error);
-    throw error;
-  }
+  // 성공 시뮬레이션
+  return Promise.resolve();
 }

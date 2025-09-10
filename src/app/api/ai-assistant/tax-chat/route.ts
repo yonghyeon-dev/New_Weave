@@ -143,24 +143,10 @@ export async function POST(request: NextRequest) {
                   await taxService.createTaxRecord({
                     user_id: 'system', // TODO: 실제 사용자 ID로 교체 필요
                     year: taxYear,
-                    quarter: null,
-                    business_number: '000-00-00000', // TODO: 실제 사업자번호로 교체 필요
-                    tax_type: getTaxTypeFromCategory(category),
-                    amount: taxAmount,
-                    status: 'calculated',
-                    client_id: null,
-                    filed_date: null,
-                    due_date: null,
-                    metadata: {
-                      calculation_result: JSON.parse(JSON.stringify(calculationResult)),
-                      category: category,
-                      user_type: userType,
-                      income: calculationData.income || 0,
-                      expenses: calculationData.expenses || 0,
-                      tax_year: taxYear,
-                      calculation_data: calculationData,
-                      calculated_at: new Date().toISOString()
-                    }
+                    month: new Date().getMonth() + 1, // 현재 월
+                    total_income: (category as string) === '매출' ? taxAmount : 0,
+                    total_expense: (category as string) === '매입' ? taxAmount : 0,
+                    vat_payable: Math.floor(taxAmount * 0.1) // 10% VAT
                   });
                 } catch (err) {
                   console.error('Failed to save tax calculation:', err);

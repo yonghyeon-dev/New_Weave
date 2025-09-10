@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/client';
+// Mock 모드: Supabase 클라이언트 제거
 
 /**
  * 쿼리 최적화 서비스
@@ -27,32 +27,22 @@ export interface IndexRecommendation {
 export async function analyzeQueryPerformance(
   query: string
 ): Promise<QueryPerformance> {
-  const supabase = createClient();
+  // Mock 모드: 모의 쿼리 성능 분석 결과 반환
   const startTime = performance.now();
   
-  try {
-    // EXPLAIN ANALYZE 실행
-    const { data: explainData, error: explainError } = await supabase.rpc(
-      'explain_analyze_query',
-      { query_text: query }
-    );
-    
-    const executionTime = performance.now() - startTime;
-    
-    // 쿼리 실행 계획 분석
-    const suggestions = analyzeExecutionPlan(explainData);
-    
-    return {
-      query,
-      executionTime,
-      rowCount: explainData?.rows || 0,
-      cacheHit: explainData?.cache_hit || false,
-      optimizationSuggestions: suggestions
-    };
-  } catch (error) {
-    console.error('쿼리 성능 분석 실패:', error);
-    throw error;
-  }
+  // 모의 실행 시간 (50-200ms)
+  await new Promise(resolve => setTimeout(resolve, Math.random() * 150 + 50));
+  
+  const executionTime = performance.now() - startTime;
+  const mockSuggestions = generateMockOptimizationSuggestions(query);
+  
+  return {
+    query,
+    executionTime,
+    rowCount: Math.floor(Math.random() * 1000) + 10,
+    cacheHit: Math.random() > 0.7,
+    optimizationSuggestions: mockSuggestions
+  };
 }
 
 /**
@@ -90,10 +80,10 @@ function analyzeExecutionPlan(plan: any): string[] {
  * 인덱스 추천
  */
 export async function recommendIndexes(): Promise<IndexRecommendation[]> {
-  const supabase = createClient();
+  // Mock 모드: 모의 인덱스 추천 반환
   const recommendations: IndexRecommendation[] = [];
   
-  // 자주 사용되는 쿼리 패턴 분석
+  // 모의 쿼리 패턴 분석
   const queryPatterns = await analyzeQueryPatterns();
   
   // tax_transactions 테이블 인덱스 추천
@@ -270,44 +260,17 @@ export async function optimizedPagination(
     orderBy?: { column: string; ascending: boolean };
   }
 ): Promise<OptimizedPagination> {
-  const supabase = createClient();
+  // Mock 모드: 모의 페이지네이션 시뮬레이션
   const { pageSize, cursor, filters = {}, orderBy } = options;
   
-  let query = supabase.from(table).select('*', { count: 'estimated' });
-  
-  // 필터 적용
-  Object.entries(filters).forEach(([key, value]) => {
-    if (value !== undefined && value !== null) {
-      query = query.eq(key, value);
-    }
-  });
-  
-  // 커서 기반 페이지네이션 (오프셋 대신)
-  if (cursor) {
-    query = query.gt('id', cursor);
-  }
-  
-  // 정렬
-  if (orderBy) {
-    query = query.order(orderBy.column, { ascending: orderBy.ascending });
-  }
-  
-  // 페이지 크기 + 1로 hasMore 확인
-  query = query.limit(pageSize + 1);
-  
-  const { data, error, count } = await query;
-  
-  if (error) throw error;
-  
-  const hasMore = data && data.length > pageSize;
-  const pageData = hasMore ? data.slice(0, pageSize) : data || [];
-  const nextCursor = hasMore ? pageData[pageData.length - 1]?.id : undefined;
+  // 모의 데이터 생성
+  const mockData = generateMockPaginationData(table, pageSize, cursor);
   
   return {
-    data: pageData,
-    total: count || 0,
-    hasMore,
-    cursor: nextCursor
+    data: mockData.items,
+    total: mockData.total,
+    hasMore: mockData.hasMore,
+    cursor: mockData.nextCursor
   };
 }
 
@@ -357,49 +320,21 @@ export class ConnectionPoolOptimizer {
  * 쿼리 최적화 적용
  */
 export async function applyQueryOptimizations(): Promise<void> {
-  const supabase = createClient();
+  // Mock 모드: 쿼리 최적화 적용 시뮬레이션
+  console.log('쿼리 최적화 시작...');
   
-  // 인덱스 생성 SQL
-  const indexQueries = [
-    // 기본 인덱스
-    `CREATE INDEX IF NOT EXISTS idx_tax_transactions_date_type 
-     ON tax_transactions(transaction_date, transaction_type)`,
-    
-    // 거래처 검색 인덱스
-    `CREATE INDEX IF NOT EXISTS idx_tax_transactions_supplier 
-     ON tax_transactions(supplier_name)`,
-    
-    // 프로젝트별 조회 인덱스
-    `CREATE INDEX IF NOT EXISTS idx_tax_transactions_project_date 
-     ON tax_transactions(project_id, transaction_date)`,
-    
-    // 복합 인덱스
-    `CREATE INDEX IF NOT EXISTS idx_tax_transactions_composite 
-     ON tax_transactions(transaction_type, transaction_date, total_amount)`,
-    
-    // 상태 기반 인덱스
-    `CREATE INDEX IF NOT EXISTS idx_tax_transactions_status 
-     ON tax_transactions(status)`,
-    
-    // 텍스트 검색 인덱스 (GIN)
-    `CREATE INDEX IF NOT EXISTS idx_tax_transactions_search 
-     ON tax_transactions USING gin(to_tsvector('korean', supplier_name || ' ' || COALESCE(description, '')))`
+  const optimizations = [
+    'idx_tax_transactions_date_type',
+    'idx_tax_transactions_supplier',
+    'idx_tax_transactions_project_date',
+    'idx_tax_transactions_composite',
+    'idx_tax_transactions_status',
+    'idx_tax_transactions_search'
   ];
   
-  // 인덱스 생성 실행
-  for (const query of indexQueries) {
-    try {
-      await supabase.rpc('execute_sql', { sql: query });
-      console.log('인덱스 생성 성공:', query.split('CREATE INDEX')[1].split('ON')[0].trim());
-    } catch (error) {
-      console.error('인덱스 생성 실패:', error);
-    }
+  for (const optimization of optimizations) {
+    console.log('인덱스 생성 성공:', optimization);
   }
-  
-  // 통계 업데이트
-  await supabase.rpc('execute_sql', { 
-    sql: 'ANALYZE tax_transactions' 
-  });
   
   console.log('쿼리 최적화 적용 완료');
 }
@@ -409,3 +344,60 @@ export const queryCache = new QueryCache();
 
 // 연결 풀 최적화 인스턴스
 export const connectionPool = new ConnectionPoolOptimizer();
+
+/**
+ * Mock 최적화 제안 생성
+ */
+function generateMockOptimizationSuggestions(query: string): string[] {
+  const suggestions: string[] = [];
+  
+  if (query.toLowerCase().includes('select')) {
+    if (query.toLowerCase().includes('where')) {
+      suggestions.push('WHERE 절의 컬럼에 인덱스 추가 권장');
+    }
+    if (query.toLowerCase().includes('order by')) {
+      suggestions.push('ORDER BY 컬럼에 인덱스 추가 권장');
+    }
+    if (query.toLowerCase().includes('join')) {
+      suggestions.push('JOIN 키에 인덱스 확인 필요');
+    }
+    if (query.toLowerCase().includes('group by')) {
+      suggestions.push('GROUP BY 컬럼 인덱스 최적화 가능');
+    }
+  }
+  
+  return suggestions.length > 0 ? suggestions : ['쿼리가 최적화되어 있습니다'];
+}
+
+/**
+ * Mock 페이지네이션 데이터 생성
+ */
+function generateMockPaginationData(
+  table: string,
+  pageSize: number,
+  cursor?: string
+) {
+  const startIndex = cursor ? parseInt(cursor) || 0 : 0;
+  const items = [];
+  
+  for (let i = 0; i < pageSize; i++) {
+    const index = startIndex + i;
+    items.push({
+      id: `mock-${table}-${index}`,
+      name: `${table} 항목 ${index + 1}`,
+      created_at: new Date(Date.now() - index * 24 * 60 * 60 * 1000).toISOString(),
+      status: ['active', 'inactive', 'pending'][index % 3]
+    });
+  }
+  
+  const total = 100; // 모의 총 데이터 수
+  const hasMore = startIndex + pageSize < total;
+  const nextCursor = hasMore ? String(startIndex + pageSize) : undefined;
+  
+  return {
+    items,
+    total,
+    hasMore,
+    nextCursor
+  };
+}

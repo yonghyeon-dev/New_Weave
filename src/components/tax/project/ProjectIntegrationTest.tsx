@@ -423,13 +423,13 @@ export default function ProjectIntegrationTest() {
       return {
         name: '수익성 집계 테스트',
         status: 'passed',
-        message: `프로젝트 ${aggregates.totalProjects}개, 총 수익 ${aggregates.totalProfit.toLocaleString()}원`,
+        message: `프로젝트 ${aggregates.totalProjects}개, 총 수익 ${aggregates.totalNetProfit.toLocaleString()}원`,
         details: {
           totalProjects: aggregates.totalProjects,
-          activeProjects: aggregates.activeProjects,
+          inProgressProjects: aggregates.inProgressProjects,
           totalRevenue: aggregates.totalRevenue,
           totalExpense: aggregates.totalExpense,
-          totalProfit: aggregates.totalProfit,
+          totalNetProfit: aggregates.totalNetProfit,
           avgProfitMargin: aggregates.avgProfitMargin,
           avgROI: aggregates.avgROI
         }

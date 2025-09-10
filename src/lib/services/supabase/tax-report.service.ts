@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/services/supabase/client';
+// Mock 모드: Supabase 클라이언트 제거
 import type { Transaction } from './tax-transactions.service';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
@@ -84,25 +84,16 @@ export async function generateMonthlyReport(
   year: number,
   month: number
 ): Promise<MonthlyReport> {
-  const supabase = createClient();
-  
-  // 월의 시작일과 종료일 계산
+  // Mock 모드: 모의 거래 데이터 생성
   const startDate = startOfMonth(new Date(year, month - 1));
   const endDate = endOfMonth(new Date(year, month - 1));
   
-  // 거래 데이터 조회
-  const { data: transactions, error } = await supabase
-    .from('tax_transactions')
-    .select('*')
-    .gte('transaction_date', format(startDate, 'yyyy-MM-dd'))
-    .lte('transaction_date', format(endDate, 'yyyy-MM-dd'))
-    .order('transaction_date', { ascending: true });
-
-  if (error) throw error;
+  // 모의 거래 데이터
+  const transactions = generateMockTransactions(year, month);
 
   // 요약 계산
   const summary = transactions.reduce((acc, txn) => {
-    if (txn.transaction_type === 'purchase') {
+    if (txn.transaction_type === '매입') {
       acc.totalPurchase += Number(txn.supply_amount) || 0;
       acc.purchaseVat += Number(txn.vat_amount) || 0;
     } else {
@@ -127,13 +118,13 @@ export async function generateMonthlyReport(
   const clientMap = new Map<string, any>();
 
   transactions.forEach(txn => {
-    const map = txn.transaction_type === 'purchase' ? supplierMap : clientMap;
+    const map = txn.transaction_type === '매입' ? supplierMap : clientMap;
     const key = txn.supplier_name || 'Unknown';
     
     if (!map.has(key)) {
       map.set(key, {
         name: txn.supplier_name,
-        businessNumber: txn.supplier_business_number,
+        businessNumber: txn.business_number,
         amount: 0,
         transactionCount: 0
       });
@@ -169,7 +160,7 @@ export async function generateMonthlyReport(
     }
     
     const entry = dailyMap.get(date);
-    if (txn.transaction_type === 'purchase') {
+    if (txn.transaction_type === '매입') {
       entry.purchase += Number(txn.total_amount) || 0;
     } else {
       entry.sale += Number(txn.total_amount) || 0;
@@ -199,23 +190,14 @@ export async function generateQuarterlyVATReport(
   year: number,
   quarter: number
 ): Promise<QuarterlyVATReport> {
-  const supabase = createClient();
-  
-  // 분기 계산
+  // Mock 모드: 모의 거래 데이터 생성
   const startMonth = (quarter - 1) * 3;
   const endMonth = startMonth + 2;
   const startDate = new Date(year, startMonth, 1);
   const endDate = endOfMonth(new Date(year, endMonth));
 
-  // 거래 데이터 조회
-  const { data: transactions, error } = await supabase
-    .from('tax_transactions')
-    .select('*')
-    .gte('transaction_date', format(startDate, 'yyyy-MM-dd'))
-    .lte('transaction_date', format(endDate, 'yyyy-MM-dd'))
-    .order('transaction_date', { ascending: true });
-
-  if (error) throw error;
+  // 모의 거래 데이터 (분기별)
+  const transactions = generateMockQuarterlyTransactions(year, quarter);
 
   // 요약 계산
   const summary = {
@@ -247,7 +229,7 @@ export async function generateQuarterlyVATReport(
     };
 
     monthTransactions.forEach(txn => {
-      if (txn.transaction_type === 'sale') {
+      if (txn.transaction_type === '매출') {
         monthData.sales += Number(txn.supply_amount) || 0;
         monthData.salesVAT += Number(txn.vat_amount) || 0;
       } else {
@@ -267,17 +249,16 @@ export async function generateQuarterlyVATReport(
   summary.vatPayable = summary.salesVAT - summary.purchaseVAT;
   summary.finalVATPayable = summary.vatPayable - summary.previousQuarterCarryOver;
 
-  // 세금계산서 상세
+  // 세금계산서 상세 (Mock 모드에서는 모든 거래를 포함)
   const taxInvoiceDetails = transactions
-    .filter(txn => txn.document_number) // 세금계산서 번호가 있는 것만
     .map(txn => ({
       date: txn.transaction_date,
       supplierName: txn.supplier_name || '',
-      businessNumber: txn.supplier_business_number || '',
+      businessNumber: txn.business_number || '',
       supplyAmount: Number(txn.supply_amount) || 0,
       vatAmount: Number(txn.vat_amount) || 0,
       totalAmount: Number(txn.total_amount) || 0,
-      documentNumber: txn.document_number || ''
+      documentNumber: `DOC-${txn.id}` // Mock 문서 번호
     }));
 
   return {
@@ -289,6 +270,95 @@ export async function generateQuarterlyVATReport(
     monthlyBreakdown,
     taxInvoiceDetails
   };
+}
+
+/**
+ * 모의 거래 데이터 생성 (월별)
+ */
+function generateMockTransactions(year: number, month: number): Transaction[] {
+  const mockTransactions: Transaction[] = [];
+  const daysInMonth = new Date(year, month, 0).getDate();
+  
+  // 월별 기본 거래 생성
+  for (let day = 1; day <= daysInMonth; day++) {
+    const date = format(new Date(year, month - 1, day), 'yyyy-MM-dd');
+    
+    // 매입 거래 생성 (1-3건)
+    const purchaseCount = Math.floor(Math.random() * 3) + 1;
+    for (let i = 0; i < purchaseCount; i++) {
+      const supplyAmount = Math.floor(Math.random() * 500000) + 50000;
+      const vatAmount = Math.floor(supplyAmount * 0.1);
+      
+      mockTransactions.push({
+        id: `mock-purchase-${year}-${month}-${day}-${i}`,
+        user_id: 'mock-user',
+        transaction_date: date,
+        transaction_type: '매입',
+        supplier_name: `공급업체 ${Math.floor(Math.random() * 10) + 1}`,
+        business_number: `123-45-${String(Math.floor(Math.random() * 90000) + 10000)}`,
+        supply_amount: supplyAmount,
+        vat_amount: vatAmount,
+        withholding_tax_3_3: 0,
+        withholding_tax_6_8: 0,
+        total_amount: supplyAmount + vatAmount,
+        category: '사무용품',
+        description: `사무용품 구매 ${i}`,
+        project_id: Math.random() > 0.7 ? `project-${Math.floor(Math.random() * 3) + 1}` : undefined,
+        client_id: Math.random() > 0.5 ? `client-${Math.floor(Math.random() * 3) + 1}` : undefined,
+        status: 'completed',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      });
+    }
+    
+    // 매출 거래 생성 (1-2건)
+    if (Math.random() > 0.3) {
+      const saleCount = Math.floor(Math.random() * 2) + 1;
+      for (let i = 0; i < saleCount; i++) {
+        const supplyAmount = Math.floor(Math.random() * 800000) + 100000;
+        const vatAmount = Math.floor(supplyAmount * 0.1);
+        
+        mockTransactions.push({
+          id: `mock-sale-${year}-${month}-${day}-${i}`,
+          user_id: 'mock-user',
+          transaction_date: date,
+          transaction_type: '매출',
+          supplier_name: `고객사 ${Math.floor(Math.random() * 8) + 1}`,
+          business_number: `567-89-${String(Math.floor(Math.random() * 90000) + 10000)}`,
+          supply_amount: supplyAmount,
+          vat_amount: vatAmount,
+          withholding_tax_3_3: 0,
+          withholding_tax_6_8: 0,
+          total_amount: supplyAmount + vatAmount,
+          category: '용역매출',
+          description: `컨설팅 서비스 ${i}`,
+          project_id: Math.random() > 0.4 ? `project-${Math.floor(Math.random() * 5) + 1}` : undefined,
+          client_id: Math.random() > 0.2 ? `client-${Math.floor(Math.random() * 5) + 1}` : undefined,
+          status: 'completed',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        });
+      }
+    }
+  }
+  
+  return mockTransactions;
+}
+
+/**
+ * 모의 거래 데이터 생성 (분기별)
+ */
+function generateMockQuarterlyTransactions(year: number, quarter: number): Transaction[] {
+  const mockTransactions: Transaction[] = [];
+  const startMonth = (quarter - 1) * 3 + 1;
+  
+  // 3개월 분량의 거래 데이터 생성
+  for (let month = 0; month < 3; month++) {
+    const monthTransactions = generateMockTransactions(year, startMonth + month);
+    mockTransactions.push(...monthTransactions);
+  }
+  
+  return mockTransactions;
 }
 
 /**
@@ -576,20 +646,13 @@ export async function scheduleReportGeneration(
   dayOfMonth: number,
   recipientEmails: string[]
 ): Promise<void> {
-  const supabase = createClient();
-  
-  // 스케줄 정보 저장
-  const { error } = await supabase
-    .from('report_schedules')
-    .insert({
-      report_type: reportType,
-      day_of_month: dayOfMonth,
-      recipient_emails: recipientEmails,
-      is_active: true,
-      created_at: new Date().toISOString()
-    });
-    
-  if (error) throw error;
+  // Mock 모드: 스케줄 정보 저장 시뮬레이션
+  console.log('보고서 스케줄 등록:', {
+    reportType,
+    dayOfMonth,
+    recipientEmails,
+    scheduledAt: new Date().toISOString()
+  });
   
   // 실제로는 크론 작업이나 스케줄러 서비스에 등록
   // 예: Vercel Cron, AWS EventBridge, etc.

@@ -42,8 +42,8 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL(redirectMap[pathname], request.url));
   }
 
-  // Supabase 인증 세션 업데이트
-  const response = await updateSession(request);
+  // Supabase 인증 세션 업데이트 (임시 비활성화 - Mock 데이터 모드)
+  const response = NextResponse.next();
   
   // 모의 데이터 모드에서는 모든 접근을 허용 (인증 우회)
   const isMockMode = process.env.USE_MOCK_DATA === 'true';

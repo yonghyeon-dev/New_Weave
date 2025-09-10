@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/services/supabase/client';
+// Mock 모드: Supabase 클라이언트 제거
 import type { Transaction } from './tax-transactions.service';
 
 export interface PaginationOptions {
@@ -40,68 +40,16 @@ export async function fetchTransactionsWithPagination(
     filters = {}
   } = options;
 
-  const supabase = createClient();
+  // Mock 모드: 모의 데이터 생성
+  const mockData = generateMockPaginatedTransactions(page, pageSize, filters);
   
-  // 기본 쿼리 생성
-  let query = supabase
-    .from('tax_transactions')
-    .select('*', { count: 'exact' });
-
-  // 필터 적용
-  if (filters.transaction_type) {
-    query = query.eq('transaction_type', filters.transaction_type);
-  }
-  
-  if (filters.payment_status) {
-    query = query.eq('payment_status', filters.payment_status);
-  }
-  
-  if (filters.start_date) {
-    query = query.gte('transaction_date', filters.start_date);
-  }
-  
-  if (filters.end_date) {
-    query = query.lte('transaction_date', filters.end_date);
-  }
-  
-  if (filters.supplier_name) {
-    query = query.ilike('supplier_name', `%${filters.supplier_name}%`);
-  }
-  
-  if (filters.min_amount !== undefined) {
-    query = query.gte('total_amount', filters.min_amount);
-  }
-  
-  if (filters.max_amount !== undefined) {
-    query = query.lte('total_amount', filters.max_amount);
-  }
-
-  // 정렬 적용
-  query = query.order(sortField, { ascending: sortOrder === 'asc' });
-
-  // 페이지네이션 적용
-  const from = (page - 1) * pageSize;
-  const to = from + pageSize - 1;
-  query = query.range(from, to);
-
-  const { data, error, count } = await query;
-
-  if (error) {
-    console.error('Error fetching paginated transactions:', error);
-    throw error;
-  }
-
-  const totalCount = count || 0;
-  const totalPages = Math.ceil(totalCount / pageSize);
-  const hasMore = page < totalPages;
-
   return {
-    data: data || [],
+    data: mockData.transactions,
     page,
     pageSize,
-    totalCount,
-    totalPages,
-    hasMore
+    totalCount: mockData.totalCount,
+    totalPages: Math.ceil(mockData.totalCount / pageSize),
+    hasMore: page < Math.ceil(mockData.totalCount / pageSize)
   };
 }
 
@@ -117,68 +65,13 @@ export async function fetchTransactionsWithCursor(
   nextCursor: string | null;
   hasMore: boolean;
 }> {
-  const supabase = createClient();
+  // Mock 모드: 커서 기반 모의 데이터 생성
+  const mockData = generateMockCursorTransactions(cursor, limit, filters);
   
-  let query = supabase
-    .from('tax_transactions')
-    .select('*');
-
-  // 필터 적용
-  if (filters?.transaction_type) {
-    query = query.eq('transaction_type', filters.transaction_type);
-  }
-  
-  if (filters?.payment_status) {
-    query = query.eq('payment_status', filters.payment_status);
-  }
-  
-  if (filters?.start_date) {
-    query = query.gte('transaction_date', filters.start_date);
-  }
-  
-  if (filters?.end_date) {
-    query = query.lte('transaction_date', filters.end_date);
-  }
-  
-  if (filters?.supplier_name) {
-    query = query.ilike('supplier_name', `%${filters.supplier_name}%`);
-  }
-
-  // 커서가 있으면 해당 위치부터 조회
-  if (cursor) {
-    const [date, id] = cursor.split('_');
-    query = query.or(`transaction_date.lt.${date},and(transaction_date.eq.${date},id.lt.${id})`);
-  }
-
-  // 정렬 및 제한
-  query = query
-    .order('transaction_date', { ascending: false })
-    .order('id', { ascending: false })
-    .limit(limit + 1); // 다음 페이지 존재 여부 확인용
-
-  const { data, error } = await query;
-
-  if (error) {
-    console.error('Error fetching transactions with cursor:', error);
-    throw error;
-  }
-
-  const transactions = data || [];
-  const hasMore = transactions.length > limit;
-  
-  // 실제 반환할 데이터는 limit 개수만큼만
-  const returnData = hasMore ? transactions.slice(0, -1) : transactions;
-  
-  // 다음 커서 생성
-  const lastItem = returnData[returnData.length - 1];
-  const nextCursor = lastItem 
-    ? `${lastItem.transaction_date}_${lastItem.id}`
-    : null;
-
   return {
-    data: returnData,
-    nextCursor,
-    hasMore
+    data: mockData.transactions,
+    nextCursor: mockData.nextCursor,
+    hasMore: mockData.hasMore
   };
 }
 
@@ -271,56 +164,125 @@ export async function fetchTransactionAggregates(
   totalVat: number;
   transactionCount: number;
 }> {
-  const supabase = createClient();
-  
-  // 매출 집계
-  let salesQuery = supabase
-    .from('tax_transactions')
-    .select('total_amount.sum()')
-    .eq('transaction_type', 'sales');
-
-  // 매입 집계
-  let purchasesQuery = supabase
-    .from('tax_transactions')
-    .select('total_amount.sum()')
-    .eq('transaction_type', 'purchase');
-
-  // VAT 집계
-  let vatQuery = supabase
-    .from('tax_transactions')
-    .select('vat_amount.sum()');
-
-  // 거래 건수
-  let countQuery = supabase
-    .from('tax_transactions')
-    .select('*', { count: 'exact', head: true });
-
-  // 필터 적용
-  if (filters?.start_date) {
-    salesQuery = salesQuery.gte('transaction_date', filters.start_date);
-    purchasesQuery = purchasesQuery.gte('transaction_date', filters.start_date);
-    vatQuery = vatQuery.gte('transaction_date', filters.start_date);
-    countQuery = countQuery.gte('transaction_date', filters.start_date);
-  }
-  
-  if (filters?.end_date) {
-    salesQuery = salesQuery.lte('transaction_date', filters.end_date);
-    purchasesQuery = purchasesQuery.lte('transaction_date', filters.end_date);
-    vatQuery = vatQuery.lte('transaction_date', filters.end_date);
-    countQuery = countQuery.lte('transaction_date', filters.end_date);
-  }
-
-  const [salesResult, purchasesResult, vatResult, countResult] = await Promise.all([
-    salesQuery.single(),
-    purchasesQuery.single(),
-    vatQuery.single(),
-    countQuery
-  ]);
-
+  // Mock 모드: 집계 데이터 시뮬레이션
   return {
-    totalSales: salesResult.data?.sum || 0,
-    totalPurchases: purchasesResult.data?.sum || 0,
-    totalVat: vatResult.data?.sum || 0,
-    transactionCount: countResult.count || 0
+    totalSales: 15750000,
+    totalPurchases: 8320000,
+    totalVat: 2407000,
+    transactionCount: 145
+  };
+}
+
+/**
+ * 페이지네이션용 모의 데이터 생성
+ */
+function generateMockPaginatedTransactions(
+  page: number,
+  pageSize: number,
+  filters?: PaginationOptions['filters']
+) {
+  const totalCount = 150; // 전체 데이터 개수
+  const transactions: Transaction[] = [];
+  
+  // 시작 인덱스 계산
+  const startIndex = (page - 1) * pageSize;
+  
+  for (let i = 0; i < pageSize; i++) {
+    const index = startIndex + i;
+    if (index >= totalCount) break;
+    
+    const date = new Date();
+    date.setDate(date.getDate() - index);
+    
+    const isSale = Math.random() > 0.4;
+    const supplyAmount = Math.floor(Math.random() * 500000) + 50000;
+    const vatAmount = Math.floor(supplyAmount * 0.1);
+    
+    transactions.push({
+      id: `mock-${index}`,
+      user_id: 'mock-user',
+      transaction_date: date.toISOString().split('T')[0],
+      transaction_type: isSale ? '매출' : '매입',
+      supplier_name: isSale ? `고객사 ${index % 10 + 1}` : `공급업체 ${index % 8 + 1}`,
+      business_number: `${123 + index % 900}-${45 + index % 55}-${String(10000 + index % 90000).padStart(5, '0')}`,
+      supply_amount: supplyAmount,
+      vat_amount: vatAmount,
+      withholding_tax_3_3: 0,
+      withholding_tax_6_8: 0,
+      total_amount: supplyAmount + vatAmount,
+      category: isSale ? '용역매출' : '사무용품',
+      description: `${isSale ? '컨설팅 서비스' : '사무용품 구매'} ${index}`,
+      project_id: Math.random() > 0.5 ? `project-${index % 5 + 1}` : undefined,
+      client_id: Math.random() > 0.3 ? `client-${index % 3 + 1}` : undefined,
+      status: 'completed',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    });
+  }
+  
+  return {
+    transactions,
+    totalCount
+  };
+}
+
+/**
+ * 커서 기반 모의 데이터 생성
+ */
+function generateMockCursorTransactions(
+  cursor?: string,
+  limit: number = 20,
+  filters?: PaginationOptions['filters']
+) {
+  const transactions: Transaction[] = [];
+  let startIndex = 0;
+  
+  if (cursor) {
+    const [date, id] = cursor.split('_');
+    startIndex = parseInt(id.replace('mock-', '')) + 1;
+  }
+  
+  const maxItems = Math.min(limit, 50 - startIndex); // 최대 50개 항목
+  const hasMore = startIndex + maxItems < 50;
+  
+  for (let i = 0; i < maxItems; i++) {
+    const index = startIndex + i;
+    const date = new Date();
+    date.setDate(date.getDate() - index);
+    
+    const isSale = Math.random() > 0.4;
+    const supplyAmount = Math.floor(Math.random() * 500000) + 50000;
+    const vatAmount = Math.floor(supplyAmount * 0.1);
+    
+    transactions.push({
+      id: `mock-${index}`,
+      user_id: 'mock-user',
+      transaction_date: date.toISOString().split('T')[0],
+      transaction_type: isSale ? '매출' : '매입',
+      supplier_name: isSale ? `고객사 ${index % 10 + 1}` : `공급업체 ${index % 8 + 1}`,
+      business_number: `${123 + index % 900}-${45 + index % 55}-${String(10000 + index % 90000).padStart(5, '0')}`,
+      supply_amount: supplyAmount,
+      vat_amount: vatAmount,
+      withholding_tax_3_3: 0,
+      withholding_tax_6_8: 0,
+      total_amount: supplyAmount + vatAmount,
+      category: isSale ? '용역매출' : '사무용품',
+      description: `${isSale ? '컨설팅 서비스' : '사무용품 구매'} ${index}`,
+      project_id: Math.random() > 0.5 ? `project-${index % 5 + 1}` : undefined,
+      client_id: Math.random() > 0.3 ? `client-${index % 3 + 1}` : undefined,
+      status: 'completed',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    });
+  }
+  
+  const nextCursor = transactions.length > 0 && hasMore 
+    ? `${transactions[transactions.length - 1].transaction_date}_${transactions[transactions.length - 1].id}`
+    : null;
+  
+  return {
+    transactions,
+    nextCursor,
+    hasMore
   };
 }

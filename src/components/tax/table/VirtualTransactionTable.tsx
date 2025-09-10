@@ -1,8 +1,9 @@
 'use client';
 
 import React, { useState, useMemo, useCallback, CSSProperties } from 'react';
-import { FixedSizeList as List } from 'react-window';
-import InfiniteLoader from 'react-window-infinite-loader';
+// react-window imports disabled temporarily for build compatibility
+// import { FixedSizeList as List } from 'react-window';
+// import InfiniteLoader from 'react-window-infinite-loader';
 import { Card } from '@/components/ui/Card';
 import Typography from '@/components/ui/Typography';
 import Button from '@/components/ui/Button';
@@ -156,7 +157,7 @@ export default function VirtualTransactionTable({
     const isEditing = editingId === transaction.id;
     const isSelected = selectedTransactions.includes(transaction.id);
     const typeColor = getTransactionTypeColor(transaction.transaction_type);
-    const statusColor = getPaymentStatusColor(transaction.payment_status || 'pending');
+    const statusColor = getPaymentStatusColor((transaction.status as 'pending' | 'completed' | 'failed') || 'pending');
 
     return (
       <div 
@@ -391,26 +392,24 @@ export default function VirtualTransactionTable({
         </div>
       </div>
 
-      {/* 가상 스크롤 리스트 */}
+      {/* 임시 테이블 뷰 - react-window 호환성 문제로 일반 테이블 렌더링 */}
       {sortedTransactions.length > 0 ? (
-        <InfiniteLoader
-          isItemLoaded={isItemLoaded}
-          itemCount={itemCount}
-          loadMoreItems={loadMoreItems}
-        >
-          {({ onItemsRendered, ref }) => (
-            <List
-              ref={ref}
-              height={height - HEADER_HEIGHT}
-              itemCount={itemCount}
-              itemSize={ROW_HEIGHT}
-              onItemsRendered={onItemsRendered}
-              width="100%"
-            >
-              {Row}
-            </List>
+        <div className="overflow-auto" style={{ height: height - HEADER_HEIGHT }}>
+          {sortedTransactions.map((transaction, index) => (
+            <Row 
+              key={transaction.id}
+              index={index}
+              style={{ height: ROW_HEIGHT }}
+            />
+          ))}
+          {hasMore && (
+            <div className="flex items-center justify-center border-b border-border-light" style={{ height: ROW_HEIGHT }}>
+              <Typography variant="body2" className="text-txt-tertiary">
+                로딩 중...
+              </Typography>
+            </div>
           )}
-        </InfiniteLoader>
+        </div>
       ) : (
         <div className="p-8 text-center">
           <Typography variant="body1" className="text-txt-tertiary">
@@ -434,7 +433,7 @@ export default function VirtualTransactionTable({
               선택 해제
             </Button>
             <Button
-              variant="danger"
+              variant="destructive"
               size="sm"
               onClick={() => {
                 if (confirm(`${selectedTransactions.length}개 항목을 삭제하시겠습니까?`)) {

@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/services/supabase/client';
+// Mock 모드: Supabase 클라이언트 제거
 import { addDays, differenceInDays, format, startOfMonth, endOfMonth } from 'date-fns';
 import { ko } from 'date-fns/locale';
 
@@ -131,18 +131,11 @@ export async function detectAnomalies(
   startDate: string,
   endDate: string
 ): Promise<AnomalyDetectionResult[]> {
-  const supabase = createClient();
+  // Mock 모드: 모의 거래 데이터로 이상 감지 시뮬레이션
   const anomalies: AnomalyDetectionResult[] = [];
-
-  // 거래 데이터 조회
-  const { data: transactions, error } = await supabase
-    .from('tax_transactions')
-    .select('*')
-    .gte('transaction_date', startDate)
-    .lte('transaction_date', endDate)
-    .order('transaction_date', { ascending: true });
-
-  if (error || !transactions) return anomalies;
+  
+  // 모의 이상 거래 데이터 생성
+  const transactions = generateMockTransactionsForAnomalyDetection();
 
   // 1. 중복 거래 감지
   const transactionMap = new Map<string, any[]>();
@@ -274,31 +267,22 @@ export async function detectAnomalies(
 export async function saveNotificationSettings(
   settings: NotificationSettings
 ): Promise<void> {
-  const supabase = createClient();
-  
-  const { error } = await supabase
-    .from('notification_settings')
-    .upsert({
-      ...settings,
-      updated_at: new Date().toISOString()
-    });
-
-  if (error) throw error;
+  // Mock 모드: 알림 설정 저장 시뮬레이션
+  console.log('알림 설정 저장:', settings);
 }
 
 /**
  * 알림 설정 조회
  */
 export async function getNotificationSettings(): Promise<NotificationSettings | null> {
-  const supabase = createClient();
-  
-  const { data, error } = await supabase
-    .from('notification_settings')
-    .select('*')
-    .single();
-
-  if (error) return null;
-  return data;
+  // Mock 모드: 기본 알림 설정 반환
+  return {
+    emailEnabled: true,
+    pushEnabled: false,
+    advanceDays: 7,
+    reminderFrequency: 'weekly',
+    emailRecipients: ['admin@company.com']
+  };
 }
 
 /**
@@ -393,14 +377,8 @@ async function updateNotificationStatus(
   notificationId: string,
   status: TaxNotification['status']
 ): Promise<void> {
-  const supabase = createClient();
-  
-  const { error } = await supabase
-    .from('tax_notifications')
-    .update({ status, updated_at: new Date().toISOString() })
-    .eq('id', notificationId);
-
-  if (error) throw error;
+  // Mock 모드: 알림 상태 업데이트 시뮬레이션
+  console.log('알림 상태 업데이트:', { notificationId, status });
 }
 
 /**
@@ -409,16 +387,8 @@ async function updateNotificationStatus(
 export async function getNotificationHistory(
   limit: number = 50
 ): Promise<TaxNotification[]> {
-  const supabase = createClient();
-  
-  const { data, error } = await supabase
-    .from('tax_notifications')
-    .select('*')
-    .order('created_at', { ascending: false })
-    .limit(limit);
-
-  if (error) return [];
-  return data || [];
+  // Mock 모드: 모의 알림 히스토리 반환
+  return generateMockNotificationHistory(limit);
 }
 
 /**
@@ -472,33 +442,69 @@ async function shouldSendNotification(
   notification: TaxNotification,
   frequency: NotificationSettings['reminderFrequency']
 ): Promise<boolean> {
-  const supabase = createClient();
-  
-  // 이미 발송된 알림 확인
-  const { data: existing } = await supabase
-    .from('tax_notifications')
-    .select('*')
-    .eq('id', notification.id)
-    .eq('status', 'sent')
-    .order('created_at', { ascending: false })
-    .limit(1);
-
-  if (!existing || existing.length === 0) {
-    return true; // 첫 알림
-  }
-
-  const lastSent = new Date(existing[0].created_at);
-  const now = new Date();
-  const daysSinceLastSent = differenceInDays(now, lastSent);
-
+  // Mock 모드: 간단한 발송 여부 결정 로직
   switch (frequency) {
     case 'once':
-      return false; // 이미 한 번 발송됨
+      return Math.random() > 0.7; // 30% 확률로 발송
     case 'daily':
-      return daysSinceLastSent >= 1;
+      return true;
     case 'weekly':
-      return daysSinceLastSent >= 7;
+      return notification.daysRemaining % 7 === 0;
     default:
       return false;
   }
+}
+
+/**
+ * 이상 감지용 모의 거래 데이터 생성
+ */
+function generateMockTransactionsForAnomalyDetection() {
+  return [
+    // 정상 거래
+    { id: '1', supplier_name: '일반 거래처', total_amount: 100000, transaction_date: '2024-09-01', supply_amount: 90909, vat_amount: 9091 },
+    { id: '2', supplier_name: '일반 거래처', total_amount: 110000, transaction_date: '2024-09-02', supply_amount: 100000, vat_amount: 10000 },
+    
+    // 중복 거래 (이상)
+    { id: '3', supplier_name: '중복 거래처', total_amount: 200000, transaction_date: '2024-09-03', supply_amount: 181818, vat_amount: 18182 },
+    { id: '4', supplier_name: '중복 거래처', total_amount: 200000, transaction_date: '2024-09-03', supply_amount: 181818, vat_amount: 18182 },
+    
+    // 비정상 금액 (너무 큰 금액)
+    { id: '5', supplier_name: '특별 거래처', total_amount: 5000000, transaction_date: '2024-09-04', supply_amount: 4545455, vat_amount: 454545 },
+    
+    // 부가세 누락
+    { id: '6', supplier_name: '면세 거래처', total_amount: 150000, transaction_date: '2024-09-05', supply_amount: 150000, vat_amount: null },
+    
+    // 미래 날짜 거래
+    { id: '7', supplier_name: '미래 거래처', total_amount: 120000, transaction_date: '2025-12-31', supply_amount: 109091, vat_amount: 10909 }
+  ];
+}
+
+/**
+ * 모의 알림 히스토리 생성
+ */
+function generateMockNotificationHistory(limit: number): TaxNotification[] {
+  const notifications: TaxNotification[] = [];
+  const types: TaxNotification['type'][] = ['vat_filing', 'income_tax', 'report_reminder', 'anomaly_alert'];
+  const priorities: TaxNotification['priority'][] = ['low', 'medium', 'high', 'critical'];
+  const statuses: TaxNotification['status'][] = ['pending', 'sent', 'acknowledged', 'completed'];
+  
+  for (let i = 0; i < Math.min(limit, 20); i++) {
+    const dueDate = new Date();
+    dueDate.setDate(dueDate.getDate() + Math.floor(Math.random() * 30) + 1);
+    
+    notifications.push({
+      id: `mock-notification-${i}`,
+      type: types[Math.floor(Math.random() * types.length)],
+      title: `테스트 알림 ${i + 1}`,
+      message: `이것은 테스트용 세무 알림입니다. 마감일: ${dueDate.toLocaleDateString()}`,
+      dueDate,
+      daysRemaining: Math.floor(Math.random() * 30) + 1,
+      priority: priorities[Math.floor(Math.random() * priorities.length)],
+      status: statuses[Math.floor(Math.random() * statuses.length)],
+      createdAt: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000),
+      metadata: { year: 2024, quarter: Math.floor(Math.random() * 4) + 1 }
+    });
+  }
+  
+  return notifications.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
 }
